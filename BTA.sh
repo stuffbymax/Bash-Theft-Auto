@@ -231,7 +231,7 @@ work_performer() {
 }
 
 # Function for street racing
-street_race() {
+work_race() {
     echo "You are participating in a street race in $location..."
     sleep 2
     if (( RANDOM % 2 == 0 )); then
@@ -531,7 +531,7 @@ while true; do
                3) work_mechanic;;
                4) work_security;;
                5) work_performer;;
-               6) Street Performer;;
+               6) work_race;;
                7) clear_screen;;
                *) echo "Invalid job choice.";;
            esac
