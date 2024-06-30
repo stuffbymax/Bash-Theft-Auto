@@ -471,7 +471,8 @@ load_game() {
 }
 
 # Game variables
-player_name="The Player"
+clear_screen
+read -p "Enter your player name: " player_name
 location="Los Santos"
 cash=100
 health=100
