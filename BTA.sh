@@ -442,6 +442,107 @@ hospitalize_player() {
     #check_health
 #}
 
+# Function to buy drugs
+buy_drugs() {
+    clear_screen
+    echo "Drug Dealer - Choose a drug to buy:"
+    echo "1. Weed ($10/unit)"
+    echo "2. Cocaine ($50/unit)"
+    echo "3. Heroin ($100/unit)"
+    echo "4. Meth ($75/unit)"
+    echo "5. Back to main menu"
+    read -p "Enter your choice: " drug_choice
+    read -p "Enter the amount you want to buy: " drug_amount
+    case $drug_choice in
+        1) cost=$((10 * drug_amount))
+           if (( cash >= cost )); then
+               cash=$((cash - cost))
+               drugs["Weed"]=$((drugs["Weed"] + drug_amount))
+               echo "You bought $drug_amount units of Weed."
+           else
+               echo "Not enough cash to buy Weed."
+           fi;;
+        2) cost=$((50 * drug_amount))
+           if (( cash >= cost )); then
+               cash=$((cash - cost))
+               drugs["Cocaine"]=$((drugs["Cocaine"] + drug_amount))
+               echo "You bought $drug_amount units of Cocaine."
+           else
+               echo "Not enough cash to buy Cocaine."
+           fi;;
+        3) cost=$((100 * drug_amount))
+           if (( cash >= cost )); then
+               cash=$((cash - cost))
+               drugs["Heroin"]=$((drugs["Heroin"] + drug_amount))
+               echo "You bought $drug_amount units of Heroin."
+           else
+               echo "Not enough cash to buy Heroin."
+           fi;;
+        4) cost=$((75 * drug_amount))
+           if (( cash >= cost )); then
+               cash=$((cash - cost))
+               drugs["Meth"]=$((drugs["Meth"] + drug_amount))
+               echo "You bought $drug_amount units of Meth."
+           else
+               echo "Not enough cash to buy Meth."
+           fi;;
+        5) clear_screen;;
+        *) echo "Invalid choice.";;
+    esac
+    sleep 2
+    clear_screen
+}
+
+# Function to sell drugs
+sell_drugs() {
+    clear_screen
+    echo "Drug Dealer - Choose a drug to sell:"
+    echo "1. Weed"
+    echo "2. Cocaine"
+    echo "3. Heroin"
+    echo "4. Meth"
+    echo "5. Back to main menu"
+    read -p "Enter your choice: " drug_choice
+    read -p "Enter the amount you want to sell: " drug_amount
+    case $drug_choice in
+        1) if (( drugs["Weed"] >= drug_amount )); then
+               cash=$((cash + 15 * drug_amount))
+               drugs["Weed"]=$((drugs["Weed"] - drug_amount))
+               echo "You sold $drug_amount units of Weed."
+           else
+               echo "Not enough Weed to sell."
+           fi;;
+        2) if (( drugs["Cocaine"] >= drug_amount )); then
+               cash=$((cash + 75 * drug_amount))
+               drugs["Cocaine"]=$((drugs["Cocaine"] - drug_amount))
+               echo "You sold $drug_amount units of Cocaine."
+           else
+               echo "Not enough Cocaine to sell."
+           fi;;
+        3) if (( drugs["Heroin"] >= drug_amount )); then
+               cash=$((cash + 150 * drug_amount))
+               drugs["Heroin"]=$((drugs["Heroin"] - drug_amount))
+               echo "You sold $drug_amount units of Heroin."
+           else
+               echo "Not enough Heroin to sell."
+           fi;;
+        4) if (( drugs["Meth"] >= drug_amount )); then
+               cash=$((cash + 100 * drug_amount))
+               drugs["Meth"]=$((drugs["Meth"] - drug_amount))
+               echo "You sold $drug_amount units of Meth."
+           else
+               echo "Not enough Meth to sell."
+           fi;;
+        5) clear_screen;;
+        *) echo "Invalid choice.";;
+    esac
+    sleep 2
+    clear_screen
+}
+
+
+
+
 # Function to save the game state to a file
 save_game() {
     echo "$player_name" > savegame.txt
@@ -471,60 +572,57 @@ load_game() {
 }
 
 # Game variables
+Game_variables(){
 clear_screen
-read -p "Enter your player name: " player_name
-location="Los Santos"
-cash=100
-health=100
-guns=()
-items=()
-
-clear_screen
+    read -p "Enter your player name: " player_name
+    location="Los Santos"
+    cash=500
+    health=100
+    guns=()
+    items=()
+    declare -A drugs
+    drugs=( ["Weed"]=0 ["Cocaine"]=0 ["Heroin"]=0 ["Meth"]=0 )
+    clear_screen
+}
 
 # Main game loop
+Game_variables
 while true; do
-    echo "What do you want to do?"
-    echo "1. Go to another location"
-    echo "2. Work for money"
-    echo "3. Buy guns"
-    echo "4. Show inventory"
-    echo "5. Visit the hospital"
-    echo "6. Commit a crime"
-    echo "7. save game"
-    echo "8. load"
-    echo "9. Quit the game"
-
+    echo "Choose an action:"
+    echo "1. Travel to another city"
+    echo "2. Buy guns"
+    echo "3. Show inventory"
+    echo "4. Work (earn money)"
+    echo "5. Buy drugs"
+    echo "6. Sell drugs"
+    echo "7. Exit game"
     read -p "Enter your choice: " choice
 
     case $choice in
-        1) clear_screen
-           echo "Choose a location:"
-           echo "1. Los Santos ($20)"
-           echo "2. San Fierro ($30)"
-           echo "3. Las Venturas ($40)"
-           echo "4. Vice City ($50)"
-           echo "5. Liberty City ($60)"
-           echo "6 back to main menu"
-           read -p "Enter your choice: " location_choice
-           case $location_choice in
-               1) travel_to 20 "Los Santos";;
-               2) travel_to 30 "San Fierro";;
-               3) travel_to 40 "Las Venturas";;
-               4) travel_to 50 "Vice City";;
-               5) travel_to 60 "Liberty City";;
-               6) clear_screen;;
-               *) echo "Invalid location choice.";;
-           esac
-           ;;
-        2) clear_screen
-           echo "Choose a job to earn money in $location:"
-           echo "1. Taxi driver"
-           echo "2. Delivery driver"
+        1) echo "Choose a city to travel to:"
+           echo "1. Los Santos ($50)"
+           echo "2. San Fierro ($75)"
+           echo "3. Las Venturas ($100)"
+           echo "4. Vice City ($150)"
+           echo "5. Liberty City ($200)"
+           read -p "Enter your choice: " city_choice
+           case $city_choice in
+               1) travel_to 50 "Los Santos";;
+               2) travel_to 75 "San Fierro";;
+               3) travel_to 100 "Las Venturas";;
+               4) travel_to 150 "Vice City";;
+               5) travel_to 200 "Liberty City";;
+               *) echo "Invalid choice.";;
+           esac;;
+        2) buy_guns;;
+        3) show_inventory;;
+        4) echo "Choose a job:"
+           echo "1. Taxi Driver"
+           echo "2. Delivery Driver"
            echo "3. Mechanic"
-           echo "4. Security guard"
-           echo "5. Street performer"
-           echo "6. Street race"
-           echo "7. Back to main menu"
+           echo "4. Security Guard"
+           echo "5. Street Performer"
+           echo "6. Street Racing"
            read -p "Enter your choice: " job_choice
            case $job_choice in
                1) work_taxi;;
@@ -533,46 +631,15 @@ while true; do
                4) work_security;;
                5) work_performer;;
                6) work_race;;
-               7) clear_screen;;
-               *) echo "Invalid job choice.";;
-           esac
-           ;;
-        3) buy_guns;;
-        4) show_inventory;;
-        5) visit_hospital;;
-        6) clear_screen
-           echo "Choose a crime to commit in $location:"
-           echo "1. Rob a store"
-           echo "2. Participate in a heist"
-           echo "3. Start a gang war"
-           echo "4. Carjack a vehicle"
-           echo "5 back to main menu"
-           read -p "Enter your choice: " crime_choice
-           case $crime_choice in
-               1) rob_store;;
-               2) heist;;
-               3) gang_war;;
-               4) carjack;;
-               5) clear_screen;;
-               *) echo "Invalid crime choice.";;
-           esac
-           ;;
-        7) save_game
-           clear_screen
-           echo "saving game"
-           ;;
-        8) load_game
-           clear_screen
-           echo "loading game"
-           ;;
-        
-        9) clear_screen
-           echo "Exiting the game. Goodbye, $player_name!"
-           exit 0
-           ;;
-        *) clear_screen
-           echo "Invalid option. Please choose again."
-           ;;
+               *) echo "Invalid choice.";;
+           esac;;
+        5) buy_drugs;;
+        6) sell_drugs;;
+        7) echo "Thank you for playing!"
+           exit;;
+        *) echo "Invalid choice.";;
     esac
     #random_event
 done
+
+
