@@ -53,10 +53,10 @@ travel_to() {
 buy_guns() {
     clear_screen
     echo "Gun Store - Choose a gun to buy:"
-    echo "1. Pistol ($100)"
-    echo "2. Shotgun ($250)"
-    echo "3. SMG ($500)"
-    echo "4. Rifle ($750)"
+    echo "1. Pistol (100$)"
+    echo "2. Shotgun (250$)"
+    echo "3. SMG (500$)"
+    echo "4. Rifle (750$)"
     echo "5. Back to main menu"
     read -p "Enter your choice: " gun_choice
     case $gun_choice in
@@ -273,10 +273,10 @@ use_guns() {
 visit_hospital() {
     clear_screen
     echo "Hospital Services:"
-    echo "1. Basic Treatment ($50) - Full heal"
-    echo "2. Advanced Treatment ($100) - Full heal + 10% health boost"
-    echo "3. Buy Health Pack ($30) - Heal 25% health"
-    echo "4. Buy Body Armor ($75) - Reduce damage by 50% in next encounter"
+    echo "1. Basic Treatment (50$) - Full heal"
+    echo "2. Advanced Treatment (100$) - Full heal + 10% health boost"
+    echo "3. Buy Health Pack (30$) - Heal 25% health"
+    echo "4. Buy Body Armor (75$) - Reduce damage by 50% in next encounter"
     echo "5 back to main menu"
     read -p "Enter your choice: " hospital_choice
     case $hospital_choice in
@@ -474,10 +474,10 @@ hire_hooker() {
 buy_drugs() {
     clear_screen
     echo "Drug Dealer - Choose a drug to buy:"
-    echo "1. Weed ($10/unit)"
-    echo "2. Cocaine ($50/unit)"
-    echo "3. Heroin ($100/unit)"
-    echo "4. Meth ($75/unit)"
+    echo "1. Weed (10$/unit)"
+    echo "2. Cocaine (50$/unit)"
+    echo "3. Heroin (100$/unit)"
+    echo "4. Meth (75$/unit)"
     echo "5. Back to main menu"
     read -p "Enter your choice: " drug_choice
     read -p "Enter the amount you want to buy: " drug_amount
@@ -629,11 +629,11 @@ while true; do
 
     case $choice in
         1) echo "Choose a city to travel to:"
-           echo "1. Los Santos ($50)"
-           echo "2. San Fierro ($75)"
-           echo "3. Las Venturas ($100)"
-           echo "4. Vice City ($150)"
-           echo "5. Liberty City ($200)"
+           echo "1. Los Santos (50$)"
+           echo "2. San Fierro (75$)"
+           echo "3. Las Venturas (100$)"
+           echo "4. Vice City (150$)"
+           echo "5. Liberty City (200$)"
            read -p "Enter your choice: " city_choice
            case $city_choice in
                1) travel_to 50 "Los Santos";;
@@ -645,23 +645,24 @@ while true; do
            esac;;
         2) buy_guns;;
         3) show_inventory;;
-        4) echo "Choose a job:"
-           echo "1. Taxi Driver"
-           echo "2. Delivery Driver"
-           echo "3. Mechanic"
-           echo "4. Security Guard"
-           echo "5. Street Performer"
-           echo "6. Street Racing"
-           read -p "Enter your choice: " job_choice
-           case $job_choice in
-               1) work_taxi;;
-               2) work_delivery;;
-               3) work_mechanic;;
-               4) work_security;;
-               5) work_performer;;
-               6) work_race;;
-               *) echo "Invalid choice.";;
-           esac;;
+        4) clear # Clear the screen before showing job choices
+        echo "Choose a job:"
+        echo "1. Taxi Driver"
+        echo "2. Delivery Driver"
+        echo "3. Mechanic"
+        echo "4. Security Guard"
+        echo "5. Street Performer"
+        echo "6. Street Racing"
+        read -p "Enter your choice: " job_choice
+        case $job_choice in
+            1) work_taxi;;
+            2) work_delivery;;
+            3) work_mechanic;;
+            4) work_security;;
+            5) work_performer;;
+            6) work_race;;
+            *) echo "Invalid choice.";;
+        esac;;
         5) buy_drugs;;
         6) sell_drugs;;
         7) hire_hooker ;; 
