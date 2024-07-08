@@ -8,6 +8,10 @@ done
 # Start the loading animation
 start_loading_animation
 
+
+# Play background music
+#play_music
+
 # Function to clear the screen
 clear_screen() {
     clear
@@ -92,8 +96,8 @@ buy_guns() {
         5) clear_screen;;
         *) echo "Invalid choice.";;
     esac
-    sleep 2
-    clear_screen
+    sleep 1
+    
 }
 
 # Function to show inventory
@@ -105,7 +109,7 @@ show_inventory() {
     echo "Guns: ${guns[*]}"
     echo "Items: ${items[*]}"
     read -p "Press Enter to return to main menu."
-    clear_screen
+    
 }
 
 # Function for working as a taxi driver
@@ -314,7 +318,7 @@ visit_hospital() {
         *) echo "Invalid choice.";;
     esac
     sleep 2
-    clear_screen
+    
 }
 
 # Function for robbing a store
@@ -626,7 +630,8 @@ clear_screen
     echo "5. Buy drugs"
     echo "6. Sell drugs"
     echo "7. hire hooker"
-    echo "8. Exit game"
+    echo "8. visit hospital"
+    echo "9. Exit game"
     read -p "Enter your choice: " choice
 
     case $choice in
@@ -637,6 +642,7 @@ clear_screen
            echo "3. Las Venturas (100$)"
            echo "4. Vice City (150$)"
            echo "5. Liberty City (200$)"
+           echo "6. back to main menu"
            read -p "Enter your choice: " city_choice
            case $city_choice in
                1) travel_to 50 "Los Santos";;
@@ -644,6 +650,7 @@ clear_screen
                3) travel_to 100 "Las Venturas";;
                4) travel_to 150 "Vice City";;
                5) travel_to 200 "Liberty City";;
+               6) clear_screen
                *) echo "Invalid choice.";;
            esac;;
         2) buy_guns;;
@@ -671,7 +678,8 @@ clear_screen
         5) buy_drugs;;
         6) sell_drugs;;
         7) hire_hooker ;; 
-        8) echo "Thank you for playing!"
+        8) visit_hospital;;
+	    9) echo "Thank you for playing!"
            exit;;
         *) echo "Invalid choice.";;
     esac
