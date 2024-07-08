@@ -8,7 +8,7 @@ done
 # Start the loading animation
 start_loading_animation
 
-#it hides input fix it 
+
 # Play background music
 #play_music
 
@@ -650,7 +650,7 @@ clear_screen
                3) travel_to 100 "Las Venturas";;
                4) travel_to 150 "Vice City";;
                5) travel_to 200 "Liberty City";;
-               6) clear_screen
+               6) clear_screen;;
                *) echo "Invalid choice.";;
            esac;;
         2) buy_guns;;
