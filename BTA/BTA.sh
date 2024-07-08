@@ -7,6 +7,7 @@ done
 
 # Start the loading animation
 start_loading_animation
+
 # Function to clear the screen
 clear_screen() {
     clear
@@ -616,6 +617,7 @@ clear_screen
 # Main game loop
 Game_variables
 while true; do
+clear_screen
     echo "Choose an action:"
     echo "1. Travel to another city"
     echo "2. Buy guns"
@@ -628,7 +630,8 @@ while true; do
     read -p "Enter your choice: " choice
 
     case $choice in
-        1) echo "Choose a city to travel to:"
+        1) clear
+           echo "Choose a city to travel to:"
            echo "1. Los Santos (50$)"
            echo "2. San Fierro (75$)"
            echo "3. Las Venturas (100$)"
@@ -653,6 +656,7 @@ while true; do
         echo "4. Security Guard"
         echo "5. Street Performer"
         echo "6. Street Racing"
+        echo "7. back to main menu"
         read -p "Enter your choice: " job_choice
         case $job_choice in
             1) work_taxi;;
@@ -661,6 +665,7 @@ while true; do
             4) work_security;;
             5) work_performer;;
             6) work_race;;
+            7) clear_screen;;
             *) echo "Invalid choice.";;
         esac;;
         5) buy_drugs;;
