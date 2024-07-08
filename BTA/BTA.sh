@@ -8,7 +8,7 @@ done
 # Start the loading animation
 start_loading_animation
 
-
+#it hides input fix it 
 # Play background music
 #play_music
 
