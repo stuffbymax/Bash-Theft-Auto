@@ -418,6 +418,7 @@ hospitalize_player() {
 }
 
 
+#[needs fixing and polishing]
 
 # Function to encounter a random event
 #random_event() {
