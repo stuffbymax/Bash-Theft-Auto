@@ -1,4 +1,4 @@
-#!/bin/bash
+ #!/bin/bash
 
 # Include all plugins
 for plugin in plugins/*.sh; do
@@ -8,9 +8,6 @@ done
 # Start the loading animation
 start_loading_animation
 
-
-# Play background music
-#play_music
 
 # Function to clear the screen
 clear_screen() {
