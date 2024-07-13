@@ -625,11 +625,13 @@ clear_screen
     echo "2. Buy guns"
     echo "3. Show inventory"
     echo "4. Work (earn money)"
-    echo "5. Buy drugs"
-    echo "6. Sell drugs"
-    echo "7. hire hooker"
-    echo "8. visit hospital"
-    echo "9. Exit game"
+    echo "5. Work (criminal activity)"
+    echo "6. Buy drugs"
+    echo "7. Sell drugs"
+    echo "8. hire hooker"
+    echo "9. visit hospital"
+    echo "10. radio"
+    echo "11. Exit Gmame"
     read -p "Enter your choice: " choice
 
     case $choice in
@@ -673,12 +675,38 @@ clear_screen
             7) clear_screen;;
             *) echo "Invalid choice.";;
         esac;;
-        5) buy_drugs;;
-        6) sell_drugs;;
-        7) hire_hooker ;; 
-        8) visit_hospital;;
-	    9) echo "Thank you for playing!"
-           exit;;
+            5) clear
+           echo "Choose a criminal activity:"
+           echo "1. heist"
+           echo "2. gang war"
+           echo "3. carjack"
+           echo "4. back to main menu"
+           read -p "Enter your choice: " criminal_choice
+           case $criminal_choice in
+           1) heist;;
+           2) gang_war;;
+           3) carjack;;
+           4) clear_screen;;     
+           *) echo "Invalid choice.";;
+          esac;;
+        6) buy_drugs;;
+        7) sell_drugs;;
+        8) hire_hooker ;; 
+        9) visit_hospital;;
+	   10) echo "Radio control:"
+            echo "1. Next track"
+            echo "2. Previous track"
+            echo "3. Change station"
+            echo "4. Show current track"
+            read -p "Enter your choice: " radio_choice
+            case $radio_choice in
+                1) next_track;;
+                2) previous_track;;
+                3) change_station;;
+                4) show_current_track;;
+                *) echo "Invalid choice.";;
+            esac;;
+        11) exit;;
         *) echo "Invalid choice.";;
     esac
     #random_event
