@@ -630,8 +630,7 @@ clear_screen
     echo "7. Sell drugs"
     echo "8. hire hooker"
     echo "9. visit hospital"
-    echo "10. radio"
-    echo "11. Exit Gmame"
+    echo "10. Exit Gmame"
     read -p "Enter your choice: " choice
 
     case $choice in
@@ -693,20 +692,7 @@ clear_screen
         7) sell_drugs;;
         8) hire_hooker ;; 
         9) visit_hospital;;
-	   10) echo "Radio control:"
-            echo "1. Next track"
-            echo "2. Previous track"
-            echo "3. Change station"
-            echo "4. Show current track"
-            read -p "Enter your choice: " radio_choice
-            case $radio_choice in
-                1) next_track;;
-                2) previous_track;;
-                3) change_station;;
-                4) show_current_track;;
-                *) echo "Invalid choice.";;
-            esac;;
-        11) exit;;
+        10) exit;;
         *) echo "Invalid choice.";;
     esac
     #random_event
