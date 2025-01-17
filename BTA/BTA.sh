@@ -25,7 +25,7 @@ else
 fi
 
 # --- 2. Loading Animation ---
-start_loading_animation # Assuming this function exists in a plugin
+start_loading_animation # this function exists in a plugin
 
 # --- 3. Functions ---
 
@@ -44,7 +44,7 @@ clear_screen() {
 check_health() {
     if (( health <= 0 )); then
         echo "You have no health left! Transporting to hospital..."
-        sleep 2
+        read -p "Press Enter to continue..."
         hospitalize_player
     fi
 }
@@ -57,14 +57,14 @@ travel_to() {
     if (( cash >= travel_cost )); then
         echo "Traveling to $new_location..."
         cash=$((cash - travel_cost))
-        sleep 1
+        read -p "Press Enter to continue..."
         location="$new_location"
         clear_screen
         echo "You have arrived at $location."
          show_location_info "$location"
     else
         echo "Not enough cash to travel to $new_location."
-        sleep 1
+         read -p "Press Enter to continue..."
         clear_screen
     fi
 }
@@ -78,10 +78,10 @@ buy_guns() {
     echo "3. SMG (500$)"
     echo "4. Rifle (750$)"
     echo "5. Back to main menu"
-    read -p "Enter your choice: " gun_choice
+    read -p "Enter your choice (number): " gun_choice
     if ! [[ "$gun_choice" =~ ^[0-9]+$ ]]; then
-           echo "Invalid input. Please enter a number."
-           sleep 2
+           echo "Invalid input. Please enter a number from the menu."
+            read -p "Press Enter to continue..."
            return  # Go back to menu
         fi
     case $gun_choice in
@@ -89,34 +89,42 @@ buy_guns() {
                cash=$((cash - 100))
                guns+=("Pistol")
                echo "You bought a Pistol."
+                read -p "Press Enter to continue..."
            else
                echo "Not enough cash to buy a Pistol."
+               read -p "Press Enter to continue..."
            fi;;
         2) if (( cash >= 250 )); then
                cash=$((cash - 250))
                guns+=("Shotgun")
                echo "You bought a Shotgun."
+                read -p "Press Enter to continue..."
            else
                echo "Not enough cash to buy a Shotgun."
+                read -p "Press Enter to continue..."
            fi;;
         3) if (( cash >= 500 )); then
                cash=$((cash - 500))
                guns+=("SMG")
                echo "You bought an SMG."
+                read -p "Press Enter to continue..."
            else
                echo "Not enough cash to buy an SMG."
+                read -p "Press Enter to continue..."
            fi;;
         4) if (( cash >= 750 )); then
                cash=$((cash - 750))
                guns+=("Rifle")
                echo "You bought a Rifle."
+                read -p "Press Enter to continue..."
            else
                echo "Not enough cash to buy a Rifle."
+                read -p "Press Enter to continue..."
            fi;;
         5) clear_screen;;
         *) echo "Invalid choice.";;
     esac
-    sleep 1
+
 }
 
 # Function to show inventory
@@ -137,7 +145,7 @@ show_inventory() {
 # Function for working as a taxi driver
 work_taxi() {
     echo "You are working as a taxi driver in $location..."
-    sleep 2
+      read -p "Press Enter to continue..."
     local earnings #Use local variables
     case $location in
         "Los Santos")
@@ -159,12 +167,13 @@ work_taxi() {
     cash=$((cash + earnings))
     clear_screen
     echo "You earned $earnings dollars. You now have $cash dollars."
+    read -p "Press Enter to continue..."
 }
 
 # Function for working as a delivery driver
 work_delivery() {
     echo "You are working as a delivery driver in $location..."
-    sleep 2
+       read -p "Press Enter to continue..."
     local earnings #Use local variables
     case $location in
         "Los Santos")
@@ -186,12 +195,14 @@ work_delivery() {
     cash=$((cash + earnings))
     clear_screen
     echo "You earned $earnings dollars. You now have $cash dollars."
+      read -p "Press Enter to continue..."
 }
+
 
 # Function for working as a mechanic
 work_mechanic() {
     echo "You are working as a mechanic in $location..."
-    sleep 2
+       read -p "Press Enter to continue..."
     local earnings #Use local variables
     case $location in
         "Los Santos")
@@ -213,12 +224,13 @@ work_mechanic() {
     cash=$((cash + earnings))
     clear_screen
     echo "You earned $earnings dollars. You now have $cash dollars."
+       read -p "Press Enter to continue..."
 }
 
 # Function for working as a security guard
 work_security() {
     echo "You are working as a security guard in $location..."
-    sleep 2
+        read -p "Press Enter to continue..."
     local earnings #Use local variables
     case $location in
         "Los Santos")
@@ -240,12 +252,13 @@ work_security() {
     cash=$((cash + earnings))
     clear_screen
     echo "You earned $earnings dollars. You now have $cash dollars."
+      read -p "Press Enter to continue..."
 }
 
 # Function for working as a street performer
 work_performer() {
     echo "You are working as a street performer in $location..."
-    sleep 2
+         read -p "Press Enter to continue..."
     local earnings #Use local variables
     case $location in
         "Los Santos")
@@ -267,12 +280,13 @@ work_performer() {
     cash=$((cash + earnings))
     clear_screen
     echo "You earned $earnings dollars. You now have $cash dollars."
+       read -p "Press Enter to continue..."
 }
 
 # Function for street racing
 work_race() {
     echo "You are participating in a street race in $location..."
-    sleep 2
+        read -p "Press Enter to continue..."
     local winnings #Use local variables
     local damage #Use local variables
     if (( RANDOM % 2 == 0 )); then
@@ -288,6 +302,7 @@ work_race() {
         check_health
         clear_screen
         echo "You won the street race and got $winnings dollars, but lost $damage% health. You now have $cash dollars and $health% health."
+            read -p "Press Enter to continue..."
     else
         damage=$((RANDOM % 40 + 20))  # Random damage between 20% to 60%
          if $body_armor_equipped; then
@@ -299,6 +314,7 @@ work_race() {
         check_health
         clear_screen
         echo "You lost the street race and took $damage% damage. You now have $health% health."
+           read -p "Press Enter to continue..."
     fi
 }
 
@@ -306,10 +322,10 @@ work_race() {
 use_guns() {
     if [[ " ${guns[*]} " == *" $1 "* ]]; then
         echo "You used your $1 for this job."
-        sleep 1
+        read -p "Press Enter to continue..."
     else
         echo "You don't have a $1. Job failed."
-        sleep 1
+        read -p "Press Enter to continue..."
     fi
 }
 
@@ -322,10 +338,10 @@ visit_hospital() {
     echo "3. Buy Health Pack (30$) - Heal 25% health"
     echo "4. Buy Body Armor (75$) - Reduce damage by 50% in next encounter"
     echo "5. Back to main menu"
-    read -p "Enter your choice: " hospital_choice
+    read -p "Enter your choice (number): " hospital_choice
      if ! [[ "$hospital_choice" =~ ^[0-9]+$ ]]; then
-           echo "Invalid input. Please enter a number."
-           sleep 2
+           echo "Invalid input. Please enter a number from the menu."
+            read -p "Press Enter to continue..."
            return  # Go back to menu
         fi
     case $hospital_choice in
@@ -333,8 +349,10 @@ visit_hospital() {
                cash=$((cash - 50))
                health=100
                echo "You received basic treatment and are fully healed."
+                read -p "Press Enter to continue..."
            else
                echo "Not enough cash for basic treatment."
+                read -p "Press Enter to continue..."
            fi;;
         2) if (( cash >= 100 )); then
                cash=$((cash - 100))
@@ -343,33 +361,38 @@ visit_hospital() {
                  health=100
                fi
                echo "You received advanced treatment and are fully healed with a health boost."
+                read -p "Press Enter to continue..."
            else
                echo "Not enough cash for advanced treatment."
+               read -p "Press Enter to continue..."
            fi;;
         3) if (( cash >= 30 )); then
                cash=$((cash - 30))
                items+=("Health Pack")
                echo "You bought a Health Pack."
+                read -p "Press Enter to continue..."
            else
                echo "Not enough cash to buy a Health Pack."
+                read -p "Press Enter to continue..."
            fi;;
         4) if (( cash >= 75 )); then
                cash=$((cash - 75))
                body_armor_equipped=true
                echo "You bought Body Armor."
+                read -p "Press Enter to continue..."
            else
                echo "Not enough cash to buy Body Armor."
+                read -p "Press Enter to continue..."
            fi;;
         5) clear_screen;;
         *) echo "Invalid choice.";;
     esac
-    sleep 2
 }
 
 # Function for robbing a store
 rob_store() {
     echo "Attempting to rob a store in $location..."
-    sleep 2
+        read -p "Press Enter to continue..."
     local loot #Use local variables
     local damage #Use local variables
     local fine #Use local variables
@@ -386,18 +409,20 @@ rob_store() {
         check_health
         clear_screen
         echo "You successfully robbed the store and got $loot dollars, but lost $damage% health. You now have $cash dollars and $health% health."
+         read -p "Press Enter to continue..."
     else
         fine=$((RANDOM % 50 + 25))  # Random fine between $25 to $75
         cash=$((cash - fine))
         clear_screen
         echo "You got caught and fined $fine dollars. You now have $cash dollars."
+          read -p "Press Enter to continue..."
     fi
 }
 
 # Function for participating in a heist
 heist() {
     echo "Planning a heist in $location..."
-    sleep 2
+    read -p "Press Enter to continue..."
     local loot #Use local variables
     local damage #Use local variables
     local fine #Use local variables
@@ -414,18 +439,20 @@ heist() {
         check_health
         clear_screen
         echo "The heist was successful! You got $loot dollars, but lost $damage% health. You now have $cash dollars and $health% health."
+          read -p "Press Enter to continue..."
     else
         fine=$((RANDOM % 100 + 50))  # Random fine between $50 to $150
         cash=$((cash - fine))
         clear_screen
         echo "The heist failed and you got caught, losing $fine dollars. You now have $cash dollars."
+          read -p "Press Enter to continue..."
     fi
 }
 
 # Function for gang wars
 gang_war() {
     echo "Starting a gang war in $location..."
-    sleep 2
+         read -p "Press Enter to continue..."
     local loot #Use local variables
     local damage #Use local variables
     local fine #Use local variables
@@ -442,6 +469,7 @@ gang_war() {
         check_health
         clear_screen
         echo "You won the gang war and got $loot dollars, but lost $damage% health. You now have $cash dollars and $health% health."
+          read -p "Press Enter to continue..."
     else
         fine=$((RANDOM % 150 + 50))  # Random fine between $50 to $200
         cash=$((cash - fine))
@@ -455,13 +483,14 @@ gang_war() {
         check_health
         clear_screen
         echo "You lost the gang war, got fined $fine dollars, and lost $damage% health. You now have $cash dollars and $health% health."
+           read -p "Press Enter to continue..."
     fi
 }
 
 # Function for carjacking
 carjack() {
     echo "Attempting to carjack a vehicle in $location..."
-    sleep 2
+       read -p "Press Enter to continue..."
     local loot #Use local variables
     local damage #Use local variables
     local fine #Use local variables
@@ -478,11 +507,13 @@ carjack() {
         check_health
         clear_screen
         echo "You successfully carjacked a vehicle and got $loot dollars, but lost $damage% health. You now have $cash dollars and $health% health."
+        read -p "Press Enter to continue..."
     else
         fine=$((RANDOM % 75 + 25))  # Random fine between $25 to $100
         cash=$((cash - fine))
         clear_screen
         echo "You got caught and fined $fine dollars. You now have $cash dollars."
+        read -p "Press Enter to continue..."
     fi
 }
 
@@ -490,7 +521,7 @@ carjack() {
 hospitalize_player() {
     clear_screen
     echo "You have been hospitalized and are being treated..."
-    sleep 2
+    read -p "Press Enter to continue..."
     health=100
     clear_screen
     echo "You are fully healed but lost $200 for the treatment."
@@ -498,50 +529,50 @@ hospitalize_player() {
     if (( cash < 0 )); then
         cash=0
     fi
-    sleep 2
+    read -p "Press Enter to continue..."
     clear_screen
 }
 
 
-# Function to encounter a random event
-random_event() {
-    local event
-    local found_cash
-    local reward
-    event=$((RANDOM % 4))
-    case $event in
-        0) echo "You encountered a mugger!"
-           if $body_armor_equipped; then
-               echo "Your body armor reduced the damage!"
-               health=$((health - 10))
-               body_armor_equipped=false
-           else
-               health=$((health - 20))
-           fi
-           ;;
-        1) echo "You found a hidden stash of cash!"
-            found_cash=$((RANDOM % 100 + 50))
-            cash=$((cash + found_cash))
-            echo "You found $found_cash dollars."
-            ;;
-        2) echo "You helped a stranded motorist and earned a reward!"
-           reward=$((RANDOM % 50 + 20))
-           cash=$((cash + reward))
-           echo "You received $reward dollars."
-           ;;
-        3) echo "You got caught in a minor accident!"
-            health=$((health - 15))
-            ;;
-    esac
-    sleep 2
-    clear_screen
-    check_health
-}
+#~ # Function to encounter a random event
+#~ random_event() {
+    #~ local event
+    #~ local found_cash
+    #~ local reward
+    #~ event=$((RANDOM % 4))
+    #~ case $event in
+        #~ 0) echo "You encountered a mugger!"
+           #~ if $body_armor_equipped; then
+               #~ echo "Your body armor reduced the damage!"
+               #~ health=$((health - 10))
+               #~ body_armor_equipped=false
+           #~ else
+               #~ health=$((health - 20))
+           #~ fi
+           #~ ;;
+        #~ 1) echo "You found a hidden stash of cash!"
+            #~ found_cash=$((RANDOM % 100 + 50))
+            #~ cash=$((cash + found_cash))
+            #~ echo "You found $found_cash dollars."
+            #~ ;;
+        #~ 2) echo "You helped a stranded motorist and earned a reward!"
+           #~ reward=$((RANDOM % 50 + 20))
+           #~ cash=$((cash + reward))
+           #~ echo "You received $reward dollars."
+           #~ ;;
+        #~ 3) echo "You got caught in a minor accident!"
+            #~ health=$((health - 15))
+            #~ ;;
+    #~ esac
+    #~ read -p "Press Enter to continue..."
+    #~ clear_screen
+    #~ check_health
+#~ }
 
 # Function to hire a hooker
 hire_hooker() {
     echo "You are looking for a hooker in $location..."
-    sleep 2
+          read -p "Press Enter to continue..."
     local hooker_cost #Use local variables
     local health_gain #Use local variables
     hooker_cost=$((RANDOM % 100 + 50))  # Random cost between $50 to $150
@@ -554,11 +585,13 @@ hire_hooker() {
         fi
         clear_screen
         echo "You hired a hooker for $hooker_cost dollars and gained $health_gain% health. You now have $cash dollars and $health% health."
+           read -p "Press Enter to continue..."
     else
         clear_screen
         echo "Not enough cash to hire a hooker."
+            read -p "Press Enter to continue..."
     fi
-    sleep 2
+
     clear_screen
 }
 
@@ -571,16 +604,16 @@ buy_drugs() {
     echo "3. Heroin (100$/unit)"
     echo "4. Meth (75$/unit)"
     echo "5. Back to main menu"
-    read -p "Enter your choice: " drug_choice
+    read -p "Enter your choice (number): " drug_choice
     if ! [[ "$drug_choice" =~ ^[0-9]+$ ]]; then
-           echo "Invalid input. Please enter a number."
-           sleep 2
+           echo "Invalid input. Please enter a number from the menu."
+            read -p "Press Enter to continue..."
            return  # Go back to menu
         fi
     read -p "Enter the amount you want to buy: " drug_amount
       if ! [[ "$drug_amount" =~ ^[0-9]+$ ]]; then
            echo "Invalid input. Please enter a number."
-           sleep 2
+            read -p "Press Enter to continue..."
            return  # Go back to menu
         fi
 
@@ -592,37 +625,44 @@ buy_drugs() {
                cash=$((cash - cost))
                drugs["Weed"]=$((drugs["Weed"] + drug_amount))
                echo "You bought $drug_amount units of Weed."
+               read -p "Press Enter to continue..."
            else
                echo "Not enough cash to buy Weed."
+              read -p "Press Enter to continue..."
            fi;;
         2) cost=$((50 * drug_amount))
            if (( cash >= cost )); then
                cash=$((cash - cost))
                drugs["Cocaine"]=$((drugs["Cocaine"] + drug_amount))
                echo "You bought $drug_amount units of Cocaine."
+                  read -p "Press Enter to continue..."
            else
                echo "Not enough cash to buy Cocaine."
+                  read -p "Press Enter to continue..."
            fi;;
         3) cost=$((100 * drug_amount))
            if (( cash >= cost )); then
                cash=$((cash - cost))
                drugs["Heroin"]=$((drugs["Heroin"] + drug_amount))
                echo "You bought $drug_amount units of Heroin."
+                  read -p "Press Enter to continue..."
            else
                echo "Not enough cash to buy Heroin."
+                    read -p "Press Enter to continue..."
            fi;;
         4) cost=$((75 * drug_amount))
            if (( cash >= cost )); then
                cash=$((cash - cost))
                drugs["Meth"]=$((drugs["Meth"] + drug_amount))
                echo "You bought $drug_amount units of Meth."
+                    read -p "Press Enter to continue..."
            else
                echo "Not enough cash to buy Meth."
+                  read -p "Press Enter to continue..."
            fi;;
         5) clear_screen;;
         *) echo "Invalid choice.";;
     esac
-    sleep 2
     clear_screen
 }
 
@@ -635,16 +675,16 @@ sell_drugs() {
     echo "3. Heroin"
     echo "4. Meth"
     echo "5. Back to main menu"
-    read -p "Enter your choice: " drug_choice
-    if ! [[ "$drug_choice" =~ ^[0-9]+$ ]]; then
-           echo "Invalid input. Please enter a number."
-           sleep 2
+    read -p "Enter your choice (number): " drug_choice
+     if ! [[ "$drug_choice" =~ ^[0-9]+$ ]]; then
+           echo "Invalid input. Please enter a number from the menu."
+             read -p "Press Enter to continue..."
            return  # Go back to menu
         fi
     read -p "Enter the amount you want to sell: " drug_amount
-      if ! [[ "$drug_amount" =~ ^[0-9]+$ ]]; then
+    if ! [[ "$drug_amount" =~ ^[0-9]+$ ]]; then
            echo "Invalid input. Please enter a number."
-           sleep 2
+            read -p "Press Enter to continue..."
            return  # Go back to menu
         fi
     case $drug_choice in
@@ -652,37 +692,88 @@ sell_drugs() {
                cash=$((cash + 15 * drug_amount))
                drugs["Weed"]=$((drugs["Weed"] - drug_amount))
                echo "You sold $drug_amount units of Weed."
+                read -p "Press Enter to continue..."
            else
                echo "Not enough Weed to sell."
+                  read -p "Press Enter to continue..."
            fi;;
         2) if [[ -v "drugs[Cocaine]" ]] && (( drugs["Cocaine"] >= drug_amount )); then
                cash=$((cash + 75 * drug_amount))
                drugs["Cocaine"]=$((drugs["Cocaine"] - drug_amount))
                echo "You sold $drug_amount units of Cocaine."
+                   read -p "Press Enter to continue..."
            else
                echo "Not enough Cocaine to sell."
+                    read -p "Press Enter to continue..."
            fi;;
         3) if [[ -v "drugs[Heroin]" ]] && (( drugs["Heroin"] >= drug_amount )); then
                cash=$((cash + 150 * drug_amount))
                drugs["Heroin"]=$((drugs["Heroin"] - drug_amount))
                echo "You sold $drug_amount units of Heroin."
+                read -p "Press Enter to continue..."
            else
                echo "Not enough Heroin to sell."
+                 read -p "Press Enter to continue..."
            fi;;
         4) if [[ -v "drugs[Meth]" ]] && (( drugs["Meth"] >= drug_amount )); then
                cash=$((cash + 100 * drug_amount))
                drugs["Meth"]=$((drugs["Meth"] - drug_amount))
                echo "You sold $drug_amount units of Meth."
+               read -p "Press Enter to continue..."
            else
                echo "Not enough Meth to sell."
+                   read -p "Press Enter to continue..."
            fi;;
         5) clear_screen;;
         *) echo "Invalid choice.";;
     esac
-    sleep 2
-    clear_screen
+        clear_screen
 }
 
+# Function to play music
+play_music() {
+  local music_files=(
+    "music/platforma.mp3"
+    "music/the_loading_screen.mp3"
+  )
+  
+    while true; do
+        clear_screen
+        echo "Choose a song to play:"
+        for i in "${!music_files[@]}"; do
+            echo "$((i + 1)). $(basename "${music_files[$i]}")"
+        done
+       echo "press q to Stop Music"
+       echo "$(( ${#music_files[@]} + 1 )). Back to Main menu"
+        read -r music_choice
+        if ! [[ "$music_choice" =~ ^[0-9]+$ ]]; then
+            echo "Invalid input. Please enter a number."
+            sleep 2
+            continue # Go back to music player menu
+        fi
+
+        if (( music_choice <= ${#music_files[@]} )); then
+            local selected_track="${music_files[$((music_choice - 1))]}"
+            if [[ -f "$selected_track" ]]; then
+              echo "Playing: $(basename "$selected_track")"
+              mpg123 -q "$selected_track" # Run in foreground
+            else
+                echo "Error: Music file '$selected_track' not found."
+            sleep 2
+
+            fi
+
+        elif (( music_choice == ${#music_files[@]} + 1 )); then
+             pkill mpg123
+            clear_screen
+             break  # Exit the music player menu
+         else
+            echo "Invalid choice."
+            sleep 2
+        fi
+        
+    done
+}
 
 # Save the game state to a file
 save_game() {
@@ -753,12 +844,14 @@ while true; do
     echo "9. Visit hospital"
     echo "10. Exit Game"
     echo "11. Save Game"
-    echo "12. Load Game" # Added Load Game option
+    echo "12. Load Game"
+    echo "13. Play music" 
+    
     read -p "Enter your choice: " choice
     if ! [[ "$choice" =~ ^[0-9]+$ ]]; then
            echo "Invalid input. Please enter a number."
            sleep 2
-           continue  # Go back to menu
+           continue 
         fi
 
     case $choice in
@@ -836,8 +929,9 @@ while true; do
         8) hire_hooker ;;
         9) visit_hospital;;
         10) exit;;
-        11) save_game;; # Save game case
-        12) load_game;;  # Load game case
+        11) save_game;;
+        12) load_game;;
+        13) play_music;;
         *) echo "Invalid choice.";;
     esac
         #random_event # Added random_event in comment, It can be uncommented after the function is fixed and polished.
