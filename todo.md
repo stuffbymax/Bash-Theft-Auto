@@ -21,7 +21,7 @@
 
 10. Code Refactoring: Clean up and organise.
 
-11. add animations
+11. add animations [doing it]
 
 - Testing. Test for bugs and issues.
     

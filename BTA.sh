@@ -63,7 +63,6 @@ travel_to() {
         location="$new_location"
         clear_screen
         echo "You have arrived at $location."
-         show_location_info "$location"
     else
         echo "Not enough cash to travel to $new_location."
          read -p "Press Enter to continue..."
