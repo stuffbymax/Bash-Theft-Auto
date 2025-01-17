@@ -1,3 +1,5 @@
+- messages are too fast fix that first 
+
 1. Skill System: This adds a sense of character progression.
 
 2. Reputation System: This can make the world more dynamic.
