@@ -38,6 +38,9 @@
 10. **Logic:**
     *   Simplified nested `if` statements.
     *   Used `(( condition )) && action` syntax for concise conditional execution.
+    
+11. **tabs over spaces:**
+    *   used tabs for optimalization saved about 4KB
 
 **How to Use:**
 
