@@ -35,7 +35,7 @@ clear_screen() {
 	printf "Player: %s   Location: %s\n" "$player_name" "$location"
 	printf "Cash: %d dollars      Health: %d%%\n" "$cash" "$health"
 	printf "\e[1;34m-----------------------------------------\e[0m\n"
-	printf "\e[1;44m|        made by styffbymax             |\e[0m\n"
+	printf "\e[1;44m|        made by stuffbymax             |\e[0m\n"
 	printf "\e[1;34m-----------------------------------------\e[0m\n"
 }
 

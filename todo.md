@@ -19,7 +19,7 @@
 
 9. Advanced Input Handling: Polishes the user experience.
 
-10. Code Refactoring: Clean up and organise. [doing it]
+10. Code Refactoring: Clean up and organise. [completed]
 
 11. add animations [doing it]
 
