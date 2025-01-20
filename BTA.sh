@@ -734,9 +734,10 @@ sell_drugs() {
 # Function to play music
 play_music() {
   local music_files=(
-    "music/platforma.mp3"
-    "music/the_loading_screen.mp3"
-    "music/doom.mp3"
+	"music/platforma.mp3"
+	"music/the_loading_screen.mp3"
+	"music/doom.mp3"
+	"music/Jal.mp3"
   )
   
     while true; do
