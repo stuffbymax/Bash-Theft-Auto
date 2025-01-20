@@ -2,7 +2,9 @@
 1. add radio [completed] 
 
 1.2 fix save function [completed]
-  
+
+1.3 complete the save function dir  [doing it will be completed tomorow  note made in 01/20/2025]
+
 2. Skill System: This adds a sense of character progression.
 
 3. Reputation System: This can make the world more dynamic.
@@ -21,7 +23,7 @@
 
 10. Code Refactoring: Clean up and organise. [completed]
 
-11. add animations [doing it]
+11. add animations [doing it not realy :)]
 
 - Testing. Test for bugs and issues.
     

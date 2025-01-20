@@ -609,12 +609,12 @@
 
 # Save the game state to a file
 	save_game() {
-		echo "$player_name" > player_name.sav
-		echo "$location" > location.sav
-		echo "$cash" > cash.sav
+		echo "$player_name" > saves/player_name.sav
+		echo "$location" > saves/location.sav
+		echo "$cash" > saves/cash.sav
 		echo "$health" > health.sav
-		printf '%s\n' "${guns[@]}" > guns.sav
-		printf '%s\n' "${items[@]}" > items.sav
+		printf '%s\n' "${guns[@]}" > saves/guns.sav
+		printf '%s\n' "${items[@]}" > saves/items.sav
 
 		> drugs.sav
 		for key in "${!drugs[@]}"; do
