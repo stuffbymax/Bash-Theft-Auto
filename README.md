@@ -24,6 +24,7 @@ The game features several locations, a variety of jobs and crimes, drug dealing,
 ## Getting Started
 
 ### Prerequisites
+
 -   A Unix-like operating system (e.g., Linux, macOS) with `bash` installed.
 -   `mpg123` installed (for the music player).
     -   On Debian/Ubuntu: `sudo apt-get install mpg123`
@@ -33,19 +34,23 @@ The game features several locations, a variety of jobs and crimes, drug dealing,
 
 1.  **Download the Script:** Save the `bash` script to your local machine (e.g., `bash_theft_auto.sh`).
 2.  **Make the Script Executable:**
+
     ```bash
     chmod +x bash_theft_auto.sh
     ```
-3.  **Create Necessary Directories:**
+    
+4.  **IF DELITED Create Necessary Directories:**
+   
 	- Create a `plugins` directory for your plugins
 	- Create a `music` directory for your music files (must be .mp3 files)
 	- Create a `saves` directory for your save files
+
     ```bash
     mkdir plugins
 	mkdir music
 	mkdir saves
     ```
-4.  **Add music files** Put .mp3 files into the music folder. The game will randomly choose between the files in the folder.
+5.  **Add music files** Put .mp3 files into the music folder. The game will randomly choose between the files in the folder.
 
 ### How to Play
 

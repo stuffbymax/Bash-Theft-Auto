@@ -3,7 +3,7 @@
 
 1.2 fix save function [completed]
 
-1.3 complete the save function dir  [doing it will be completed tomorow  note made in 01/20/2025]
+1.3 complete the save function dir  [completed]
 
 2. Skill System: This adds a sense of character progression.
 

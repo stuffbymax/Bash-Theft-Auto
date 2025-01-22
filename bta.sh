@@ -612,29 +612,29 @@
 		echo "$player_name" > saves/player_name.sav
 		echo "$location" > saves/location.sav
 		echo "$cash" > saves/cash.sav
-		echo "$health" > health.sav
+		echo "$health" > saves/health.sav
 		printf '%s\n' "${guns[@]}" > saves/guns.sav
 		printf '%s\n' "${items[@]}" > saves/items.sav
 
-		> drugs.sav
+		> saves/drugs.sav
 		for key in "${!drugs[@]}"; do
-			printf "%s %s\n" "$key" "${drugs[$key]}" >> drugs.sav
+			printf "%s %s\n" "$key" "${drugs[$key]}" >> saves/drugs.sav
 		done
-		 echo "$body_armor_equipped" > body_armor_equipped.sav
+		 echo "$body_armor_equipped" > saves/body_armor_equipped.sav
 		echo "Game saved successfully."
 		read -r -p "Press Enter to continue..."
 	}
 
 # Load the game state from a file
 	load_game() {
-		if [[ -f player_name.sav && -f location.sav && -f cash.sav && -f health.sav && -f guns.sav && -f items.sav && -f body_armor_equipped.sav ]]; then
-			read -r player_name < player_name.sav
-			read -r location < location.sav
-			read -r cash < cash.sav
-			read -r health < health.sav
-			read -r -a guns < guns.sav
-			read -r -a items < items.sav
-			 read -r body_armor_equipped < body_armor_equipped.sav
+		if [[ -f saves/player_name.sav && -f saves/location.sav && -f saves/cash.sav && -f saves/health.sav && -f saves/guns.sav && -f saves/items.sav && -f saves/body_armor_equipped.sav ]]; then
+			read -r player_name < saves/player_name.sav
+			read -r location < saves/location.sav
+			read -r cash < saves/cash.sav
+			read -r health < saves/health.sav
+			read -r -a guns < saves/guns.sav
+			read -r -a items < saves/items.sav
+			 read -r body_armor_equipped < saves/body_armor_equipped.sav
 
 			declare -A drugs
 		   while IFS=$'\n' read -r line; do
@@ -642,7 +642,7 @@
 					IFS=$' ' read -r key value <<< "$line"
 					drugs["$key"]="$value"
 				fi
-			done < drugs.sav
+			done < saves/drugs.sav
 
 			echo "Game loaded successfully."
 			 read -r -p "Press Enter to continue..."
@@ -700,11 +700,10 @@
 				echo "Choose a city to travel to:"
 				echo "1. Los Santos (50$)"
 				echo "2. San Fierro (75$)"
-				echo "3. Las Venturas (100$)"
+				echo "3. Las Venturas (100$)"5
 				echo "4. Vice City (150$)"
 				echo "5. Liberty City (200$)"
 				echo "6. Back to main menu"
-				local city_choice
 				read -r -p "Enter your choice: " city_choice
 				 [[ ! "$city_choice" =~ ^[0-9]+$ ]] && {
 					   echo "Invalid input. Please enter a number."
