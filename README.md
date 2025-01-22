@@ -56,7 +56,7 @@ The game features several locations, a variety of jobs and crimes, drug dealing,
 
 1.  **Run the Script:**
     ```bash
-    ./bash_theft_auto.sh
+    ./bta.sh
     ```
 2.  **Follow the Prompts:** The game will guide you through the different actions and options available.
 3.  **Navigate Using Numbers:** Use the number keys on your keyboard to select options in the game menu.
