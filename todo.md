@@ -17,7 +17,7 @@
 
 7. Vehicle System Add another layer of complexity.
 
-8. Configuration Files: Makes it easier to tweak and modify.
+8. Configuration Files: Makes it easier to tweak and modify. [thechnicaly do to better save functions is easier tomodify]
 
 9. Advanced Input Handling: Polishes the user experience.
 
