@@ -18,33 +18,17 @@ SAVE_DIR="saves"
 # --- Sound Effects Setup ---
 sfx_dir="sfx"  # Directory for sound effects
 
-# Function to play sound effects (using aplay)
-play_sfx() {
-    local sound_file="$sfx_dir/$1.wav"  # Construct full path
-    if [[ -f "$sound_file" ]]; then
-        aplay -q "$sound_file" & # Play in background
-    else
-        echo "Sound file '$sound_file' not found!"
-    fi
-}
-# Function to play sound effects (using paplay)
-play_sfx_pulse() {
-    local sound_file="$sfx_dir/$1.wav"  # Construct full path
-    if [[ -f "$sound_file" ]]; then
-        paplay "$sound_file" & # Play in background
-    else
-        echo "Sound file '$sound_file' not found!"
-    fi
-}
-#if using mpg123
+#mpg123
 # Function to play sound effects (using mpg123)
 play_sfx_mpg() {
-    local sound_file="$sfx_dir/$1.mp3"  # Construct full path
-    if [[ -f "$sound_file" ]]; then
-        mpg123 -q "$sound_file" & # Play in background
-    else
-        echo "Sound file '$sound_file' not found!"
-    fi
+	local sound_file="$sfx_dir/$1.mp3"
+	if [[ -f "$sound_file" ]]; then
+		mpg123 -q "$sound_file" &
+		return 0  # Indicate success
+	else
+		echo "Sound file '$sound_file' not found!"
+		return 1  # Indicate failure
+	fi
 }
 
 # --- 1. Plugin Loading ---
@@ -192,6 +176,7 @@ work_job() {
 	case "$job_type" in
 		"taxi")
 			earnings=$((RANDOM % (max_earnings - min_earnings + 1) + min_earnings))
+			play_sfx_mpg "taxi"
 			;;
 		"delivery")
 			earnings=$((RANDOM % (max_earnings - min_earnings + 1) + min_earnings + 10))

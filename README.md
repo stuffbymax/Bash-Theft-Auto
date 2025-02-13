@@ -1,5 +1,11 @@
 # Bash Theft Auto
 
+
+## licensing
+
+[the code is under MIT](./LICENSE)
+[the Music and SFX is under CC-BY](https://creativecommons.org/licenses/by/4.0/) 
+
 ## Overview
 
 BashBash Theft Auto is a text-based adventure game implemented entirely in Bash. Inspired by classic open-world crime games, this script allows players to navigate a virtual world, earn money through legitimate jobs or criminal activities, purchase weapons and items, engage in dangerous encounters, and manage their health and inventory. 
