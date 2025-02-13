@@ -5,7 +5,7 @@
 
 1.3 complete the save function dir  [completed]
 
-2. Skill System: This adds a sense of character progression.
+2. Skill System: This adds a sense of character progression. [semi completed]
 
 3. Reputation System: This can make the world more dynamic.
 
@@ -25,6 +25,10 @@
 
 11. add animations [doing it not realy :)]
 
+12. add sfx [code added but sfx no] 
+
+# every time
+ 
 - Testing. Test for bugs and issues.
     
     
