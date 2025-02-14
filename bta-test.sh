@@ -73,7 +73,7 @@ travel_to() {
 
 	if (( cash >= travel_cost )); then
 		echo "Traveling to $new_location..."
-		play_sfx "car_travel" # Play a traveling sound
+		play_sfx_mpg "air"
 		cash=$((cash - travel_cost))
 		read -r -p "Press Enter to continue..."
 		location="$new_location"
