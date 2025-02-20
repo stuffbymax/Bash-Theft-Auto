@@ -1,5 +1,7 @@
+#Bash-Theft-Auto music and sfx © 2024 by stuffbymax - Martin Petik is licensed under CC BY 4.0 
+#https://creativecommons.org/licenses/by/4.0/
 #!/bin/bash
-#ver 1.9.7
+#ver 1.9.9
 
 # --- 0. Global Variables ---
 player_name=""
@@ -12,6 +14,22 @@ declare -A drugs
 declare -A skills
 body_armor_equipped=false
 SAVE_DIR="saves"
+
+# --- Sound Effects Setup ---
+sfx_dir="sfx"  # Directory for sound effects
+
+#mpg123
+# Function to play sound effects (using mpg123)
+play_sfx_mpg() {
+	local sound_file="$sfx_dir/$1.mp3"
+	if [[ -f "$sound_file" ]]; then
+		mpg123 -q "$sound_file" &
+		return 0  # Indicate success
+	else
+		echo "Sound file '$sound_file' not found!"
+		return 1  # Indicate failure
+	fi
+}
 
 # --- 1. Plugin Loading ---
 plugin_dir="plugins"
@@ -55,11 +73,18 @@ travel_to() {
 
 	if (( cash >= travel_cost )); then
 		echo "Traveling to $new_location..."
+		play_sfx_mpg "air"
+
+		# --- Air Travel Animation (Plugin Call) ---
+		air_travel_animation # Call the function in animation.sh
+		# --- End Air Travel Animation ---
+
 		cash=$((cash - travel_cost))
-		read -r -p "Press Enter to continue..."
+		# Remove the press enter prompt here, it is unnessecary with the animation
+
 		location="$new_location"
 		clear_screen
-		echo "You have arrived at $location."
+		echo "You have arrived at $new_location."
 	else
 		echo "Not enough cash to travel to $new_location."
 		read -r -p "Press Enter to continue..."
@@ -101,11 +126,14 @@ buy_guns() {
 buy_item() {
 	local item_name="$1"
 	local item_cost="$2"
+	
+	buy_animation
 
 	if (( cash >= item_cost )); then
 		cash=$((cash - item_cost))
 		guns+=("$item_name")
 		echo "You bought a $item_name."
+		play_sfx_mpg "cash_register" # Play a sound when buying a gun
 		read -r -p "Press Enter to continue..."
 	else
 		echo "Not enough cash to buy a $item_name."
@@ -156,18 +184,24 @@ work_job() {
 	case "$job_type" in
 		"taxi")
 			earnings=$((RANDOM % (max_earnings - min_earnings + 1) + min_earnings))
+			play_sfx_mpg "taxi"
+			working_animation
 			;;
 		"delivery")
 			earnings=$((RANDOM % (max_earnings - min_earnings + 1) + min_earnings + 10))
+			working_animation
 			;;
 		"mechanic")
 			earnings=$((RANDOM % (max_earnings - min_earnings + 1) + min_earnings + 20))
+			working_animation
 			;;
 		"security")
 			earnings=$((RANDOM % (max_earnings - min_earnings + 1) + min_earnings + 30))
+			working_animation
 			;;
 		"performer")
 			earnings=$((RANDOM % (max_earnings - min_earnings + 1) + min_earnings - 20))
+			working_animation
 			;;
 		"race") # Different logic for race
 			work_race
@@ -180,6 +214,7 @@ work_job() {
 	read -r -p "Press Enter to continue..."
 
 	cash=$((cash + earnings))
+	play_sfx_mpg "cash_register" # Play a working sound
 	clear_screen
 	printf "You earned %d dollars. You now have %d dollars.\n" "$earnings" "$cash"
 	read -r -p "Press Enter to continue..."
@@ -187,6 +222,7 @@ work_job() {
 
 # Function for street racing (separate function)
 work_race() {
+	working_animation
 	echo "You are participating in a street race in $location..."
 	read -r -p "Press Enter to continue..."
 	local winnings
@@ -207,6 +243,7 @@ work_race() {
 		check_health
 		clear_screen
 		printf "You won the street race and got %d dollars, but lost %d%% health. You now have %d dollars and %d%% health.\n" "$winnings" "$damage" "$cash" "$health"
+		play_sfx_mpg "win" # Play a winning sound
 		read -r -p "Press Enter to continue..."
 	else
 		damage=$((RANDOM % 41 + 20))
@@ -219,6 +256,7 @@ work_race() {
 		check_health
 		clear_screen
 		printf "You lost the street race and took %d%% damage. You now have %d%% health.\n" "$damage" "$health"
+		play_sfx_mpg "lose" # Play a losing sound
 		read -r -p "Press Enter to continue..."
 	fi
 }
@@ -227,6 +265,7 @@ work_race() {
 use_guns() {
 	if [[ " ${guns[*]} " == *" $1 "* ]]; then
 		echo "You used your $1 for this job."
+		play_sfx_mpg "gun_shot"  # Play a gunshot sound when using a gun
 		read -r -p "Press Enter to continue..."
 	else
 		echo "You don't have a $1. Job failed."
@@ -273,22 +312,26 @@ buy_hospital_item() {
 			"basic_treatment")
 				health=100
 				echo "You received basic treatment and are fully healed."
+				play_sfx_mpg "heal" # Play a healing sound
 				read -r -p "Press Enter to continue..."
 				;;
 			"advanced_treatment")
 				health=$((health + 10))
 				(( health > 100 )) && health=100
 				echo "You received advanced treatment and are fully healed with a health boost."
+				play_sfx_mpg "heal" # Play a healing sound
 				read -r -p "Press Enter to continue..."
 				;;
 			"health_pack")
 				items+=("Health Pack")
 				echo "You bought a Health Pack."
+				play_sfx_mpg "item_buy" # Play an item buying sound
 				read -r -p "Press Enter to continue..."
 				;;
 			"body_armor")
 				body_armor_equipped=true
 				echo "You bought Body Armor."
+				play_sfx_mpg "item_buy" # Play an item buying sound
 				read -r -p "Press Enter to continue..."
 				;;
 		esac
@@ -300,6 +343,7 @@ buy_hospital_item() {
 
 # Function for robbing a store
 rob_store() {
+	robbing_animation
 	echo "Attempting to rob a store in $location..."
 	read -r -p "Press Enter to continue..."
 	local loot
@@ -320,18 +364,21 @@ rob_store() {
 		check_health
 		clear_screen
 		printf "You successfully robbed the store and got %d dollars, but lost %d%% health. You now have %d dollars and %d%% health.\n" "$loot" "$damage" "$cash" "$health"
+		play_sfx_mpg "cash_register" # Play a robbing sound
 		read -r -p "Press Enter to continue..."
 	else
 		fine=$((RANDOM % 51 + 25))
 		cash=$((cash - fine))
 		clear_screen
 		printf "You got caught and fined %d dollars. You now have %d dollars.\n" "$fine" "$cash"
+		play_sfx_mpg "lose"  # Play a losing sound
 		read -r -p "Press Enter to continue..."
 	fi
 }
 
 # Function for participating in a heist
 heist() {
+	heist_animation
 	echo "Planning a heist in $location..."
 	read -r -p "Press Enter to continue..."
 	local loot
@@ -352,18 +399,21 @@ heist() {
 		check_health
 		clear_screen
 		printf "The heist was successful! You got %d dollars, but lost %d%% health. You now have %d dollars and %d%% health.\n" "$loot" "$damage" "$cash" "$health"
+		play_sfx_mpg "cash_register" # Play a heist sound
 		read -r -p "Press Enter to continue..."
 	else
 		fine=$((RANDOM % 101 + 50))
 		cash=$((cash - fine))
 		clear_screen
 		printf "The heist failed and you got caught, losing %d dollars. You now have %d dollars.\n" "$fine" "$cash"
+		play_sfx_mpg "lose"  # Play a losing sound
 		read -r -p "Press Enter to continue..."
 	fi
 }
 
 # Function for gang wars
 gang_war() {
+	gang_war_animation
 	echo "Starting a gang war in $location..."
 	read -r -p "Press Enter to continue..."
 	local loot
@@ -384,6 +434,7 @@ gang_war() {
 		check_health
 		clear_screen
 		printf "You won the gang war and got %d dollars, but lost %d%% health. You now have %d dollars and %d%% health.\n" "$loot" "$damage" "$cash" "$health"
+		play_sfx_mpg "win" # Play a gang war sound
 		read -r -p "Press Enter to continue..."
 	else
 		fine=$((RANDOM % 151 + 50))
@@ -398,12 +449,14 @@ gang_war() {
 		check_health
 		clear_screen
 		printf "You lost the gang war, got fined %d dollars, and lost %d%% health. You now have %d dollars and %d%% health.\n" "$fine" "$damage" "$cash" "$health"
+		play_sfx_mpg "lose"  # Play a losing sound
 		read -r -p "Press Enter to continue..."
 	fi
 }
 
 # Function for carjacking
 carjack() {
+	carjacking_animation
 	echo "Attempting to carjack a vehicle in $location..."
 	read -r -p "Press Enter to continue..."
 	local loot
@@ -426,12 +479,14 @@ carjack() {
 		check_health
 		clear_screen
 		printf "You successfully carjacked a vehicle and got %d dollars, but lost %d%% health. You now have %d dollars and %d%% health.\n" "$loot" "$damage" "$cash" "$health"
+		play_sfx_mpg "car_start" # Play a car jacking sound
 		read -r -p "Press Enter to continue..."
 	else
 		fine=$((RANDOM % 76 + 25))
 		cash=$((cash - fine))
 		clear_screen
 		printf "You got caught and fined %d dollars. You now have %d dollars.\n" "$fine" "$cash"
+		play_sfx_mpg "lose"  # Play a losing sound
 		read -r -p "Press Enter to continue..."
 	fi
 }
@@ -468,6 +523,7 @@ hire_hooker() {
 		(( health > 100 )) && health=100
 		clear_screen
 		printf "You hired a hooker for %d dollars and gained %d%% health. You now have %d dollars and %d%% health.\n" "$hooker_cost" "$health_gain" "$cash" "$health"
+		play_sfx_mpg "hooker" # Play a hooker sound
 		read -r -p "Press Enter to continue..."
 	else
 		clear_screen
@@ -514,6 +570,7 @@ buy_drugs() {
 
 # Helper function for buying drugs
 buy_drug() {
+	drug_transaction_animation
 	local drug_name="$1"
 	local drug_price="$2"
 	local drug_amount="$3"
@@ -522,6 +579,7 @@ buy_drug() {
 		cash=$((cash - cost))
 		drugs["$drug_name"]=$((drugs["$drug_name"] + drug_amount))
 		printf "You bought %s units of %s.\n" "$drug_amount" "$drug_name"
+		play_sfx_mpg "cash_register"  # Play a buying drugs sound
 		read -r -p "Press Enter to continue..."
 	else
 		echo "Not enough cash to buy $drug_name."
@@ -531,6 +589,7 @@ buy_drug() {
 
 # Function to sell drugs
 sell_drugs() {
+	drug_transaction_animation
 	local drug_choice drug_amount
 	clear_screen
 	echo "Drug Dealer - Choose a drug to sell:"
@@ -577,7 +636,7 @@ sell_drug() {
 		cash=$((cash + adjusted_price * drug_amount))
 		drugs["$drug_name"]=$((drugs["$drug_name"] - drug_amount))
 		printf "You sold %s units of %s for %d dollars (adjusted for your drug dealing skill).\n" "$drug_amount" "$drug_name" "$((adjusted_price * drug_amount))"
-
+        play_sfx_mpg "cash_register"  # Play a buying drugs sound
 		# Increase drug dealer skill
 		skills["drug_dealer"]=$((drug_dealer_skill + 1)) # Simple increase
 		echo "Your drug dealing skill has increased!"
@@ -701,6 +760,7 @@ load_game() {
 Game_variables() {
 	clear_screen
 	read -r -p "Enter your player name: " player_name
+    play_sfx_mpg "new_game" # Play a New Game sound
 	location="Los Santos"
 	cash=500
 	health=100
@@ -833,7 +893,8 @@ echo "Choose a criminal activity:"
 echo "1. Heist"
 echo "2. Gang war"
 echo "3. Carjack"
-echo "4. Back to main menu"
+echo "4. Carjack"
+echo "5. Back to main menu"
 read -r -p "Enter your choice: " criminal_choice
 [[ ! "$criminal_choice" =~ ^[0-9]+$ ]] && {
 	echo "Invalid input. Please enter a number."
@@ -844,7 +905,8 @@ case "$criminal_choice" in
 1) heist;;
 2) gang_war;;
 3) carjack;;
-4) clear_screen;;
+4) rob_store;;
+5) clear_screen;;
 *) echo "Invalid choice.";;
  esac;;
 6) buy_drugs;;
