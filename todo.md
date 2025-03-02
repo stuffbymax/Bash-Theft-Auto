@@ -23,9 +23,9 @@
 
 10. Code Refactoring: Clean up and organise. [completed]
 
-11. add animations [doing it not realy :)]
+11. add animations [Completed need update tho]
 
-12. add sfx [code added but sfx no] 
+12. add sfx [code added but only some sfx ] 
 
 # every time
  
