@@ -1,7 +1,7 @@
 #Bash-Theft-Auto music and sfx © 2024 by stuffbymax - Martin Petik is licensed under CC BY 4.0 
 #https://creativecommons.org/licenses/by/4.0/
 #!/bin/bash
-#ver 1.9.9-b
+#ver 2.0.0
 
 # --- 0. Global Variables ---
 player_name=""
@@ -345,33 +345,71 @@ buy_hospital_item() {
 rob_store() {
 	robbing_animation
 	echo "Attempting to rob a store in $location..."
+
+	local stealth_skill=$((skills["stealth"] * 5)) # Base stealth skill
+
+	if (( ${#guns[@]} > 0 )); then
+		echo "Do you want to use a gun? (y/n)"
+		read -r use_gun
+
+	if [[ "$use_gun" == "y" || "$use_gun" == "Y" ]]; then
+			echo "Which gun do you want to use? (Enter the gun name)"
+			echo "Available guns: ${guns[*]}"
+			read -r chosen_gun
+
+			# Check if the player has that gun
+			gun_found=false
+			for gun in "${guns[@]}"; do
+				if [[ "$gun" == "$chosen_gun" ]]; then
+					gun_found=true
+					break
+				fi
+			done
+
+			if $gun_found; then
+				echo "You used the $chosen_gun!"
+				play_sfx_mpg "gun_shot"  # Play a gunshot sound
+
+				# Success chance is increased when using gun
+				stealth_skill=$((stealth_skill + 20))  # The Gun gives you + 20% chance
+			else
+				echo "You don't have that gun!"
+			fi
+		else
+			echo "Proceeding without a gun."
+		fi
+	else
+		echo "You don't have any guns!"
+	fi
+
 	read -r -p "Press Enter to continue..."
+
 	local loot
 	local damage
 	local fine
-	local stealth_skill=$((skills["stealth"] * 5))
-
 	if (( RANDOM % 100 < stealth_skill )); then
 		loot=$((RANDOM % 201 + 100))
 		cash=$((cash + loot))
+
 		if $body_armor_equipped; then
 			damage=$((damage / 2))
 			echo "Your body armor reduced the damage!"
 			body_armor_equipped=false
 		fi
+
 		damage=$((RANDOM % 31 + 10))
 		health=$((health - damage))
 		check_health
 		clear_screen
 		printf "You successfully robbed the store and got %d dollars, but lost %d%% health. You now have %d dollars and %d%% health.\n" "$loot" "$damage" "$cash" "$health"
-		play_sfx_mpg "cash_register" # Play a robbing sound
+		play_sfx_mpg "cash_register"  # Play a robbing sound
 		read -r -p "Press Enter to continue..."
 	else
 		fine=$((RANDOM % 51 + 25))
 		cash=$((cash - fine))
 		clear_screen
 		printf "You got caught and fined %d dollars. You now have %d dollars.\n" "$fine" "$cash"
-		play_sfx_mpg "lose"  # Play a losing sound
+		play_sfx_mpg "lose"   # Play a losing sound
 		read -r -p "Press Enter to continue..."
 	fi
 }
@@ -380,30 +418,68 @@ rob_store() {
 heist() {
 	heist_animation
 	echo "Planning a heist in $location..."
+
+	local stealth_skill=$((skills["stealth"] * 5)) # Base stealth skill
+
+	if (( ${#guns[@]} > 0 )); then
+		echo "Do you want to use a gun? (y/n)"
+		read -r use_gun
+
+		if [[ "$use_gun" == "y" || "$use_gun" == "Y" ]]; then
+			echo "Which gun do you want to use? (Enter the gun name)"
+			echo "Available guns: ${guns[*]}"
+			read -r chosen_gun
+			# Check if the player has that gun
+			gun_found=false
+			for gun in "${guns[@]}"; do
+				if [[ "$gun" == "$chosen_gun" ]]; then
+					gun_found=true
+					break
+				fi
+			done
+
+			if $gun_found; then
+				echo "You used the $chosen_gun!"
+				play_sfx_mpg "gun_shot"  # Play a gunshot sound
+
+				# Success chance is increased when using gun
+				stealth_skill=$((stealth_skill + 20))  # The Gun gives you + 20% chance
+			else
+				echo "You don't have that gun!"
+			fi
+		else
+			echo "Proceeding without a gun."
+		fi
+	else
+		echo "You don't have any guns!"
+	fi
+
 	read -r -p "Press Enter to continue..."
+
 	local loot
 	local damage
 	local fine
-	local stealth_skill=$((skills["stealth"] * 5))
-
 	if (( RANDOM % 100 < stealth_skill )); then
 		loot=$((RANDOM % 501 + 200))
 		cash=$((cash + loot))
+
 		if $body_armor_equipped; then
 			damage=$((damage / 2))
 			echo "Your body armor reduced the damage!"
 			body_armor_equipped=false
 		fi
+
 		damage=$((RANDOM % 51 + 20))
 		health=$((health - damage))
 		check_health
 		clear_screen
 		printf "The heist was successful! You got %d dollars, but lost %d%% health. You now have %d dollars and %d%% health.\n" "$loot" "$damage" "$cash" "$health"
-		play_sfx_mpg "cash_register" # Play a heist sound
+		play_sfx_mpg "cash_register"  # Play a heist sound
 		read -r -p "Press Enter to continue..."
 	else
 		fine=$((RANDOM % 101 + 50))
 		cash=$((cash - fine))
+
 		clear_screen
 		printf "The heist failed and you got caught, losing %d dollars. You now have %d dollars.\n" "$fine" "$cash"
 		play_sfx_mpg "lose"  # Play a losing sound
@@ -413,22 +489,68 @@ heist() {
 
 # Function for gang wars
 gang_war() {
+	# Check if the player has any guns
+	if (( ${#guns[@]} == 0 )); then
+		echo "You can't start a gang war without a gun!"
+		read -r -p "Press Enter to continue..."
+		return
+	fi
+
 	gang_war_animation
 	echo "Starting a gang war in $location..."
+
+	local strength_skill=$((skills["strength"] * 5)) # Base strength skill
+
+	if (( ${#guns[@]} > 0 )); then
+		echo "Do you want to use a gun? (y/n)"
+		read -r use_gun
+
+		if [[ "$use_gun" == "y" || "$use_gun" == "Y" ]]; then
+			echo "Which gun do you want to use? (Enter the gun name)"
+			echo "Available guns: ${guns[*]}"
+			read -r chosen_gun
+
+			# Check if the player has that gun
+			gun_found=false
+			for gun in "${guns[@]}"; do
+				if [[ "$gun" == "$chosen_gun" ]]; then
+					gun_found=true
+					break
+				fi
+			done
+
+			if $gun_found; then
+				echo "You used the $chosen_gun!"
+				play_sfx_mpg "gun_shot"  # Play a gunshot sound
+
+				# Success chance is increased when using gun
+				strength_skill=$((strength_skill + 20))  # The Gun gives you + 20% chance
+			else
+				echo "You don't have that gun!"
+			fi
+		else
+			echo "Proceeding without a gun."
+		fi
+	else
+		echo "You don't have any guns!"
+	fi
+
 	read -r -p "Press Enter to continue..."
+
 	local loot
 	local damage
 	local fine
-	local strength_skill=$((skills["strength"] * 5))
 
 	if (( RANDOM % 100 < strength_skill )); then
 		loot=$((RANDOM % 301 + 100))
 		cash=$((cash + loot))
+
 		if $body_armor_equipped; then
 			damage=$((damage / 2))
 			echo "Your body armor reduced the damage!"
 			body_armor_equipped=false
 		fi
+
 		damage=$((RANDOM % 51 + 30))
 		health=$((health - damage))
 		check_health
@@ -440,11 +562,13 @@ gang_war() {
 		fine=$((RANDOM % 151 + 50))
 		cash=$((cash - fine))
 		damage=$((RANDOM % 41 + 20))
+
 		if $body_armor_equipped; then
 			damage=$((damage / 2))
 			echo "Your body armor reduced the damage!"
 			body_armor_equipped=false
 		fi
+
 		health=$((health - damage))
 		check_health
 		clear_screen
@@ -533,118 +657,121 @@ hire_hooker() {
 	clear_screen
 }
 
-# Function to buy drugs
+# Centralized Drug Transaction Function
+drug_transaction() {
+    local action="$1" # "buy" or "sell"
+    local drug_name="$2"
+    local drug_price="$3"
+    local drug_amount="$4"
+    local cost income selling_price
+    local drug_dealer_skill=$((skills["drug_dealer"]))
+
+    if [[ "$action" == "buy" ]]; then
+        cost=$((drug_price * drug_amount))
+        if (( cash >= cost )); then
+            drug_transaction_animation
+            cash=$((cash - cost))
+            drugs["$drug_name"]=$((drugs["$drug_name"] + drug_amount))
+            printf "You bought %s units of %s.\n" "$drug_amount" "$drug_name"
+            play_sfx_mpg "cash_register"
+            return 0
+        else
+            echo "Not enough cash to buy $drug_name."
+            return 1
+        fi
+    elif [[ "$action" == "sell" ]]; then
+        if [[ -v "drugs[$drug_name]" ]] && (( drugs["$drug_name"] >= drug_amount )); then
+            drug_transaction_animation
+
+            # Adjust selling price based on skill
+            local price_modifier=$((drug_dealer_skill * 2)) # Example: 2% increase per skill point
+            local adjusted_price=$((drug_price + (drug_price * price_modifier / 100)))
+
+            income=$((adjusted_price * drug_amount))
+            cash=$((cash + income))
+            drugs["$drug_name"]=$((drugs["$drug_name"] - drug_amount))
+
+            printf "You sold %s units of %s for %d dollars (adjusted for your drug dealing skill).\n" "$drug_amount" "$drug_name" "$income"
+            play_sfx_mpg "cash_register"
+            # Increase drug dealer skill
+            skills["drug_dealer"]=$((drug_dealer_skill + 1)) # Simple increase
+            echo "Your drug dealing skill has increased!"
+            return 0
+        else
+            echo "Not enough $drug_name to sell."
+            return 1
+        fi
+    else
+        echo "Invalid action: $action"
+        return 1
+    fi
+
+}
+
 buy_drugs() {
-	local drug_choice drug_amount cost
-	clear_screen
-	echo "Drug Dealer - Choose a drug to buy:"
-	echo "1. Weed (10$/unit)"
-	echo "2. Cocaine (50$/unit)"
-	echo "3. Heroin (100$/unit)"
-	echo "4. Meth (75$/unit)"
-	echo "5. Back to main menu"
-	read -r -p "Enter your choice (number): " drug_choice
+    local drug_choice drug_amount
 
-	[[ ! "$drug_choice" =~ ^[0-9]+$ ]] && {
-		echo "Invalid input. Please enter a number from the menu."
-		read -r -p "Press Enter to continue..."
-		return
-	}
-	read -r -p "Enter the amount you want to buy: " drug_amount
-	[[ ! "$drug_amount" =~ ^[0-9]+$ ]] && {
-		echo "Invalid input. Please enter a number."
-		read -r -p "Press Enter to continue..."
-		return
-	}
+    clear_screen
+    echo "Drug Dealer - Choose a drug to buy:"
+    echo "1. Weed (10$/unit)"
+    echo "2. Cocaine (50$/unit)"
+    echo "3. Heroin (100$/unit)"
+    echo "4. Meth (75$/unit)"
+    echo "5. Back to main menu"
+    read -r -p "Enter your choice (number): " drug_choice
 
-	case "$drug_choice" in
-		1) buy_drug "Weed" 10 "$drug_amount";;
-		2) buy_drug "Cocaine" 50 "$drug_amount";;
-		3) buy_drug "Heroin" 100 "$drug_amount";;
-		4) buy_drug "Meth" 75 "$drug_amount";;
-		5) clear_screen;;
-		*) echo "Invalid choice.";;
-	esac
-	clear_screen
+    [[ ! "$drug_choice" =~ ^[0-9]+$ ]] && {
+        echo "Invalid input. Please enter a number from the menu."
+        read -r -p "Press Enter to continue..."
+        return
+    }
+    read -r -p "Enter the amount you want to buy: " drug_amount
+    [[ ! "$drug_amount" =~ ^[0-9]+$ ]] && {
+        echo "Invalid input. Please enter a number."
+        read -r -p "Press Enter to continue..."
+        return
+    }
+    case "$drug_choice" in
+        1) drug_transaction "buy" "Weed" 10 "$drug_amount";;
+        2) drug_transaction "buy" "Cocaine" 50 "$drug_amount";;
+        3) drug_transaction "buy" "Heroin" 100 "$drug_amount";;
+        4) drug_transaction "buy" "Meth" 75 "$drug_amount";;
+        5) clear_screen; return;;
+        *) echo "Invalid choice."; return;;
+    esac
+    read -r -p "Press Enter to continue..."
 }
 
-# Helper function for buying drugs
-buy_drug() {
-	drug_transaction_animation
-	local drug_name="$1"
-	local drug_price="$2"
-	local drug_amount="$3"
-	local cost=$((drug_price * drug_amount))
-	if (( cash >= cost )); then
-		cash=$((cash - cost))
-		drugs["$drug_name"]=$((drugs["$drug_name"] + drug_amount))
-		printf "You bought %s units of %s.\n" "$drug_amount" "$drug_name"
-		play_sfx_mpg "cash_register"  # Play a buying drugs sound
-		read -r -p "Press Enter to continue..."
-	else
-		echo "Not enough cash to buy $drug_name."
-		read -r -p "Press Enter to continue..."
-	fi
-}
-
-# Function to sell drugs
 sell_drugs() {
-	drug_transaction_animation
-	local drug_choice drug_amount
-	clear_screen
-	echo "Drug Dealer - Choose a drug to sell:"
-	echo "1. Weed"
-	echo "2. Cocaine"
-	echo "3. Heroin"
-	echo "4. Meth"
-	echo "5. Back to main menu"
-	read -r -p "Enter your choice (number): " drug_choice
-	[[ ! "$drug_choice" =~ ^[0-9]+$ ]] && {
-		echo "Invalid input. Please enter a number from the menu."
-		read -r -p "Press Enter to continue..."
-		return
-	}
-	read -r -p "Enter the amount you want to sell: " drug_amount
-	[[ ! "$drug_amount" =~ ^[0-9]+$ ]] && {
-		echo "Invalid input. Please enter a number."
-		read -r -p "Press Enter to continue..."
-		return
-	}
-	case "$drug_choice" in
-		1) sell_drug "Weed" 15 "$drug_amount";;
-		2) sell_drug "Cocaine" 75 "$drug_amount";;
-		3) sell_drug "Heroin" 150 "$drug_amount";;
-		4) sell_drug "Meth" 100 "$drug_amount";;
-		5) clear_screen;;
-		*) echo "Invalid choice.";;
-	esac
-	clear_screen
-}
-
-# Helper function for selling drugs
-sell_drug() {
-	local drug_name="$1"
-	local drug_price="$2"
-	local drug_amount="$3"
-	local drug_dealer_skill=$((skills["drug_dealer"]))
-
-	# Adjust price based on skill
-	local price_modifier=$((drug_dealer_skill * 2)) # Example: 2% increase per skill point
-	local adjusted_price=$((drug_price + (drug_price * price_modifier / 100)))
-
-	if [[ -v "drugs[$drug_name]" ]] && (( drugs["$drug_name"] >= drug_amount )); then
-		cash=$((cash + adjusted_price * drug_amount))
-		drugs["$drug_name"]=$((drugs["$drug_name"] - drug_amount))
-		printf "You sold %s units of %s for %d dollars (adjusted for your drug dealing skill).\n" "$drug_amount" "$drug_name" "$((adjusted_price * drug_amount))"
-        play_sfx_mpg "cash_register"  # Play a buying drugs sound
-		# Increase drug dealer skill
-		skills["drug_dealer"]=$((drug_dealer_skill + 1)) # Simple increase
-		echo "Your drug dealing skill has increased!"
-		read -r -p "Press Enter to continue..."
-	else
-		echo "Not enough $drug_name to sell."
-		read -r -p "Press Enter to continue..."
-	fi
+    local drug_choice drug_amount
+    clear_screen
+    echo "Drug Dealer - Choose a drug to sell:"
+    echo "1. Weed"
+    echo "2. Cocaine"
+    echo "3. Heroin"
+    echo "4. Meth"
+    echo "5. Back to main menu"
+    read -r -p "Enter your choice (number): " drug_choice
+    [[ ! "$drug_choice" =~ ^[0-9]+$ ]] && {
+        echo "Invalid input. Please enter a number from the menu."
+        read -r -p "Press Enter to continue..."
+        return
+    }
+    read -r -p "Enter the amount you want to sell: " drug_amount
+    [[ ! "$drug_amount" =~ ^[0-9]+$ ]] && {
+        echo "Invalid input. Please enter a number."
+        read -r -p "Press Enter to continue..."
+        return
+    }
+    case "$drug_choice" in
+        1) drug_transaction "sell" "Weed" 15 "$drug_amount";;
+        2) drug_transaction "sell" "Cocaine" 75 "$drug_amount";;
+        3) drug_transaction "sell" "Heroin" 150 "$drug_amount";;
+        4) drug_transaction "sell" "Meth" 100 "$drug_amount";;
+        5) clear_screen; return;;
+        *) echo "Invalid choice."; return;;
+    esac
+    read -r -p "Press Enter to continue..."
 }
 
 # Function to play music
@@ -893,7 +1020,7 @@ echo "Choose a criminal activity:"
 echo "1. Heist"
 echo "2. Gang war"
 echo "3. Carjack"
-echo "4. Carjack"
+echo "4. Rob a store"
 echo "5. Back to main menu"
 read -r -p "Enter your choice: " criminal_choice
 [[ ! "$criminal_choice" =~ ^[0-9]+$ ]] && {
