@@ -1,7 +1,7 @@
 #Bash-Theft-Auto music and sfx © 2024 by stuffbymax - Martin Petik is licensed under CC BY 4.0 
 #https://creativecommons.org/licenses/by/4.0/
 #!/bin/bash
-#ver 2.0.0
+#ver 2.0.0-A
 
 # --- 0. Global Variables ---
 player_name=""
@@ -55,6 +55,40 @@ clear_screen() {
 	printf "\e[1;34m-----------------------------------------\e[0m\n"
 	printf "\e[1;44m|        made by stuffbymax             |\e[0m\n"
 	printf "\e[1;34m-----------------------------------------\e[0m\n"
+}
+
+# --- About the Music and Sound Effects ---
+about_music_sfx() {
+  clear_screen
+  echo -e "-----------------------------------------"
+  echo "|  About the Music and Sound Effects    |"
+  echo "-----------------------------------------"
+  echo ""
+  echo "The music and sound effects in this game"
+  echo "were created by stuffbymax - Martin Petik."
+  echo ""
+  echo "They are licensed under the Creative"
+  echo "Commons Attribution 4.0 International"
+  echo "(CC BY 4.0) license:"
+  echo "https://creativecommons.org/licenses/by/4.0/"
+  echo ""
+  echo "This means you are free to use them in"
+  echo "your own projects, even commercially,"
+  echo "as long as you provide appropriate credit."
+  echo ""
+  echo "Please attribute the music and sound"
+  echo "effects with the following statement:"
+  echo ""
+  echo "'Music and sound effects © 2024 by"
+  echo "stuffbymax - Martin Petik, licensed under"
+  echo "CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)'"
+  echo ""
+  echo "For more information about stuffbymax -"
+  echo "Martin Petik and my work, please visit:"
+  echo "https://stuffbymax.me/ or https://stuffbymax.me/wiki-blogs" 
+  echo ""
+  echo "Thank you for playing!"
+  read -r -p "Press Enter to return to main menu..."
 }
 
 # Function to check if the player is alive
@@ -958,6 +992,7 @@ echo "10. Exit Game"
 echo "11. Save Game"
 echo "12. Load Game"
 echo "13. Play music"
+echo "14. About"
 read -r -p "Enter your choice: " choice
 [[ ! "$choice" =~ ^[0-9]+$ ]] && {
 echo "Invalid input. Please enter a number."
@@ -1044,6 +1079,7 @@ case "$criminal_choice" in
 11) save_game;;
 12) load_game;;
 13) play_music;;
+14) about_music_sfx;;
 *) echo "Invalid choice.";;
 	esac
 done
