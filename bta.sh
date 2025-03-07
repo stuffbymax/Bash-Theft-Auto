@@ -1,7 +1,7 @@
 #Bash-Theft-Auto music and sfx © 2024 by stuffbymax - Martin Petik is licensed under CC BY 4.0 
 #https://creativecommons.org/licenses/by/4.0/
 #!/bin/bash
-#ver 2.0.0-A
+#ver 2.0.0-B
 
 # --- 0. Global Variables ---
 player_name=""
