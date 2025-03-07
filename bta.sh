@@ -57,7 +57,7 @@ clear_screen() {
 	printf "\e[1;34m-----------------------------------------\e[0m\n"
 }
 
-# --- About the Music and Sound Effects ---
+# --- About ---
 about_music_sfx() {
   clear_screen
   echo -e "-----------------------------------------"
@@ -86,6 +86,18 @@ about_music_sfx() {
   echo "For more information about stuffbymax -"
   echo "Martin Petik and my work, please visit:"
   echo "https://stuffbymax.me/ or https://stuffbymax.me/wiki-blogs" 
+  echo ""
+  echo "-----------------------------------------"
+  echo "|  Code License                         |"
+  echo "-----------------------------------------"
+  echo ""
+  echo "The code for this game is licensed underthe MIT License."
+  echo "Copyright (c) 2024 stuffbymax"
+  echo "You are free to use, modify, and distribute it"
+  echo "with proper attribution."
+  echo ""
+  echo "For the full license text, visit:"
+  echo "https://github.com/stuffbymax/Bash-Theft-Auto/blob/main/LICENSE"
   echo ""
   echo "Thank you for playing!"
   read -r -p "Press Enter to return to main menu..."
@@ -614,37 +626,89 @@ gang_war() {
 
 # Function for carjacking
 carjack() {
+	# Check if the player has any guns
+	if (( ${#guns[@]} == 0 )); then
+		# Notify the player that they don't have a gun
+		echo "You don't have a gun, so you'll have to rely on your skills. This will make the carjacking more difficult."
+		read -r -p "Press Enter to continue..."
+		success_chance=$((success_chance - 20))  # Decrease success chance when no gun is available
+	fi
+
+	# Check if the player has chosen to use a gun
+	if (( ${#guns[@]} > 0 )); then
+		# Ask the player if they want to use a gun
+		echo "Do you want to use a gun? (y/n)"
+		read -r use_gun
+
+		if [[ "$use_gun" == "y" || "$use_gun" == "Y" ]]; then
+			# List the available guns
+			echo "Which gun do you want to use? (Enter the gun name)"
+			echo "Available guns: ${guns[*]}"
+			read -r chosen_gun
+
+			# Check if the player has the chosen gun
+			gun_found=false
+			for gun in "${guns[@]}"; do
+				if [[ "$gun" == "$chosen_gun" ]]; then
+					gun_found=true
+					break
+				fi
+			done
+
+			if $gun_found; then
+				echo "You used the $chosen_gun!"
+				play_sfx_mpg "gun_shot"  # Play gunshot sound
+				success_chance=$((success_chance + 30))  # Increase success chance with gun (+30)
+			else
+				echo "You don't have that gun!"
+				# Proceed without a gun if the chosen gun doesn't exist
+				echo "Proceeding without a gun."
+				success_chance=$((success_chance - 20))  # Decrease success chance without a gun (-20)
+			fi
+		else
+			# If the player chooses not to use a gun, proceed without one
+			echo "Proceeding without a gun."
+			success_chance=$((success_chance - 20))  # Decrease success chance without a gun (-20)
+		fi
+	fi
+
+	# Start the carjacking animation after the decision
 	carjacking_animation
 	echo "Attempting to carjack a vehicle in $location..."
 	read -r -p "Press Enter to continue..."
+
 	local loot
 	local damage
 	local fine
 	local driving_skill=$((skills["driving"] * 5))
 	local stealth_skill=$((skills["stealth"] * 5))
+	success_chance=$((driving_skill + stealth_skill + success_chance))
 
-	local success_chance=$((driving_skill + stealth_skill))
+	# Now calculate the success chance after considering the gun
 	if (( RANDOM % 100 < success_chance )); then
 		loot=$((RANDOM % 201 + 50))
 		cash=$((cash + loot))
-		if $body_armor_equipped; then
+
+		damage=$((RANDOM % 21 + 10))
+
+		if [[ "$body_armor_equipped" == true ]]; then
 			damage=$((damage / 2))
 			echo "Your body armor reduced the damage!"
 			body_armor_equipped=false
 		fi
-		damage=$((RANDOM % 21 + 10))
+
 		health=$((health - damage))
 		check_health
 		clear_screen
-		printf "You successfully carjacked a vehicle and got %d dollars, but lost %d%% health. You now have %d dollars and %d%% health.\n" "$loot" "$damage" "$cash" "$health"
-		play_sfx_mpg "car_start" # Play a car jacking sound
+		printf "You successfully carjacked a vehicle and got %d dollars, but lost %d%% health.\nYou now have %d dollars and %d%% health.\n" "$loot" "$damage" "$cash" "$health"
+		play_sfx_mpg "car_start"  # Play carjacking sound
 		read -r -p "Press Enter to continue..."
 	else
 		fine=$((RANDOM % 76 + 25))
 		cash=$((cash - fine))
 		clear_screen
 		printf "You got caught and fined %d dollars. You now have %d dollars.\n" "$fine" "$cash"
-		play_sfx_mpg "lose"  # Play a losing sound
+		play_sfx_mpg "lose"  # Play losing sound
 		read -r -p "Press Enter to continue..."
 	fi
 }
@@ -669,27 +733,36 @@ hire_hooker() {
 	read -r -p "Press Enter to continue..."
 	local hooker_cost
 	local health_gain
-	local charisma_skill=$((skills["charisma"] * 2))# Influence price
-	hooker_cost=$((RANDOM % (101 - charisma_skill) + (50 - charisma_skill) ))
-	if (( hooker_cost < 10 )); then
-		hooker_cost = 10
-	fi
-	health_gain=$((RANDOM % 21 + 10))
+	local charisma_skill=$(( skills["charisma"] * 2 ))  # Influence price
+	# Ensure charisma_skill is within a reasonable range
+	(( charisma_skill > 99 )) && charisma_skill=99
+	# Ensure RANDOM range is positive
+	local min_cost=$(( 50 - charisma_skill ))
+	local max_cost=$(( 101 - charisma_skill ))
+	(( min_cost < 1 )) && min_cost=1
+	(( max_cost <= min_cost )) && max_cost=$(( min_cost + 10 ))  # Ensure valid range
+	hooker_cost=$(( RANDOM % (max_cost - min_cost + 1) + min_cost ))
+	# Ensure a minimum cost
+	(( hooker_cost < 10 )) && hooker_cost=10
+	health_gain=$(( RANDOM % 21 + 10 ))
 	if (( cash >= hooker_cost )); then
-		cash=$((cash - hooker_cost))
-		health=$((health + health_gain))
-		(( health > 100 )) && health=100
-		clear_screen
-		printf "You hired a hooker for %d dollars and gained %d%% health. You now have %d dollars and %d%% health.\n" "$hooker_cost" "$health_gain" "$cash" "$health"
-		play_sfx_mpg "hooker" # Play a hooker sound
-		read -r -p "Press Enter to continue..."
-	else
-		clear_screen
-		echo "Not enough cash to hire a hooker."
-		read -r -p "Press Enter to continue..."
-	fi
+	cash=$(( cash - hooker_cost ))
+	health=$(( health + health_gain ))
+	(( health > 100 )) && health=100
 	clear_screen
+	printf "You hired a hooker for %d dollars and gained %d%% health.\nYou now have %d dollars and %d%% health.\n" \
+	"$hooker_cost" "$health_gain" "$cash" "$health"
+	play_sfx_mpg "hooker"  # Play a hooker sound
+	read -r -p "Press Enter to continue..."
+else
+	clear_screen
+	echo "Not enough cash to hire a hooker."
+	read -r -p "Press Enter to continue..."
+	fi
+
+clear_screen
 }
+
 
 # Centralized Drug Transaction Function
 drug_transaction() {
