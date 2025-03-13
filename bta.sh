@@ -1,7 +1,7 @@
 #Bash-Theft-Auto music and sfx © 2024 by stuffbymax - Martin Petik is licensed under CC BY 4.0
 #https://creativecommons.org/licenses/by/4.0/
 #!/bin/bash
-#ver 2.0.0-C
+#ver 2.0.1-C
 
 # --- 0. Global Variables ---
 player_name=""
@@ -55,15 +55,15 @@ fi
 
 # Clear the screen and display game information
 clear_screen() {
-	clear
-	printf "\e[1;34m-----------------------------------------\e[0m\n"
-	printf "\e[1;43m|        Bash theaft auto               |\e[0m\n"
-	printf "\e[1;34m-----------------------------------------\e[0m\n"
-	printf "Player: %s   Location: %s\n" "$player_name" "$location"
-	printf "Cash: %d dollars      Health: %d%%\n" "$cash" "$health"
-	printf "\e[1;34m-----------------------------------------\e[0m\n"
-	printf "\e[1;44m|        made by stuffbymax             |\e[0m\n"
-	printf "\e[1;34m-----------------------------------------\e[0m\n"
+clear
+printf "\e[93m=========================================\e[0m\n"
+printf "\e[1;43m|        Bash theaft auto               |\e[0m\n"
+printf "\e[93m=========================================\e[0m\n"
+printf "Player: %s   Location: %s\n" "$player_name" "$location"
+printf "Cash: %d dollars      Health: %d%%\n" "$cash" "$health"
+printf "\e[1;34m=========================================\e[0m\n"
+printf "\e[1;44m|        made by stuffbymax             |\e[0m\n"
+printf "\e[1;34m=========================================\e[0m\n"
 }
 
 # --- About ---
@@ -936,6 +936,9 @@ sell_drugs() {
 play_music() {
 	local music_files=(
 		"music/platforma.mp3"
+		"music/metropolis.mp3"
+		"music/discovery.mp3"
+		"music/search_for_joe.mp3"
 		"music/the_loading_screen.mp3"
 		"music/doom.mp3"
 		"music/Jal.mp3"
@@ -1103,7 +1106,7 @@ done
 while true; do
 clear_screen
 echo "Choose an action:"
-echo "1. Travel to another city"
+echo "1. Travel to another State"
 echo "2. Buy guns"
 echo "3. Show inventory"
 echo "4. Work (earn money)"
@@ -1125,7 +1128,7 @@ read -r -p "Enter your choice: " choice
 }
 case "$choice" in
 	1) clear
-	echo "Choose a city to travel to:"
+	echo "Choose a State to travel to:"
 	echo "1. Los Santos (50$)"
 	echo "2. San Fierro (75$)"
 	echo "3. Las Venturas (100$)"
