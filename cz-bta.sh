@@ -1,5 +1,9 @@
 #!/bin/bash
-#ver 2.0.1-C
+#Překlad byl vytvořen umělou inteligencí
+#Bash-Theft-Auto hudba a zvukové efekty © 2024 od stuffbymax - Martin Petik je licencován pod CC BY 4.0
+#https://creativecommons.org/licenses/by/4.0/
+#!/bin/bash
+#ver 2.0.2
 
 # --- 0. Globální proměnné ---
 player_name=""
@@ -31,10 +35,10 @@ play_sfx_mpg() {
 	local sound_file="$sfx_dir/$1.mp3"
 	if [[ -f "$sound_file" ]]; then
 		mpg123 -q "$sound_file" &
-		return 0  # Označení úspěchu
+		return 0  # Indikuje úspěch
 	else
 		echo "Zvukový soubor '$sound_file' nebyl nalezen!"
-		return 1  # Označení neúspěchu
+		return 1  # Indikuje neúspěch
 	fi
 }
 
@@ -51,7 +55,7 @@ fi
 
 # --- 3. Funkce ---
 
-# Vymaž obrazovku a zobraz herní informace
+# Vyčistí obrazovku a zobrazí informace o hře
 clear_screen() {
 clear
 printf "\e[93m=========================================\e[0m\n"
@@ -60,7 +64,7 @@ printf "\e[93m=========================================\e[0m\n"
 printf "Hráč: %s   Lokace: %s\n" "$player_name" "$location"
 printf "Peníze: %d dolarů      Zdraví: %d%%\n" "$cash" "$health"
 printf "\e[1;34m=========================================\e[0m\n"
-printf "\e[1;44m|        vytvořil stuffbymax             |\e[0m\n"
+printf "\e[1;44m|        vytvořeno stuffbymax             |\e[0m\n"
 printf "\e[1;34m=========================================\e[0m\n"
 }
 
@@ -68,19 +72,19 @@ printf "\e[1;34m=========================================\e[0m\n"
 about_music_sfx() {
 	clear_screen
 	echo -e "-----------------------------------------"
-	echo "|  O hudbě a zvukových efektech          |"
+	echo "|  O hudbě a zvukových efektech         |"
 	echo "-----------------------------------------"
 	echo ""
-	echo "Hudba a zvukové efekty v této hře"
+	echo "Hudba a některé zvukové efekty v této hře"
 	echo "byly vytvořeny stuffbymax - Martin Petik."
 	echo ""
-	echo "Jsou licencovány pod licencí Creative"
+	echo "Jsou licencovány pod Creative"
 	echo "Commons Attribution 4.0 International"
-	echo "(CC BY 4.0):"
+	echo "(CC BY 4.0) licencí:"
 	echo "https://creativecommons.org/licenses/by/4.0/"
 	echo ""
-	echo "To znamená, že je můžete volně používat"
-	echo "ve svých vlastních projektech, i komerčně,"
+	echo "To znamená, že je můžete volně používat ve"
+	echo "svých vlastních projektech, i komerčně,"
 	echo "pokud uvedete odpovídající kredit."
 	echo ""
 	echo "Prosím, uveďte hudbu a zvukové"
@@ -119,7 +123,7 @@ check_health() {
 	fi
 }
 
-# Funkce pro cestování do nové lokace
+# Funkce pro cestování na nové místo
 travel_to() {
 	local travel_cost="$1"
 	local new_location="$2"
@@ -129,11 +133,11 @@ travel_to() {
 		play_sfx_mpg "air"
 
 		# --- Animace letecké dopravy (Volání pluginu) ---
-		air_travel_animation # Zavolejte funkci v animation.sh
+		air_travel_animation # Volání funkce v animation.sh
 		# --- Konec animace letecké dopravy ---
 
 		cash=$((cash - travel_cost))
-		# Odstraňte výzvu stisknutí Enter, s animací je zbytečná
+		# Odstraňte výzvu stisknutí Enter zde, je zbytečná s animací
 
 		location="$new_location"
 		clear_screen
@@ -156,10 +160,10 @@ buy_guns() {
 	echo "4. Puška (750$)"
 	echo "5. Sniper (1000$)"
 	echo "6. Zpět do hlavního menu"
-	read -r -p "Zadejte vaši volbu (číslo): " gun_choice
+	read -r -p "Zadejte svou volbu (číslo): " gun_choice
 
 	[[ ! "$gun_choice" =~ ^[0-9]+$ ]] && {
-		echo "Neplatný vstup. Prosím, zadejte číslo z menu."
+		echo "Neplatný vstup. Zadejte prosím číslo z menu."
 		read -r -p "Stiskněte Enter pro pokračování..."
 		return
 	}
@@ -175,22 +179,20 @@ buy_guns() {
 	esac
 }
 
-# Pomocná funkce pro nákup předmětů
+# Pomocná funkce pro nákup položek
 buy_item() {
 	local item_name="$1"
 	local item_cost="$2"
-
+	play_sfx_mpg "cash_register"
 	buy_animation
 
 	if (( cash >= item_cost )); then
 		cash=$((cash - item_cost))
 		guns+=("$item_name")
 		echo "Koupili jste si $item_name."
-		play_sfx_mpg "gun_buy" # Přehrání zvuku při nákupu zbraně - pomocí "gun_buy"
-		play_sfx_mpg "cash_register" # Přehrání zvuku při nákupu zbraně
 		read -r -p "Stiskněte Enter pro pokračování..."
 	else
-		echo "Nedostatek peněz na nákup $item_name."
+		echo "Nedostatek peněz na koupi $item_name."
 		read -r -p "Stiskněte Enter pro pokračování..."
 	fi
 }
@@ -243,23 +245,23 @@ work_job() {
 			;;
 		"delivery")
 			earnings=$((RANDOM % (max_earnings - min_earnings + 1) + min_earnings + 10))
+			play_sfx_mpg "taxi"
 			working_animation
 			;;
 		"mechanic")
 			earnings=$((RANDOM % (max_earnings - min_earnings + 1) + min_earnings + 20))
+			play_sfx_mpg "mechanic"
 			working_animation
 			;;
 		"security")
 			earnings=$((RANDOM % (max_earnings - min_earnings + 1) + min_earnings + 30))
+			play_sfx_mpg "security"
 			working_animation
 			;;
 		"performer")
 			earnings=$((RANDOM % (max_earnings - min_earnings + 1) + min_earnings - 20))
+			play_sfx_mpg "street_performer"
 			working_animation
-			;;
-		"race") # Jiná logika pro závod
-			work_race
-			return
 			;;
 		*) echo "Neplatná práce"; return;;
 	esac
@@ -268,21 +270,20 @@ work_job() {
 	read -r -p "Stiskněte Enter pro pokračování..."
 
 	cash=$((cash + earnings))
-	play_sfx_mpg "cash_register" # Přehrání zvuku práce
 	clear_screen
 	printf "Vydělali jste %d dolarů. Nyní máte %d dolarů.\n" "$earnings" "$cash"
 	read -r -p "Stiskněte Enter pro pokračování..."
 }
 
 # Funkce pro pouliční závody (samostatná funkce)
-work_race() {
+street_race() {
 	working_animation
 	echo "Účastníte se pouličního závodu v $location..."
 	read -r -p "Stiskněte Enter pro pokračování..."
 	local winnings
 	local damage
 	local driving_skill=$((skills["driving"] * 5))
-	local win_chance=$((50 + driving_skill)) # Ovlivnění šance na výhru
+	local win_chance=$((50 + driving_skill)) # Ovlivňuje šanci na výhru
 
 	if (( RANDOM % 100 < win_chance )); then
 		winnings=$((RANDOM % 201 + 100))
@@ -315,14 +316,14 @@ work_race() {
 	fi
 }
 
-# Funkce pro použití zbraní pro práce - aktuálně se nepoužívá v pracích, ale ponechána pro potenciální budoucí použití.
+# Funkce pro použití zbraní pro práci - aktuálně se nepoužívá v pracích, ale ponechána pro potenciální budoucí použití.
 use_guns() {
 	if [[ " ${guns[*]} " == *" $1 "* ]]; then
-		echo "Pro tuto práci jste použili svou $1."
-		play_sfx_mpg "gun_shot"  # Přehrání zvuku výstřelu zbraně při použití zbraně - ponecháno pro potenciální použití
+		echo "Použili jste svůj $1 pro tuto práci."
+		play_sfx_mpg "gun_shot"
 		read -r -p "Stiskněte Enter pro pokračování..."
 	else
-		echo "Nemáte $1. Práce se nezdařila."
+		echo "Nemáte $1. Práce selhala."
 		read -r -p "Stiskněte Enter pro pokračování..."
 	fi
 }
@@ -332,15 +333,15 @@ visit_hospital() {
 	local hospital_choice
 	clear_screen
 	echo "Nemocniční služby:"
-	echo "1. Základní ošetření (50$) - Plné vyléčení"
-	echo "2. Pokročilé ošetření (100$) - Plné vyléčení + 10% navýšení zdraví"
-	echo "3. Koupit balíček zdraví (30$) - Vyléčí 25% zdraví"
-	echo "4. Koupit neprůstřelnou vestu (75$) - Sníží poškození o 50% v příštím střetu"
+	echo "1. Základní ošetření (50$) - Plné uzdravení"
+	echo "2. Pokročilé ošetření (100$) - Plné uzdravení + 10% bonus zdraví"
+	echo "3. Koupit lékárničku (30$) - Uzdravení 25% zdraví"
+	echo "4. Koupit neprůstřelnou vestu (75$) - Snížení poškození o 50% v příštím střetu"
 	echo "5. Zpět do hlavního menu"
-	read -r -p "Zadejte vaši volbu (číslo): " hospital_choice
+	read -r -p "Zadejte svou volbu (číslo): " hospital_choice
 
 	[[ ! "$hospital_choice" =~ ^[0-9]+$ ]] && {
-		echo "Neplatný vstup. Prosím, zadejte číslo z menu."
+		echo "Neplatný vstup. Zadejte prosím číslo z menu."
 		read -r -p "Stiskněte Enter pro pokračování..."
 		return
 	}
@@ -365,27 +366,27 @@ buy_hospital_item() {
 		case "$item_type" in
 			"basic_treatment")
 				health=100
-				echo "Obdrželi jste základní ošetření a jste plně vyléčeni."
-				play_sfx_mpg "heal" # Přehrání zvuku léčení
+				echo "Obdrželi jste základní ošetření a jste plně uzdraveni."
+				play_sfx_mpg "heal" # Přehrání zvuku uzdravení
 				read -r -p "Stiskněte Enter pro pokračování..."
 				;;
 			"advanced_treatment")
 				health=$((health + 10))
 				(( health > 100 )) && health=100
-				echo "Obdrželi jste pokročilé ošetření a jste plně vyléčeni s navýšením zdraví."
-				play_sfx_mpg "heal" # Přehrání zvuku léčení
+				echo "Obdrželi jste pokročilé ošetření a jste plně uzdraveni s bonusem zdraví."
+				play_sfx_mpg "heal" # Přehrání zvuku uzdravení
 				read -r -p "Stiskněte Enter pro pokračování..."
 				;;
 			"health_pack")
-				items+=("Balíček zdraví")
-				echo "Koupili jste si balíček zdraví."
-				play_sfx_mpg "item_buy" # Přehrání zvuku nákupu předmětu
+				items+=("Lékárnička")
+				echo "Koupili jste si lékárničku."
+				play_sfx_mpg "item_buy" # Přehrání zvuku nákupu položky
 				read -r -p "Stiskněte Enter pro pokračování..."
 				;;
 			"body_armor")
 				body_armor_equipped=true
 				echo "Koupili jste si neprůstřelnou vestu."
-				play_sfx_mpg "item_buy" # Přehrání zvuku nákupu předmětu
+				play_sfx_mpg "item_buy" # Přehrání zvuku nákupu položky
 				read -r -p "Stiskněte Enter pro pokračování..."
 				;;
 		esac
@@ -395,10 +396,10 @@ buy_hospital_item() {
 	fi
 }
 
-# Funkce pro vykrádání obchodu
+# Funkce pro vykradení obchodu
 rob_store() {
 	robbing_animation
-	echo "Pokoušíte se vykrást obchod v $location..."
+	echo "Pokouší se vykrást obchod v $location..."
 
 	local stealth_skill=$((skills["stealth"] * 5)) # Základní dovednost plížení
 	local gun_bonus=0 # Inicializace bonusu zbraně
@@ -423,20 +424,20 @@ rob_store() {
 
 			if $gun_found; then
 				echo "Použili jste $chosen_gun!"
-				play_sfx_mpg "gun_shot"  # Přehrání zvuku výstřelu zbraně
+				play_sfx_mpg "gun_shot"  # Přehrání zvuku výstřelu
 
 				# --- Aplikace bonusu zbraně ---
 				if [[ -v "gun_attributes[$chosen_gun]" ]]; then
 					eval "${gun_attributes[$chosen_gun]}" # Extrahování řetězce atributů
 					gun_bonus=$success_bonus # Získání bonusu za úspěch
 					stealth_skill=$((stealth_skill + gun_bonus)) # Aplikace bonusu
-					echo "Zbraň $chosen_gun vám dává +${gun_bonus}% šanci na úspěch."
+					echo "$chosen_gun vám dává +${gun_bonus}% šanci na úspěch."
 				else
 					echo "Pro $chosen_gun nejsou definovány žádné atributy (Toto je chyba skriptu)."
 				fi
 				# --- Konec bonusu zbraně ---
 			else
-				echo "Nemáte takovou zbraň!"
+				echo "Nemáte tuto zbraň!"
 			fi
 		else
 			echo "Pokračování bez zbraně."
@@ -465,7 +466,7 @@ rob_store() {
 		check_health
 		clear_screen
 		printf "Úspěšně jste vykradli obchod a získali %d dolarů, ale ztratili %d%% zdraví. Nyní máte %d dolarů a %d%% zdraví.\n" "$loot" "$damage" "$cash" "$health"
-		play_sfx_mpg "cash_register"  # Přehrání zvuku vykrádání
+		play_sfx_mpg "cash_register"
 		read -r -p "Stiskněte Enter pro pokračování..."
 	else
 		fine=$((RANDOM % 51 + 25))
@@ -477,10 +478,10 @@ rob_store() {
 	fi
 }
 
-# Funkce pro účast na loupeži
+# Funkce pro účast na přepadení
 heist() {
 	heist_animation
-	echo "Plánování loupeže v $location..."
+	echo "Plánování přepadení v $location..."
 
 	local stealth_skill=$((skills["stealth"] * 5)) # Základní dovednost plížení
 	local gun_bonus=0 # Inicializace bonusu zbraně
@@ -504,21 +505,21 @@ heist() {
 
 			if $gun_found; then
 				echo "Použili jste $chosen_gun!"
-				play_sfx_mpg "gun_shot"  # Přehrání zvuku výstřelu zbraně
+				play_sfx_mpg "gun_shot"  # Přehrání zvuku výstřelu
 
 				# --- Logika bonusu zbraně ---
 				if [[ -v "gun_attributes[$chosen_gun]" ]]; then
 					eval "${gun_attributes[$chosen_gun]}"
 					gun_bonus=$success_bonus
 					stealth_skill=$((stealth_skill + gun_bonus))
-					echo "Zbraň $chosen_gun vám dává +${gun_bonus}% šanci na úspěch."
+					echo "$chosen_gun vám dává +${gun_bonus}% šanci na úspěch."
 				else
 					echo "Pro $chosen_gun nejsou definovány žádné atributy (Toto je chyba skriptu)."
 				fi
 				# --- Konec logiky bonusu zbraně ---
 
 			else
-				echo "Nemáte takovou zbraň!"
+				echo "Nemáte tuto zbraň!"
 			fi
 		else
 			echo "Pokračování bez zbraně."
@@ -546,31 +547,30 @@ heist() {
 		health=$((health - damage))
 		check_health
 		clear_screen
-		printf "Loupež byla úspěšná! Získali jste %d dolarů, ale ztratili %d%% zdraví. Nyní máte %d dolarů a %d%% zdraví.\n" "$loot" "$damage" "$cash" "$health"
-		play_sfx_mpg "cash_register"  # Přehrání zvuku loupeže
+		printf "Přepadení bylo úspěšné! Získali jste %d dolarů, ale ztratili %d%% zdraví. Nyní máte %d dolarů a %d%% zdraví.\n" "$loot" "$damage" "$cash" "$health"
 		read -r -p "Stiskněte Enter pro pokračování..."
 	else
 		fine=$((RANDOM % 101 + 50))
 		cash=$((cash - fine))
 
 		clear_screen
-		printf "Loupež se nezdařila a byli jste chyceni, ztráta %d dolarů. Nyní máte %d dolarů.\n" "$fine" "$cash"
+		printf "Přepadení selhalo a byli jste chyceni, ztratili jste %d dolarů. Nyní máte %d dolarů.\n" "$fine" "$cash"
 		play_sfx_mpg "lose"  # Přehrání zvuku prohry
 		read -r -p "Stiskněte Enter pro pokračování..."
 	fi
 }
 
-# Funkce pro války gangů
+# Funkce pro gangové války
 gang_war() {
 	# Kontrola, zda hráč má nějaké zbraně
 	if (( ${#guns[@]} == 0 )); then
-		echo "Nemůžete začít válku gangů bez zbraně!"
+		echo "Nemůžete začít gangovou válku bez zbraně!"
 		read -r -p "Stiskněte Enter pro pokračování..."
 		return
 	fi
 
 	gang_war_animation
-	echo "Začíná válka gangů v $location..."
+	echo "Začíná gangová válka v $location..."
 
 	local strength_skill=$((skills["strength"] * 5)) # Základní dovednost síly
 	local gun_bonus=0 # Inicializace bonusu zbraně
@@ -595,21 +595,21 @@ gang_war() {
 
 			if $gun_found; then
 				echo "Použili jste $chosen_gun!"
-				play_sfx_mpg "gun_shot"  # Přehrání zvuku výstřelu zbraně
+				play_sfx_mpg "gun_shot"  # Přehrání zvuku výstřelu
 
 				# --- Logika bonusu zbraně ---
 				if [[ -v "gun_attributes[$chosen_gun]" ]]; then
 					eval "${gun_attributes[$chosen_gun]}"
 					gun_bonus=$success_bonus
 					strength_skill=$((strength_skill + gun_bonus)) # Použití strength_skill zde
-					echo "Zbraň $chosen_gun vám dává +${gun_bonus}% šanci na úspěch."
+					echo "$chosen_gun vám dává +${gun_bonus}% šanci na úspěch."
 				else
 					echo "Pro $chosen_gun nejsou definovány žádné atributy (Toto je chyba skriptu)."
 				fi
 				# --- Konec logiky bonusu zbraně ---
 
 			else
-				echo "Nemáte takovou zbraň!"
+				echo "Nemáte tuto zbraň!"
 			fi
 		else
 			echo "Pokračování bez zbraně."
@@ -638,8 +638,8 @@ gang_war() {
 		health=$((health - damage))
 		check_health
 		clear_screen
-		printf "Vyhráli jste válku gangů a získali %d dolarů, ale ztratili %d%% zdraví. Nyní máte %d dolarů a %d%% zdraví.\n" "$loot" "$damage" "$cash" "$health"
-		play_sfx_mpg "win" # Přehrání zvuku války gangů
+		printf "Vyhráli jste gangovou válku a získali %d dolarů, ale ztratili %d%% zdraví. Nyní máte %d dolarů a %d%% zdraví.\n" "$loot" "$damage" "$cash" "$health"
+		play_sfx_mpg "win" # Přehrání zvuku gangové války
 		read -r -p "Stiskněte Enter pro pokračování..."
 	else
 		fine=$((RANDOM % 151 + 50))
@@ -655,7 +655,7 @@ gang_war() {
 		health=$((health - damage))
 		check_health
 		clear_screen
-		printf "Prohráli jste válku gangů, dostali pokutu %d dolarů a ztratili %d%% zdraví. Nyní máte %d dolarů a %d%% zdraví.\n" "$fine" "$damage" "$cash" "$health"
+		printf "Prohráli jste gangovou válku, byli jste pokutováni %d dolary a ztratili %d%% zdraví. Nyní máte %d dolarů a %d%% zdraví.\n" "$fine" "$damage" "$cash" "$health"
 		play_sfx_mpg "lose"  # Přehrání zvuku prohry
 		read -r -p "Stiskněte Enter pro pokračování..."
 	fi
@@ -668,12 +668,12 @@ carjack() {
 		# Upozornění hráče, že nemá zbraň
 		echo "Nemáte zbraň, takže se budete muset spolehnout na své dovednosti. To ztíží krádež auta."
 		read -r -p "Stiskněte Enter pro pokračování..."
-		success_chance=$((success_chance - 20))  # Snížení šance na úspěch, pokud není k dispozici zbraň
+		success_chance=$((success_chance - 20))  # Snížení šance na úspěch, když není k dispozici zbraň
 	fi
 
 	# Kontrola, zda se hráč rozhodl použít zbraň
 	if (( ${#guns[@]} > 0 )); then
-		# Zeptání hráče, zda chce použít zbraň
+		# Dotaz na hráče, zda chce použít zbraň
 		echo "Chcete použít zbraň? (a/n)"
 		read -r use_gun
 
@@ -694,7 +694,7 @@ carjack() {
 
 			if $gun_found; then
 				echo "Použili jste $chosen_gun!"
-				play_sfx_mpg "gun_shot"  # Přehrání zvuku výstřelu zbraně
+				play_sfx_mpg "gun_shot"  # Přehrání zvuku výstřelu
 				local gun_bonus=0 # Inicializace bonusu zbraně zde uvnitř bloku if $gun_found
 
 				# --- Logika bonusu zbraně ---
@@ -702,20 +702,20 @@ carjack() {
 					eval "${gun_attributes[$chosen_gun]}"
 					gun_bonus=$success_bonus
 					success_chance=$((success_chance + gun_bonus)) # Aplikace na success_chance
-					echo "Zbraň $chosen_gun vám dává +${gun_bonus}% šanci na úspěch."
+					echo "$chosen_gun vám dává +${gun_bonus}% šanci na úspěch."
 				else
 					echo "Pro $chosen_gun nejsou definovány žádné atributy (Toto je chyba skriptu)."
 				fi
 				# --- Konec logiky bonusu zbraně ---
 
 			else
-				echo "Nemáte takovou zbraň!"
+				echo "Nemáte tuto zbraň!"
 				# Pokračování bez zbraně, pokud vybraná zbraň neexistuje
 				echo "Pokračování bez zbraně."
 				success_chance=$((success_chance - 20))  # Snížení šance na úspěch bez zbraně (-20)
 			fi
 		else
-			# Pokud se hráč rozhodne nepoužít zbraň, pokračujte bez ní
+			# Pokud se hráč rozhodne nepoužít zbraň, pokračování bez ní
 			echo "Pokračování bez zbraně."
 			success_chance=$((success_chance - 20))  # Snížení šance na úspěch bez zbraně (-20)
 		fi
@@ -723,7 +723,7 @@ carjack() {
 
 	# Spuštění animace krádeže auta po rozhodnutí
 	carjacking_animation
-	echo "Pokoušíte se ukrást auto v $location..."
+	echo "Pokouší se ukrást vozidlo v $location..."
 	read -r -p "Stiskněte Enter pro pokračování..."
 
 	local loot
@@ -733,7 +733,7 @@ carjack() {
 	local stealth_skill=$((skills["stealth"] * 5))
 	success_chance=$((driving_skill + stealth_skill + success_chance))
 
-	# Nyní se vypočítá šance na úspěch po zohlednění zbraně
+	# Nyní vypočítat šanci na úspěch po zvážení zbraně
 	if (( RANDOM % 100 < success_chance )); then
 		loot=$((RANDOM % 201 + 50))
 		cash=$((cash + loot))
@@ -749,7 +749,7 @@ carjack() {
 		health=$((health - damage))
 		check_health
 		clear_screen
-		printf "Úspěšně jste ukradli auto a získali %d dolarů, ale ztratili %d%% zdraví.\nNyní máte %d dolarů a %d%% zdraví.\n" "$loot" "$damage" "$cash" "$health"
+		printf "Úspěšně jste ukradli vozidlo a získali %d dolarů, ale ztratili %d%% zdraví.\nNyní máte %d dolarů a %d%% zdraví.\n" "$loot" "$damage" "$cash" "$health"
 		play_sfx_mpg "car_start"  # Přehrání zvuku krádeže auta
 		read -r -p "Stiskněte Enter pro pokračování..."
 	else
@@ -765,11 +765,11 @@ carjack() {
 # Funkce pro ošetření v nemocnici po smrti
 hospitalize_player() {
 	clear_screen
-	echo "Byli jste hospitalizováni a jste ošetřováni..."
+	echo "Byli jste hospitalizováni a jste léčeni..."
 	read -r -p "Stiskněte Enter pro pokračování..."
 	health=100
 	clear_screen
-	echo "Jste plně vyléčeni, ale ztratili jste 200$ za ošetření."
+	echo "Jste plně uzdraveni, ale ztratili jste 200 dolarů za léčbu."
 	cash=$((cash - 200))
 	(( cash < 0 )) && cash=0
 	read -r -p "Stiskněte Enter pro pokračování..."
@@ -782,10 +782,10 @@ hire_hooker() {
 	read -r -p "Stiskněte Enter pro pokračování..."
 	local hooker_cost
 	local health_gain
-	local charisma_skill=$(( skills["charisma"] * 2 ))  # Ovlivnění ceny
-	# Zajištění, aby charisma_skill byla v rozumném rozsahu
+	local charisma_skill=$(( skills["charisma"] * 2 ))  # Ovlivňuje cenu
+	# Zajištění, že charisma_skill je v rozumném rozmezí
 	(( charisma_skill > 99 )) && charisma_skill=99
-	# Zajištění, aby rozsah RANDOM byl kladný
+	# Zajištění, že rozsah RANDOM je pozitivní
 	local min_cost=$(( 50 - charisma_skill ))
 	local max_cost=$(( 101 - charisma_skill ))
 	(( min_cost < 1 )) && min_cost=1
@@ -813,9 +813,9 @@ clear_screen
 }
 
 
-# Centralizovaná funkce pro transakce s drogami
+# Centralizovaná funkce transakce drog
 drug_transaction() {
-	local action="$1" # "buy" or "sell"
+	local action="$1" # "buy" nebo "sell"
 	local drug_name="$2"
 	local drug_price="$3"
 	local drug_amount="$4"
@@ -832,7 +832,7 @@ drug_transaction() {
 			play_sfx_mpg "cash_register"
 			return 0
 		else
-			echo "Nedostatek peněz na nákup $drug_name."
+			echo "Nedostatek peněz na koupi $drug_name."
 			return 1
 		fi
 	elif [[ "$action" == "sell" ]]; then
@@ -840,18 +840,18 @@ drug_transaction() {
 			drug_transaction_animation
 
 			# Úprava prodejní ceny na základě dovednosti
-			local price_modifier=$((drug_dealer_skill * 2)) # Příklad: 2% navýšení za bod dovednosti
+			local price_modifier=$((drug_dealer_skill * 2)) # Příklad: 2% nárůst za bod dovednosti
 			local adjusted_price=$((drug_price + (drug_price * price_modifier / 100)))
 
 			income=$((adjusted_price * drug_amount))
 			cash=$((cash + income))
 			drugs["$drug_name"]=$((drugs["$drug_name"] - drug_amount))
 
-			printf "Prodali jste %s jednotek %s za %d dolarů (upraveno podle vaší dovednosti v obchodování s drogami).\n" "$drug_amount" "$drug_name" "$income"
+			printf "Prodali jste %s jednotek %s za %d dolarů (upraveno podle vašich dovedností prodeje drog).\n" "$drug_amount" "$drug_name" "$income"
 			play_sfx_mpg "cash_register"
-			# Zvýšení dovednosti obchodníka s drogami
-			skills["drug_dealer"]=$((drug_dealer_skill + 1)) # Jednoduché navýšení
-			echo "Vaše dovednost v obchodování s drogami se zvýšila!"
+			# Zvýšení dovednosti prodeje drog
+			skills["drug_dealer"]=$((drug_dealer_skill + 1)) # Jednoduché zvýšení
+			echo "Vaše dovednost prodeje drog se zvýšila!"
 			return 0
 		else
 			echo "Nedostatek $drug_name k prodeji."
@@ -874,16 +874,16 @@ buy_drugs() {
 	echo "3. Heroin (100$/jednotka)"
 	echo "4. Metamfetamin (75$/jednotka)"
 	echo "5. Zpět do hlavního menu"
-	read -r -p "Zadejte vaši volbu (číslo): " drug_choice
+	read -r -p "Zadejte svou volbu (číslo): " drug_choice
 
 	[[ ! "$drug_choice" =~ ^[0-9]+$ ]] && {
-		echo "Neplatný vstup. Prosím, zadejte číslo z menu."
+		echo "Neplatný vstup. Zadejte prosím číslo z menu."
 		read -r -p "Stiskněte Enter pro pokračování..."
 		return
 	}
 	read -r -p "Zadejte množství, které chcete koupit: " drug_amount
 	[[ ! "$drug_amount" =~ ^[0-9]+$ ]] && {
-		echo "Neplatný vstup. Prosím, zadejte číslo."
+		echo "Neplatný vstup. Zadejte prosím číslo."
 		read -r -p "Stiskněte Enter pro pokračování..."
 		return
 	}
@@ -907,15 +907,15 @@ sell_drugs() {
 	echo "3. Heroin"
 	echo "4. Metamfetamin"
 	echo "5. Zpět do hlavního menu"
-	read -r -p "Zadejte vaši volbu (číslo): " drug_choice
+	read -r -p "Zadejte svou volbu (číslo): " drug_choice
 	[[ ! "$drug_choice" =~ ^[0-9]+$ ]] && {
-		echo "Neplatný vstup. Prosím, zadejte číslo z menu."
+		echo "Neplatný vstup. Zadejte prosím číslo z menu."
 		read -r -p "Stiskněte Enter pro pokračování..."
 		return
 	}
 	read -r -p "Zadejte množství, které chcete prodat: " drug_amount
 	[[ ! "$drug_amount" =~ ^[0-9]+$ ]] && {
-		echo "Neplatný vstup. Prosím, zadejte číslo."
+		echo "Neplatný vstup. Zadejte prosím číslo."
 		read -r -p "Stiskněte Enter pro pokračování..."
 		return
 	}
@@ -952,7 +952,7 @@ play_music() {
 		printf "%d. Zpět do Hlavního menu\n" $(( ${#music_files[@]} + 1 ))
 		read -r music_choice
 		if ! [[ "$music_choice" =~ ^[0-9]+$ ]]; then
-			echo "Neplatný vstup. Prosím, zadejte číslo."
+			echo "Neplatný vstup. Zadejte prosím číslo."
 			sleep 2
 			continue # Zpět do menu přehrávače hudby
 		fi
@@ -976,7 +976,7 @@ play_music() {
 	done
 }
 
-# Uložení herního stavu do souboru
+# Uložení stavu hry do souboru
 save_game() {
 	echo "$player_name" > "$SAVE_DIR/player_name.sav"
 	echo "$location" > "$SAVE_DIR/location.sav"
@@ -996,11 +996,11 @@ save_game() {
 		printf "%s %s\n" "$key" "${skills[$key]}" >> "$SAVE_DIR/skills.sav"
 	done
 
-	echo "Hra byla úspěšně uložena."
+	echo "Hra úspěšně uložena."
 	read -r -p "Stiskněte Enter pro pokračování..."
 }
 
-# Načtení herního stavu ze souboru
+# Načtení stavu hry ze souboru
 load_game() {
 	local IFS=$'\n'
 	if [[ -f "$SAVE_DIR/player_name.sav" && -f "$SAVE_DIR/location.sav" && -f "$SAVE_DIR/cash.sav" && -f "$SAVE_DIR/health.sav" && -f "$SAVE_DIR/guns.sav" && -f "$SAVE_DIR/items.sav" && -f "$SAVE_DIR/body_armor_equipped.sav" && -f "$SAVE_DIR/skills.sav" ]]; then
@@ -1028,15 +1028,15 @@ load_game() {
 			fi
 		done < "$SAVE_DIR/skills.sav"
 
-		echo "Hra byla úspěšně načtena."
+		echo "Hra úspěšně načtena."
 		read -r -p "Stiskněte Enter pro pokračování..."
 		IFS=$' \t\n' # Obnovení IFS
-		return 0 # Označení úspěšného načtení
+		return 0 # Indikuje úspěšné načtení
 	else
-		echo "Nebyla nalezena uložená hra."
+		echo "Žádná uložená hra nebyla nalezena."
 		read -r -p "Stiskněte Enter pro pokračování..."
 		IFS=$' \t\n' # Obnovení IFS
-		return 1 # Označení neúspěšného načtení
+		return 1 # Indikuje neúspěšné načtení
 	fi
 }
 
@@ -1060,7 +1060,7 @@ Game_variables() {
 	clear_screen
 }
 
-# Funkce pro odstranění uložených souborů
+# Funkce pro odstranění souborů s uloženou hrou
 remove_save_files() {
 	rm -f "$SAVE_DIR/player_name.sav"
 	rm -f "$SAVE_DIR/location.sav"
@@ -1070,10 +1070,10 @@ remove_save_files() {
 	rm -f "$SAVE_DIR/items.sav"
 	rm -f "$SAVE_DIR/drugs.sav"
 	rm -f "$SAVE_DIR/body_armor_equipped.sav"
-	rm -f "$SAVE_DIR/skills.sav" # Odstranění souboru uložení dovedností
+	rm -f "$SAVE_DIR/skills.sav" # Odstranění souboru s uloženými dovednostmi
 
 	if [[ ! -d "$SAVE_DIR" ]]; then
-		echo "Nebyla nalezena uložená hra."
+		echo "Žádná uložená hra nebyla nalezena."
 	else
 		echo "Staré uložení smazáno!"
 	fi
@@ -1087,9 +1087,9 @@ while true; do
 	echo "1. Nová hra"
 	echo "2. Načíst hru"
 	echo "3. Ukončit hru"
-	read -r -p "Zadejte vaši volbu: " initial_choice
+	read -r -p "Zadejte svou volbu: " initial_choice
 	[[ ! "$initial_choice" =~ ^[0-9]+$ ]] && {
-		echo "Neplatný vstup. Prosím, zadejte číslo."
+		echo "Neplatný vstup. Zadejte prosím číslo."
 		sleep 2
 		continue
 	}
@@ -1104,11 +1104,11 @@ done
 while true; do
 clear_screen
 echo "Vyberte akci:"
-echo "1. Cestovat do jiného Státu"
+echo "1. Cestovat do jiného státu"
 echo "2. Koupit zbraně"
 echo "3. Zobrazit inventář"
 echo "4. Práce (vydělat peníze)"
-echo "5. Práce (kriminální činnost)"
+echo "5. Práce (trestná činnost)"
 echo "6. Koupit drogy"
 echo "7. Prodat drogy"
 echo "8. Najmout prostitutku"
@@ -1118,24 +1118,24 @@ echo "11. Uložit hru"
 echo "12. Načíst hru"
 echo "13. Přehrát hudbu"
 echo "14. O hře"
-read -r -p "Zadejte vaši volbu: " choice
+read -r -p "Zadejte svou volbu: " choice
 [[ ! "$choice" =~ ^[0-9]+$ ]] && {
-	echo "Neplatný vstup. Prosím, zadejte číslo."
+	echo "Neplatný vstup. Zadejte prosím číslo."
 	sleep 2
 	continue
 }
 case "$choice" in
 	1) clear
-	echo "Vyberte Stát, do kterého chcete cestovat:"
+	echo "Vyberte stát, do kterého chcete cestovat:"
 	echo "1. Los Santos (50$)"
 	echo "2. San Fierro (75$)"
 	echo "3. Las Venturas (100$)"
 	echo "4. Vice City (150$)"
 	echo "5. Liberty City (200$)"
 	echo "6. Zpět do hlavního menu"
-	read -r -p "Zadejte vaši volbu: " city_choice
+	read -r -p "Zadejte svou volbu: " city_choice
 	[[ ! "$city_choice" =~ ^[0-9]+$ ]] && {
-		echo "Neplatný vstup. Prosím, zadejte číslo."
+		echo "Neplatný vstup. Zadejte prosím číslo."
 		sleep 2
 		continue
 	}
@@ -1155,13 +1155,12 @@ case "$choice" in
 	echo "1. Taxikář"
 	echo "2. Kurýr"
 	echo "3. Mechanik"
-	echo "4. Ostraha"
+	echo "4. Hlídač"
 	echo "5. Pouliční umělec"
-	echo "6. Pouliční závody"
-	echo "7. Zpět do hlavního menu"
-	read -r -p "Zadejte vaši volbu: " job_choice
+	echo "6. Zpět do hlavního menu"
+	read -r -p "Zadejte svou volbu: " job_choice
 	[[ ! "$job_choice" =~ ^[0-9]+$ ]] && {
-		echo "Neplatný vstup. Prosím, zadejte číslo."
+		echo "Neplatný vstup. Zadejte prosím číslo."
 		sleep 2
 		continue
 	}
@@ -1171,20 +1170,20 @@ case "$choice" in
 		3) work_job "mechanic";;
 		4) work_job "security";;
 		5) work_job "performer";;
-		6) work_job "race";;
-		7) clear_screen;;
+		6) clear_screen;;
 		*) echo "Neplatná volba.";;
 	esac;;
 	5) clear
-	echo "Vyberte kriminální činnost:"
-	echo "1. Loupež"
-	echo "2. Válka gangů"
+	echo "Vyberte trestnou činnost:"
+	echo "1. Přepadení"
+	echo "2. Gangová válka"
 	echo "3. Krádež auta"
 	echo "4. Vykrást obchod"
-	echo "5. Zpět do hlavního menu"
-	read -r -p "Zadejte vaši volbu: " criminal_choice
+    echo "5. Pouliční závody"
+	echo "6. Zpět do hlavního menu"
+	read -r -p "Zadejte svou volbu: " criminal_choice
 	[[ ! "$criminal_choice" =~ ^[0-9]+$ ]] && {
-		echo "Neplatný vstup. Prosím, zadejte číslo."
+		echo "Neplatný vstup. Zadejte prosím číslo."
 		sleep 2
 		continue
 	}
@@ -1193,7 +1192,8 @@ case "$choice" in
 		2) gang_war;;
 		3) carjack;;
 		4) rob_store;;
-		5) clear_screen;;
+		5) street_race;;
+		6) clear_screen;;
 		*) echo "Neplatná volba.";;
 	esac;;
 	6) buy_drugs;;

@@ -1,3 +1,3 @@
 # message to you 
 
-# I AM LAZY
+# I AM LAZY :)

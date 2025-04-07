@@ -1,7 +1,7 @@
 #Bash-Theft-Auto music and sfx © 2024 by stuffbymax - Martin Petik is licensed under CC BY 4.0
 #https://creativecommons.org/licenses/by/4.0/
 #!/bin/bash
-#ver 2.0.1-C
+#ver 2.0.2
 
 # --- 0. Global Variables ---
 player_name=""
@@ -73,7 +73,7 @@ about_music_sfx() {
 	echo "|  About the Music and Sound Effects    |"
 	echo "-----------------------------------------"
 	echo ""
-	echo "The music and sound effects in this game"
+	echo "The music and some sound effects in this game"
 	echo "were created by stuffbymax - Martin Petik."
 	echo ""
 	echo "They are licensed under the Creative"
@@ -181,15 +181,13 @@ buy_guns() {
 buy_item() {
 	local item_name="$1"
 	local item_cost="$2"
-
+	play_sfx_mpg "cash_register"
 	buy_animation
 
 	if (( cash >= item_cost )); then
 		cash=$((cash - item_cost))
 		guns+=("$item_name")
 		echo "You bought a $item_name."
-		play_sfx_mpg "gun_buy" # Play a sound when buying a gun - using "gun_buy"
-		play_sfx_mpg "cash_register" # Play a sound when buying a gun
 		read -r -p "Press Enter to continue..."
 	else
 		echo "Not enough cash to buy a $item_name."
@@ -245,23 +243,23 @@ work_job() {
 			;;
 		"delivery")
 			earnings=$((RANDOM % (max_earnings - min_earnings + 1) + min_earnings + 10))
+			play_sfx_mpg "taxi"
 			working_animation
 			;;
 		"mechanic")
 			earnings=$((RANDOM % (max_earnings - min_earnings + 1) + min_earnings + 20))
+			play_sfx_mpg "mechanic"
 			working_animation
 			;;
 		"security")
 			earnings=$((RANDOM % (max_earnings - min_earnings + 1) + min_earnings + 30))
+			play_sfx_mpg "security"
 			working_animation
 			;;
 		"performer")
 			earnings=$((RANDOM % (max_earnings - min_earnings + 1) + min_earnings - 20))
+			play_sfx_mpg "street_performer"
 			working_animation
-			;;
-		"race") # Different logic for race
-			work_race
-			return
 			;;
 		*) echo "Invalid Job"; return;;
 	esac
@@ -270,14 +268,13 @@ work_job() {
 	read -r -p "Press Enter to continue..."
 
 	cash=$((cash + earnings))
-	play_sfx_mpg "cash_register" # Play a working sound
 	clear_screen
 	printf "You earned %d dollars. You now have %d dollars.\n" "$earnings" "$cash"
 	read -r -p "Press Enter to continue..."
 }
 
 # Function for street racing (separate function)
-work_race() {
+street_race() {
 	working_animation
 	echo "You are participating in a street race in $location..."
 	read -r -p "Press Enter to continue..."
@@ -321,7 +318,7 @@ work_race() {
 use_guns() {
 	if [[ " ${guns[*]} " == *" $1 "* ]]; then
 		echo "You used your $1 for this job."
-		play_sfx_mpg "gun_shot"  # Play a gunshot sound when using a gun - kept for potential use
+		play_sfx_mpg "gun_shot"
 		read -r -p "Press Enter to continue..."
 	else
 		echo "You don't have a $1. Job failed."
@@ -467,7 +464,7 @@ rob_store() {
 		check_health
 		clear_screen
 		printf "You successfully robbed the store and got %d dollars, but lost %d%% health. You now have %d dollars and %d%% health.\n" "$loot" "$damage" "$cash" "$health"
-		play_sfx_mpg "cash_register"  # Play a robbing sound
+		play_sfx_mpg "cash_register"
 		read -r -p "Press Enter to continue..."
 	else
 		fine=$((RANDOM % 51 + 25))
@@ -549,7 +546,6 @@ heist() {
 		check_health
 		clear_screen
 		printf "The heist was successful! You got %d dollars, but lost %d%% health. You now have %d dollars and %d%% health.\n" "$loot" "$damage" "$cash" "$health"
-		play_sfx_mpg "cash_register"  # Play a heist sound
 		read -r -p "Press Enter to continue..."
 	else
 		fine=$((RANDOM % 101 + 50))
@@ -1159,8 +1155,7 @@ case "$choice" in
 	echo "3. Mechanic"
 	echo "4. Security Guard"
 	echo "5. Street Performer"
-	echo "6. Street Racing"
-	echo "7. Back to main menu"
+	echo "6. Back to main menu"
 	read -r -p "Enter your choice: " job_choice
 	[[ ! "$job_choice" =~ ^[0-9]+$ ]] && {
 		echo "Invalid input. Please enter a number."
@@ -1173,8 +1168,7 @@ case "$choice" in
 		3) work_job "mechanic";;
 		4) work_job "security";;
 		5) work_job "performer";;
-		6) work_job "race";;
-		7) clear_screen;;
+		6) clear_screen;;
 		*) echo "Invalid choice.";;
 	esac;;
 	5) clear
@@ -1183,7 +1177,8 @@ case "$choice" in
 	echo "2. Gang war"
 	echo "3. Carjack"
 	echo "4. Rob a store"
-	echo "5. Back to main menu"
+    echo "5. Street Racing"
+	echo "6. Back to main menu"
 	read -r -p "Enter your choice: " criminal_choice
 	[[ ! "$criminal_choice" =~ ^[0-9]+$ ]] && {
 		echo "Invalid input. Please enter a number."
@@ -1195,7 +1190,8 @@ case "$choice" in
 		2) gang_war;;
 		3) carjack;;
 		4) rob_store;;
-		5) clear_screen;;
+		5) street_race;;
+		6) clear_screen;;
 		*) echo "Invalid choice.";;
 	esac;;
 	6) buy_drugs;;
