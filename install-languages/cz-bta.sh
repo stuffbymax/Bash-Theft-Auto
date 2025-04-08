@@ -2,9 +2,9 @@
 #Překlad byl vytvořen umělou inteligencí
 #Bash-Theft-Auto hudba a zvukové efekty © 2024 od stuffbymax - Martin Petik je licencován pod CC BY 4.0
 #https://creativecommons.org/licenses/by/4.0/
-#!/bin/bash
 #ver 2.0.2
-
+#!/bin/bash
+BASEDIR="$(dirname "$(realpath "$0")")"
 # --- 0. Globální proměnné ---
 player_name=""
 location=""

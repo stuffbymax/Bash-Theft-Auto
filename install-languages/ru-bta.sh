@@ -1,9 +1,9 @@
 #!/bin/bash
 #Bash-Theft-Auto music and sfx © 2024 by stuffbymax - Martin Petik is licensed under CC BY 4.0
 #https://creativecommons.org/licenses/by/4.0/
-#!/bin/bash
 #версия 2.0.2
-
+#!/bin/bash
+BASEDIR="$(dirname "$(realpath "$0")")"
 # --- 0. Глобальные переменные ---
 player_name=""
 location=""

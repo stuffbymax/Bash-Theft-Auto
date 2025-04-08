@@ -1,9 +1,9 @@
 #Bash-Theft-Auto الموسيقى والمؤثرات الصوتية © 2024 بواسطة stuffbymax - Martin Petik مرخصة بموجب CC BY 4.0
 #الترجمة بواسطة الذكاء الاصطناعي
+#الإصدار 2.0.2
 #https://creativecommons.org/licenses/by/4.0/
 #!/bin/bash
-#الإصدار 2.0.2
-
+BASEDIR="$(dirname "$(realpath "$0")")"
 # --- 0. المتغيرات العامة ---
 player_name="" # اسم اللاعب
 location=""     # الموقع

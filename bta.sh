@@ -1,14 +1,9 @@
 #Bash-Theft-Auto music and sfx © 2024 by stuffbymax - Martin Petik is licensed under CC BY 4.0
 #https://creativecommons.org/licenses/by/4.0/
-#ver 2.0.2
-
+#ver 2.0.2 bugfix
 #!/bin/bash
-
-# Set BASEDIR to the directory where the script is located
+# Set BASEDIR to the directory
 BASEDIR="$(dirname "$(realpath "$0")")"
-
-# Example of playing music
-mpg123 "$BASEDIR/music/platforma.mp3"
 
 # --- 0. Global Variables ---
 player_name=""
