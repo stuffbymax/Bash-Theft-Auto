@@ -1,11 +1,4 @@
-# Maintainer: Your Name <martinp6282@gmail.com>
-# Contributor: Your Name <martinp6282@gmail.com>
-# Package: bash-theft-auto
-# Description: A simple text-based game that simulates a car thief adventure
-# URL: https://github.com/stuffbymax/Bash-Theft-Auto
-# License: MIT
-# Depends on: bash, mpg123
-# Make sure to adjust the version if needed.
+# Maintainer: Martin P. <martinp6282@gmail.com>
 
 pkgname=bash-theft-auto
 pkgver=2.0.1
@@ -16,26 +9,31 @@ url="https://github.com/stuffbymax/Bash-Theft-Auto"
 license=('MIT')
 depends=('bash' 'mpg123')
 source=("https://github.com/stuffbymax/Bash-Theft-Auto/archive/refs/heads/main.zip")
-sha256sums=('SKIP')  # Optionally, use `sha256sum source_file` to get the checksum
+sha256sums=('SKIP')
 
 prepare() {
-  # This step ensures that the necessary files are in place
   cd "$srcdir"
   unzip main.zip
-  mv Bash-Theft-Auto-main "$pkgname"
+  mv Bash-Theft-Auto-main Bash-Theft-Auto
 }
 
 build() {
-  # There's no actual build step needed for this package
   return 0
 }
 
 package() {
-  cd "$srcdir/$pkgname"
+  cd "$srcdir/Bash-Theft-Auto"
 
-  # Copy the game files to the appropriate directory
-  install -Dm755 bta.sh "$pkgdir/usr/bin/bta"
+  # Install whole game folder to /usr/share/bash-theft-auto/
+  install -d "$pkgdir/usr/share/$pkgname"
+  cp -r * "$pkgdir/usr/share/$pkgname/"
 
-  # Optionally, you can install the README or other files
+  # Create launcher in /usr/bin/
+  install -Dm755 /dev/stdin "$pkgdir/usr/bin/bta" <<EOF
+#!/bin/bash
+exec /usr/share/$pkgname/bta.sh "\$@"
+EOF
+
+  # Optionally install README
   install -Dm644 README.md "$pkgdir/usr/share/doc/$pkgname/README.md"
 }
