@@ -6,7 +6,9 @@ display_options() {
     echo "1. English (bta)"
     echo "2. Arabic (bta-arabic)"
     echo "3. Czech (cz-bta)"
-    echo "4. Exit"
+    echo "4. Slovakian (sk-bta)"
+    echo "5. Russian (ru-bta)"
+    echo "6. Exit"
 }
 
 # Function to install English version
@@ -36,10 +38,28 @@ install_czech() {
     echo "Czech version installed as 'bta' in /usr/local/bin"
 }
 
+# Function to install Czech version
+install_slovakia() {
+    echo "Renaming and installing the Czech version..."
+    # Rename and move the Czech version to /usr/local/bin (or another directory in your PATH)
+    mv ./sk-bta.sh /usr/local/bin/bta
+    chmod +x /usr/local/bin/bta
+    echo "Slovakian version installed as 'bta' in /usr/local/bin"
+}
+
+# Function to install Arabic version
+install_russian() {
+    echo "Renaming and installing the Arabic version..."
+    # Rename and move the Arabic version to /usr/local/bin (or another directory in your PATH)
+    mv ./bta-russian.sh /usr/local/bin/bta
+    chmod +x /usr/local/bin/bta
+    echo "Russian version installed as 'bta' in /usr/local/bin"
+}
+
 # Main logic to handle user input
 while true; do
     display_options
-    read -p "Please enter your choice (1-4): " choice
+    read -p "Please enter your choice (1-5): " choice
 
     case $choice in
         1)
@@ -55,11 +75,19 @@ while true; do
             break
             ;;
         4)
+            install_slovakia
+            break
+            ;;
+        5)
+            install_russian
+            break
+            ;;
+        6)
             echo "Exiting script."
             break
             ;;
         *)
-            echo "Invalid choice. Please choose 1, 2, 3, or 4."
+            echo "Invalid choice. Please choose 1, to 6."
             ;;
     esac
 done

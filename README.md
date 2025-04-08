@@ -141,3 +141,4 @@ This project is open-source. Feel free to use and modify the code for educationa
 ### Disclaimer
 
 This game is a text-based simulation and does not condone real-life criminal activity.
+Rockstar Games has no involvement with this project, and the content within this game is not associated with or endorsed by them in any way.
