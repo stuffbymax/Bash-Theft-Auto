@@ -1,7 +1,8 @@
 # Maintainer: Martin P. <martinp6282@gmail.com>
+# Contributor: Martin P. <martinp6282@gmail.com>
 
 pkgname=bash-theft-auto
-pkgver=2.0.1
+pkgver=2.0.2
 pkgrel=1
 pkgdesc="A simple text-based game that simulates a car thief adventure"
 arch=('any')
@@ -14,7 +15,7 @@ sha256sums=('SKIP')
 prepare() {
   cd "$srcdir"
   unzip main.zip
-  mv Bash-Theft-Auto-main Bash-Theft-Auto
+  mv Bash-Theft-Auto-main "$pkgname"
 }
 
 build() {
@@ -22,11 +23,13 @@ build() {
 }
 
 package() {
-  cd "$srcdir/Bash-Theft-Auto"
+  cd "$srcdir/$pkgname"
 
-  # Install whole game folder to /usr/share/bash-theft-auto/
+  # Create target directory
   install -d "$pkgdir/usr/share/$pkgname"
-  cp -r * "$pkgdir/usr/share/$pkgname/"
+
+  # Copy all needed files (game script + folders)
+  cp -r bta.sh music sfx saves "$pkgdir/usr/share/$pkgname/"
 
   # Create launcher in /usr/bin/
   install -Dm755 /dev/stdin "$pkgdir/usr/bin/bta" <<EOF

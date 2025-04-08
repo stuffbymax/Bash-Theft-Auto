@@ -4,9 +4,11 @@
 
 #!/bin/bash
 
-# Set correct working directory
+# Set BASEDIR to the directory where the script is located
 BASEDIR="$(dirname "$(realpath "$0")")"
 
+# Example of playing music
+mpg123 "$BASEDIR/music/platforma.mp3"
 
 # --- 0. Global Variables ---
 player_name=""
