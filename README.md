@@ -3,7 +3,7 @@
 
 ## licensing
 
-[the code and aniamtion is under MIT](./LICENSE)
+[the code and animation is under MIT](./LICENSE)
 [the Music and SFX is under CC-BY](https://creativecommons.org/licenses/by/4.0/) 
 [the ascii animation is made by AI]
 ## Overview
