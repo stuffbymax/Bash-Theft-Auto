@@ -14,7 +14,8 @@ select_language() {
     echo "3. Czech"
     echo "4. Slovakian"
     echo "5. Russian"
-    read -rp "Please enter your choice (1-5): " lang_choice
+    echo "6 Polish"
+    read -rp "Please enter your choice (1-6): " lang_choice
 
     case $lang_choice in
         1) lang="en" ;;
@@ -22,6 +23,7 @@ select_language() {
         3) lang="cz" ;;
         4) lang="sk" ;;
         5) lang="ru" ;;
+        6) lang="pl" ;;
         *)
             echo "Invalid choice. Defaulting to English."
             lang="en"
@@ -80,6 +82,15 @@ ru() {
     echo "6. Выход"
 }
 
+pl() {
+	 echo "Wybierz wersję językową, którą chcesz zainstalować:"
+	 echo "1. Angielski (bta)"
+	 echo "2. Arabski (bta-arabski)"
+	 echo "3. Czeski (cz-bta)"
+	 echo "4. Słowacki (sk-bta)"
+	 echo "5. Rosyjski (ru-bta)"
+	 echo "6. Wyjście"
+
 # Function to display options in the selected language
 display_options() {
     case $lang in
@@ -88,6 +99,7 @@ display_options() {
         cz) cz ;;
         sk) sk ;;
         ru) ru ;;
+        pl) pl ;;
         *) en ;;  # Default to English
     esac
 }
@@ -133,13 +145,18 @@ while true; do
             break
             ;;
         5)
-            install_version "bta-russian.sh" "Russian"
+            install_version "ru-bta.sh" "Russian"
             break
             ;;
         6)
-            echo "Exiting script."
+            install_version "pl-bta.sh" "Polish"
             break
             ;;
+            
+		7)
+            echo "Exiting script."
+            break
+            ;;            
         *)
             echo "Invalid choice. Please choose 1 to 6."
             ;;
