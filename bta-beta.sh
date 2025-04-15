@@ -1,4 +1,4 @@
-#ver 2.0.8
+#ver 2.0.8 beta
 #Bash-Theft-Auto music and sfx © 2024 by stuffbymax - Martin Petik is licensed under CC BY 4.0
 #https://creativecommons.org/licenses/by/4.0/
 #!/bin/bash
