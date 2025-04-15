@@ -58,7 +58,7 @@ if ! command -v mpg123 &> /dev/null; then
 	echo "# Sound effects and music require mpg123.                 #"
 	echo "# Please install it for the full experience.              #"
 	echo "#---------------------------------------------------------#"
-	echo "# On Debian/Ubuntu: sudo apt update && sudo apt install mpg123 #"
+	echo "# On Debian/Ubuntu: sudo apt install mpg123               #"
 	echo "# On Fedora:        sudo dnf install mpg123               #"
 	echo "# On Arch Linux:    sudo pacman -S mpg123                 #"
 	echo "# On macOS (Homebrew): brew install mpg123                #"
@@ -68,16 +68,16 @@ if ! command -v mpg123 &> /dev/null; then
 fi
 # Check for bc command (needed for market mechanics)
 if ! command -v bc &> /dev/null; then
-	echo "###########################################################"
-	echo "# Warning: 'bc' command not found.                        #"
-	echo "# Advanced drug market calculations require bc.           #"
-	echo "# Please install it for the full experience.              #"
-	echo "#---------------------------------------------------------#"
+	echo "############################################################"
+	echo "# Warning: 'bc' command not found.                         #"
+	echo "# Advanced drug market calculations require bc.            #"
+	echo "# Please install it for the full experience.               #"
+	echo "#----------------------------------------------------------#"
 	echo "# On Debian/Ubuntu: sudo apt update && sudo apt install bc #"
 	echo "# On Fedora:        sudo dnf install bc                    #"
-	echo "# On Arch Linux:    sudo pacman -S bc                    #"
-	echo "# On macOS (Homebrew): brew install bc                   #"
-	echo "###########################################################"
+	echo "# On Arch Linux:    sudo pacman -S bc                      #"
+	echo "# On macOS (Homebrew): brew install bc                     #"
+	echo "############################################################"
 	read -r -p "Press Enter to continue with basic market calculations..."
 	# Optionally, you could implement fallback logic here if bc is missing
 fi
