@@ -1,5 +1,5 @@
-#ver 2.0.8 beta
-#Bash-Theft-Auto music and sfx © 2024 by stuffbymax - Martin Petik is licensed under CC BY 4.0
+#ver 2.0.8
+#Bash-Theft-Auto music © 2024 by stuffbymax - Martin Petik is licensed under CC BY 4.0
 #https://creativecommons.org/licenses/by/4.0/
 #!/bin/bash
 # set -e # Uncomment this for stricter error checking if desired, but might exit too easily
@@ -135,6 +135,8 @@ clear_screen() {
 	for ((i=0; i<wanted_level; i++)); do stars+="*"; done
 	printf " | Wanted: \e[1;31m%-5s\e[0m\n" "$stars"
 	printf "\e[1;34m=========================================\e[0m\n"
+
+  printf "\e[44m new update is coming soon\e[0m\n "
 }
 
 about_music_sfx() {
