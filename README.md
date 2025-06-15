@@ -134,7 +134,6 @@ The game supports plugins, which are simply `.sh` files located in the `plugins`
 ### Contributing
 
 If you wish to contribute to this project, feel free to fork the repository and submit a pull request with your improvements.
-License
 
 This project is open-source. Feel free to use and modify the code for educational and personal purposes.
 
