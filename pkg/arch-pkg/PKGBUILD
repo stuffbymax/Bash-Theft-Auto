@@ -10,7 +10,7 @@ url="https://github.com/stuffbymax/Bash-Theft-Auto"
 license=('MIT')
 depends=('bash' 'mpg123' 'bc')
 source=("https://github.com/stuffbymax/Bash-Theft-Auto/archive/refs/heads/main.zip")
-sha256sums=('SKIP')
+sha256sums=('fb9d5ed58a7394640b6b27af0dbab2914b45bdf1e34fbd08e1466ceb4340cc23')
 
 prepare() {
   cd "$srcdir"
