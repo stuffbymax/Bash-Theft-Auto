@@ -4,4 +4,4 @@
 3. you can Manage Businesses
 4. you can start gang war by Initiate Gang War (in this city)
 5. you can Join a Faction (in this city) and create one
-
+6. you can create own gang
