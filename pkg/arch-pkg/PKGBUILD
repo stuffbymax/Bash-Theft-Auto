@@ -2,7 +2,7 @@
 # Contributor: Martin P. <martinp6282@gmail.com>
 
 pkgname=bash-theft-auto-git
-pkgver=2.0.5
+pkgver=2.1.1
 pkgrel=1
 pkgdesc="A simple text-based game that simulates a car thief adventure"
 arch=('any')

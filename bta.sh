@@ -1337,7 +1337,7 @@ load_game() {
 }
 remove_save_files() { rm -f "$BASEDIR/$SAVE_DIR"/*.sav; }
 Game_variables() {
-	clear_screen; read -r -p "Enter your player name: " player_name; [[ -z "$player_name" ]] && player_name="Wanderer"
+	clear_screen; read -r -p "Enter your player name: " player_name; [[ -z "$player_name" ]] && player_name="toolazytowritename"
 	play_sfx_mpg "new_game"; location="Los Santos"; cash=500; health=100; guns=(); items=();
 	owned_vehicles=(); wanted_level=0; body_armor_equipped=false
 	declare -A drugs; for key in "${!default_drugs[@]}"; do drugs["$key"]=${default_drugs[$key]}; done
