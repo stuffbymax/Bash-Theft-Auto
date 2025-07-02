@@ -3,9 +3,10 @@
 
 ## licensing
 
-[the code and animation is under MIT](./LICENSE)
-[the Music and SFX is under CC-BY](https://creativecommons.org/licenses/by/4.0/) 
-[the ascii animation is made by AI]
+- [The code and animation is under MIT](./LICENSE)
+- [The music and SFX is under CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+- The ASCII animation is AI-generated.
+
 ## Overview
 
 Bash Theft Auto is a text-based adventure game implemented entirely in Bash. Inspired by classic open-world crime games, this script allows players to navigate a virtual world, earn money through legitimate jobs or criminal activities, purchase weapons and items, engage in dangerous encounters, and manage their health and inventory. 
@@ -56,6 +57,12 @@ The game features several locations, a variety of jobs and crimes, drug dealing,
 	mkdir music
 	mkdir saves
     ```
+A. **You can download Necessary files 
+
+B. music here ```bash svn export https://github.com/stuffbymax/Bash-Theft-Auto/trunk/music```
+
+C.  plugins here ```bash svn export https://github.com/stuffbymax/Bash-Theft-Auto/trunk/plugins```
+
 5.  **Add music files** Put .mp3 files into the music folder. The game will randomly choose between the files in the folder.
 
 ### How to Play
