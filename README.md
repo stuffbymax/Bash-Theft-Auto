@@ -59,9 +59,17 @@ The game features several locations, a variety of jobs and crimes, drug dealing,
     ```
 4.1 **You can download Necessary files 
 
-A. music here ```bash svn export https://github.com/stuffbymax/Bash-Theft-Auto/trunk/music```
+A. music here 
 
-B. plugins here ```bash svn export https://github.com/stuffbymax/Bash-Theft-Auto/trunk/plugins```
+```bash
+svn export https://github.com/stuffbymax/Bash-Theft-Auto/trunk/music
+```
+
+B. plugins here 
+
+```bash 
+svn export https://github.com/stuffbymax/Bash-Theft-Auto/trunk/plugins
+```
 
 5.  **Add music files** Put .mp3 files into the music folder. The game will randomly choose between the files in the folder.
 
