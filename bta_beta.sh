@@ -1,5 +1,5 @@
 #!/bin/bash
-# ver 2.3.3
+# ver 2.3.5
 # Bash-Theft-Auto music © 2024 by stuffbymax - Martin Petik is licensed under CC BY 4.0
 # https://creativecommons.org/licenses/by/4.0/
 
@@ -299,7 +299,6 @@ calculate_and_apply_payouts() {
     done
 
     for recruit in "${player_recruits[@]}"; do
-        # BUG FIX: Use valid variable names for read placeholders.
         local upkeep; IFS=':' read -r _ _ upkeep <<< "$recruit"
         upkeep_cost=$((upkeep_cost + upkeep))
     done
@@ -1021,7 +1020,9 @@ show_territory_map() {
     run_clock 0; clear_screen; echo "--- ${location} Territory Map ---"; echo "---------------------------------"
     local territory_found=false
     for key in "${!territory_owner[@]}"; do
-        local owner="${territory_owner[$key]}"; local city district; IFS='|' read -r city district <<< "$key"
+        local owner="${territory_owner[$key]}"
+        local city="${key%|*}"
+        local district="${key#*|}"
         if [[ "$city" == "$location" ]]; then
             local display_owner="$owner"
             territory_found=true; local color="\e[0m"
@@ -1131,12 +1132,14 @@ initiate_gang_war() {
     fi
 
     local -a attackable_keys=()
-    local i=1
+    local i=0 # BUG FIX: Initialize counter to 0
     clear_screen
     echo "--- Select a Territory to Attack in ${location} ---"
     for key in "${!territory_owner[@]}"; do
-        local city district; IFS='|' read -r city district <<< "$key"
+        local city="${key%|*}"
+        local district="${key#*|}"
         local owner="${territory_owner[$key]}"
+        
         if [[ "$city" == "$location" && "$owner" != "$player_gang" ]]; then
             local display_owner="$owner"
             local color="\e[1;31m"
@@ -1144,9 +1147,10 @@ initiate_gang_war() {
                 display_owner="Government Control"
                 color="\e[1;37m"
             fi
+            # BUG FIX: Increment counter *before* printing the line
+            i=$((i + 1))
             printf " %d. Attack \e[1;33m%s\e[0m (Controlled by: %b%s\e[0m)\n" "$i" "$district" "$color" "$display_owner"
             attackable_keys+=("$key")
-            ((i++))
         fi
     done
 
@@ -1154,7 +1158,7 @@ initiate_gang_war() {
         echo "You hold all available territories in this city!"; read -r -p "Press Enter..."; return
     fi
     echo "---------------------------------------------------"
-    local back_option_num=$i; echo " ${back_option_num}. Back"; echo "---------------------------------------------------"
+    local back_option_num=$((i + 1)); echo " ${back_option_num}. Back"; echo "---------------------------------------------------"
     read -r -p "Choose your target: " choice
 
     if ! [[ "$choice" =~ ^[0-9]+$ ]] || (( choice < 1 || choice > back_option_num )); then
@@ -1184,7 +1188,6 @@ initiate_gang_war() {
         echo "You back off for now."; read -r -p "Press Enter..."; return
     fi
 
-    # BUG FIX: Use valid variable names for read placeholders.
     local recruit_bonus=0; for recruit in "${player_recruits[@]}"; do local _ str _; IFS=':' read -r _ str _ <<< "$recruit"; recruit_bonus=$((recruit_bonus + str)); done
     local locker_level=${gang_upgrades[weapon_locker]:-0}; local locker_bonus=$((locker_level * 2)); local total_bonus=$((recruit_bonus + locker_bonus))
     if (( total_bonus > 0 )); then echo "Your crew gives you an edge: Recruits (+${recruit_bonus}%) + Weapon Locker (+${locker_bonus}%) = \e[1;32m+${total_bonus}%\e[0m"; fi
@@ -1197,7 +1200,7 @@ initiate_gang_war() {
         echo "You move in to assert your dominance over the area..."; sleep 2
     fi
     local wave=1; local success=true
-    local num_waves=$(( $RANDOM % 2 + 2 )) # Unaffiliated is easier, 2-3 waves.
+    local num_waves=$(( $RANDOM % 2 + 2 ))
     if [[ "$rival_gang" != "Unaffiliated" ]]; then num_waves=3; fi
 
     while (( wave <= num_waves )); do
@@ -1474,7 +1477,6 @@ calculate_gang_strength() {
     if [[ "$gang_name" == "$player_gang" ]]; then
         local recruit_bonus=0
         for recruit in "${player_recruits[@]}"; do
-            # BUG FIX: Use valid variable names for read placeholders.
             local _ str _; IFS=':' read -r _ str _ <<< "$recruit"
             recruit_bonus=$((recruit_bonus + str * 2))
         done
@@ -1488,7 +1490,8 @@ calculate_gang_strength() {
 handle_player_territory_defense() {
     local attacker_gang="$1"
     local target_key="$2"
-    local city district; IFS='|' read -r city district <<< "$target_key"
+    local city="${target_key%|*}"
+    local district="${target_key#*|}"
 
     clear_screen
     play_sfx_mpg "police_siren"
@@ -1544,7 +1547,7 @@ process_world_events() {
     local attacker_gang="${ai_gangs[RANDOM % ${#ai_gangs[@]}]}"
     local attacker_home_city="${GANG_HOME_CITY[$attacker_gang]}"
     
-    local -a potential_targets=(); for key in "${!territory_owner[@]}"; do local city _; IFS='|' read -r city _ <<< "$key"; if [[ "$city" == "$attacker_home_city" && "${territory_owner[$key]}" != "$attacker_gang" ]]; then potential_targets+=("$key"); fi; done
+    local -a potential_targets=(); for key in "${!territory_owner[@]}"; do local city="${key%|*}"; if [[ "$city" == "$attacker_home_city" && "${territory_owner[$key]}" != "$attacker_gang" ]]; then potential_targets+=("$key"); fi; done
     if (( ${#potential_targets[@]} == 0 )); then return; fi
     
     local target_key="${potential_targets[RANDOM % ${#potential_targets[@]}]}"
@@ -1555,7 +1558,8 @@ process_world_events() {
     local attacker_strength=$(calculate_gang_strength "$attacker_gang")
     local defender_strength=$(calculate_gang_strength "$defender_gang")
     
-    local city district; IFS='|' read -r city district <<< "$target_key"
+    local city="${target_key%|*}"
+    local district="${target_key#*|}"
     
     local log_msg=""
     if (( attacker_strength + (RANDOM % 30 - 15) > defender_strength )); then
