@@ -951,11 +951,115 @@ sell_drugs() {
 	drug_transaction "sell" "$chosen_drug_name" "$chosen_drug_price" "$drug_amount"; read -r -p "Press Enter..."
 }
 
+# Function to play music (Robust Version with stty echo fix)
 play_music() {
-	# This function requires the full music player logic from previous versions.
-	# As per the original script's comment, this is a placeholder.
-	echo "Music player functionality is not fully implemented in this snippet."
-	read -r -p "Press Enter..."
+    # 1. Check Prerequisite: mpg123 command
+    if ! $mpg123_available; then # Use the global flag checked at start
+        echo "Music playback disabled: 'mpg123' command not found."; read -r -p "Press Enter..."; return 1;
+    fi
+
+    # 2. Define Music Directory and Find Files
+    local music_dir="$BASEDIR/music"
+    local music_files=()
+    local original_ifs="$IFS" # Save IFS
+
+    if [[ ! -d "$music_dir" ]]; then
+        echo "Error: Music directory '$music_dir' not found!"; read -r -p "Press Enter..."; return 1;
+    fi
+
+    # Use find and process substitution for safer file handling
+    while IFS= read -r -d $'\0' file; do
+        music_files+=("$file")
+    done < <(find "$music_dir" -maxdepth 1 -type f \( -name "*.mp3" -o -name "*.MP3" \) -print0 2>/dev/null) # Find .mp3 and .MP3
+    IFS="$original_ifs" # Restore IFS
+
+    if (( ${#music_files[@]} == 0 )); then
+        echo "No .mp3 files found in '$music_dir'."; read -r -p "Press Enter..."; return 1;
+    fi
+
+    # 3. Music Player Loop
+    local choice_stop="s" choice_back="b" music_choice=""
+    local mpg123_log="/tmp/bta_mpg123_errors.$$.log" # Unique log per session
+
+    while true; do
+        clear_screen
+        echo "--- Music Player ---"
+        echo " Music Directory: $music_dir"
+        echo "----------------------------------------"
+        local current_status="Stopped" current_song_name=""
+        if [[ -n "$music_pid" ]] && kill -0 "$music_pid" 2>/dev/null; then
+            current_song_name=$(ps -p "$music_pid" -o args= 2>/dev/null | sed 's/.*mpg123 [-q]* //; s/ *$//' || echo "Playing Track")
+            [[ -z "$current_song_name" ]] && current_song_name="Playing Track"
+            current_status="Playing: $(basename "$current_song_name") (PID: $music_pid)"
+        else
+            [[ -n "$music_pid" ]] && music_pid="" # Clear stale PID
+            current_status="Stopped"
+        fi
+        echo " Status: $current_status"
+        echo "----------------------------------------"
+        echo " Available Tracks:"
+        for i in "${!music_files[@]}"; do printf " %d. %s\n" $((i + 1)) "$(basename "${music_files[$i]}")"; done
+        echo "----------------------------------------"
+        printf " [%s] Stop Music | [%s] Back to Game\n" "$choice_stop" "$choice_back"
+        echo "----------------------------------------"
+
+        # Ensure terminal echo is ON before this prompt
+        stty echo
+        read -r -p "Enter choice (number, s, b): " music_choice
+
+        case "$music_choice" in
+            "$choice_stop" | "q")
+                if [[ -n "$music_pid" ]] && kill -0 "$music_pid" 2>/dev/null; then
+                    echo "Stopping music (PID: $music_pid)..."
+                    kill "$music_pid" &>/dev/null; sleep 0.2
+                    if kill -0 "$music_pid" &>/dev/null; then kill -9 "$music_pid" &>/dev/null; fi
+                    wait "$music_pid" 2>/dev/null; music_pid=""; echo "Music stopped."
+                else echo "No music is currently playing."; fi
+                # Ensure echo restored after stopping attempt
+                stty echo
+                sleep 1 # Pause briefly
+                ;; # Loop will repeat and show updated menu
+            "$choice_back" | "b")
+                echo "Returning to game..."; sleep 1; break # Exit the music loop
+                ;;
+            *)
+                if [[ "$music_choice" =~ ^[0-9]+$ ]] && (( music_choice >= 1 && music_choice <= ${#music_files[@]} )); then
+                    local selected_track="${music_files[$((music_choice - 1))]}"
+                    if [[ ! -f "$selected_track" ]]; then echo "Error: File '$selected_track' not found!"; sleep 2; continue; fi
+
+                    if [[ -n "$music_pid" ]] && kill -0 "$music_pid" 2>/dev/null; then
+                        echo "Stopping previous track..."; kill "$music_pid" &>/dev/null; wait "$music_pid" 2>/dev/null; music_pid=""; sleep 0.2;
+                    fi
+
+                    echo "Attempting to play: $(basename "$selected_track")"
+
+                    # --- Play Command (No Subshell) ---
+                    echo "--- BTA Log $(date) --- Playing: $selected_track" >> "$mpg123_log"
+                    mpg123 -q "$selected_track" 2>> "$mpg123_log" &
+                    # ---------------------------------
+
+                    local new_pid=$!
+                    sleep 0.5 # Give it a moment to start or fail
+
+                    if kill -0 "$new_pid" 2>/dev/null; then
+                        music_pid=$new_pid; echo "Playback started (PID: $music_pid)."
+                        # Don't pause here, let loop repeat to show status
+                    else
+                        echo "Error: Failed to start mpg123 process for $(basename "$selected_track")."
+                        echo "       Check log for errors (if any): $mpg123_log"
+                        if [[ -f "$mpg123_log" ]]; then
+                            echo "--- Last lines of log ---"; tail -n 5 "$mpg123_log"; echo "-------------------------"
+                        fi
+                        music_pid=""; read -r -p "Press Enter..." # Pause
+                    fi
+                else
+                    echo "Invalid choice '$music_choice'."
+                    sleep 1
+                fi;;
+        esac
+    done
+    # Clean up log file for this session when exiting music player? Optional.
+    # rm -f "$mpg123_log"
 }
 
 
