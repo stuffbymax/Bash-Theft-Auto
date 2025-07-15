@@ -1,5 +1,5 @@
 #!/bin/bash
-# ver 2.3.5
+# ver 2.2.1
 # Bash-Theft-Auto music © 2024 by stuffbymax - Martin Petik is licensed under CC BY 4.0
 # https://creativecommons.org/licenses/by/4.0/
 
@@ -39,7 +39,6 @@ MAX_WANTED_LEVEL=5
 declare -a owned_vehicles=() # Array to store names of owned vehicles
 declare -A vehicle_types=( ["Sedan"]=2000 ["Motorcycle"]=1500 ["Truck"]=2500 ["Sports Car"]=5000 ) # Name=Price
 declare -A market_conditions=() # Stores current event modifiers ["crackdown_multiplier", "demand_multiplier", "event_message"]
-declare -a world_event_log=() # Log for AI gang activities
 
 gun_attributes=(
 	["Pistol"]="success_bonus=5"
@@ -108,19 +107,14 @@ initialize_world_data() {
     available_properties=(
         ["LS Car Wash"]="15000:Los Santos:Legal"
         ["LS Warehouse"]="25000:Los Santos:IllegalFront"
-        ["LS Nightclub"]="75000:Los Santos:Legal"
-        ["LS Chop Shop"]="40000:Los Santos:IllegalFront"
         ["SF Pizza Shop"]="20000:San Fierro:Legal"
         ["SF Auto Repair"]="35000:San Fierro:Legal"
         ["SF Shipping Depot"]="60000:San Fierro:IllegalFront"
-        ["SF Docks Crane"]="90000:San Fierro:IllegalFront"
         ["LV Chapel"]="18000:Las Venturas:Legal"
         ["LV Casino Front"]="100000:Las Venturas:IllegalFront"
-        ["LV Pawn Shop"]="22000:Las Venturas:Legal"
-        ["LV Smuggling Ring"]="85000:Las Venturas:IllegalFront"
+        ["LV Chop Shop"]="45000:Las Venturas:IllegalFront"
     )
     owned_businesses=()
-    world_event_log=() # Clear the log on new game
     
     GANG_HOME_CITY=(
         ["Grove Street"]="Los Santos" ["Ballas"]="Los Santos" ["Vagos"]="Los Santos"
@@ -299,7 +293,7 @@ calculate_and_apply_payouts() {
     done
 
     for recruit in "${player_recruits[@]}"; do
-        local upkeep; IFS=':' read -r _ _ upkeep <<< "$recruit"
+        local upkeep; IFS=':' read -r - - upkeep <<< "$recruit"
         upkeep_cost=$((upkeep_cost + upkeep))
     done
 
@@ -330,32 +324,27 @@ calculate_and_apply_payouts() {
     read -r -p "Press Enter to continue..."
 }
 
+### BUG FIX: The original clock logic for payouts was complex and unreliable.
+### This version is simpler and correct: if the hour advances past 24, a new
+### day has begun, and daily payouts are processed.
 run_clock() {
     local hours_to_pass=$1
     if (( hours_to_pass == 0 )); then return; fi
     
-    local previous_hour=$game_hour
     game_hour=$((game_hour + hours_to_pass))
-
-    # Trigger world events for every 4-hour block that passes
-    local event_trigger_points=(0 4 8 12 16 20)
-    for trigger_hour in "${event_trigger_points[@]}"; do
-        if (( previous_hour < trigger_hour && game_hour >= trigger_hour )) || ( ((previous_hour > game_hour)) && (previous_hour < trigger_hour || game_hour >= trigger_hour) ); then
-            process_world_events
-            break # Only trigger once per action
-        fi
-    done
 
     # Check for day rollovers and trigger daily events
     while (( game_hour >= 24 )); do
         game_hour=$((game_hour - 24))
         game_day=$((game_day + 1))
+        # Since a new day has started, trigger the midnight payouts/events.
         calculate_and_apply_payouts
     done
 }
 
 update_world_state() {
-    # This function is now the main entry point for world simulation
+    # This function can be expanded later to include more world events.
+    # For now, it's a placeholder that ensures the clock runs.
     run_clock 0
 }
 
@@ -507,6 +496,7 @@ show_inventory() {
     echo " Owned Properties/Businesses:"
     if (( ${#owned_businesses[@]} > 0 )); then
         for prop in "${!owned_businesses[@]}"; do
+            ### BUG FIX: Changed string replacement to use a pipe for better formatting.
             printf "  - %-20s (%s)\n" "$prop" "${owned_businesses[$prop]// / | }"
         done
     else
@@ -515,19 +505,15 @@ show_inventory() {
 	echo "--------------------------"; read -r -p "Press Enter to return..."
 }
 
+### BUG FIX: The original code used a C-style ternary operator '(... ? ... : ...)'
+### which is not valid syntax in Bash. It has been replaced with a standard,
+### multi-line 'case' statement with 'if' conditions for correctness and readability.
 work_job() {
 	local job_type="$1"
     run_clock 4
 	local earnings=0 base_earnings=0 skill_bonus=0; local min_earnings=0 max_earnings=0
 	local relevant_skill_level=1 relevant_skill_name=""
-	case "$location" in
-        "Los Santos") min_earnings=20; max_earnings=60;;
-        "San Fierro") min_earnings=25; max_earnings=70;;
-        "Las Venturas") min_earnings=30; max_earnings=90;;
-        "Vice City") min_earnings=15; max_earnings=50;;
-        "Liberty City") min_earnings=35; max_earnings=100;;
-        *) min_earnings=10; max_earnings=40;;
-    esac
+	case "$location" in "Los Santos") min_earnings=20; max_earnings=60;; "San Fierro") min_earnings=25; max_earnings=70;; "Las Venturas") min_earnings=30; max_earnings=90;; "Vice City") min_earnings=15; max_earnings=50;; "Liberty City") min_earnings=35; max_earnings=100;; *) min_earnings=10; max_earnings=40;; esac
 	base_earnings=$((RANDOM % (max_earnings - min_earnings + 1) + min_earnings))
 
 	case "$job_type" in
@@ -849,6 +835,7 @@ drug_transaction() {
 	if ! [[ "$drug_amount" =~ ^[1-9][0-9]*$ ]]; then echo "Invalid amount '$drug_amount'."; return 1; fi
 	local price_fluctuation=$(( RANDOM % 21 - 10 ))
     local location_modifier=0
+	### REFACTOR: Replaced confusing one-liner with a clear case statement.
     case "$location" in
         "Liberty City") location_modifier=15;;
         "Las Venturas") location_modifier=10;;
@@ -899,6 +886,7 @@ buy_drugs() {
 	if [[ -n "${market_conditions["event_message"]}" ]]; then printf " \e[1;36mMarket News: %s\e[0m\n" "${market_conditions["event_message"]}"; fi
 	echo "---------------------------"; echo " Available Inventory (Approx Price/unit):"
 	
+	### REFACTOR: Replaced confusing one-liner with a clear case statement.
     local location_modifier=0
     case "$location" in
         "Liberty City") location_modifier=15;;
@@ -931,6 +919,7 @@ sell_drugs() {
 	if [[ -n "${market_conditions["event_message"]}" ]]; then printf " \e[1;36mMarket News: %s\e[0m\n" "${market_conditions["event_message"]}"; fi
 	echo "--------------------------"; echo " Your Inventory (Approx Sell Value/unit):"
 	
+	### REFACTOR: Replaced confusing one-liner with a clear case statement.
     local location_modifier=0
     case "$location" in
         "Liberty City") location_modifier=15;;
@@ -962,11 +951,115 @@ sell_drugs() {
 	drug_transaction "sell" "$chosen_drug_name" "$chosen_drug_price" "$drug_amount"; read -r -p "Press Enter..."
 }
 
+# Function to play music (Robust Version with stty echo fix)
 play_music() {
-	# This function requires the full music player logic from previous versions.
-	# As per the original script's comment, this is a placeholder.
-	echo "Music player functionality is not fully implemented in this snippet."
-	read -r -p "Press Enter..."
+    # 1. Check Prerequisite: mpg123 command
+    if ! $mpg123_available; then # Use the global flag checked at start
+        echo "Music playback disabled: 'mpg123' command not found."; read -r -p "Press Enter..."; return 1;
+    fi
+
+    # 2. Define Music Directory and Find Files
+    local music_dir="$BASEDIR/music"
+    local music_files=()
+    local original_ifs="$IFS" # Save IFS
+
+    if [[ ! -d "$music_dir" ]]; then
+        echo "Error: Music directory '$music_dir' not found!"; read -r -p "Press Enter..."; return 1;
+    fi
+
+    # Use find and process substitution for safer file handling
+    while IFS= read -r -d $'\0' file; do
+        music_files+=("$file")
+    done < <(find "$music_dir" -maxdepth 1 -type f \( -name "*.mp3" -o -name "*.MP3" \) -print0 2>/dev/null) # Find .mp3 and .MP3
+    IFS="$original_ifs" # Restore IFS
+
+    if (( ${#music_files[@]} == 0 )); then
+        echo "No .mp3 files found in '$music_dir'."; read -r -p "Press Enter..."; return 1;
+    fi
+
+    # 3. Music Player Loop
+    local choice_stop="s" choice_back="b" music_choice=""
+    local mpg123_log="/tmp/bta_mpg123_errors.$$.log" # Unique log per session
+
+    while true; do
+        clear_screen
+        echo "--- Music Player ---"
+        echo " Music Directory: $music_dir"
+        echo "----------------------------------------"
+        local current_status="Stopped" current_song_name=""
+        if [[ -n "$music_pid" ]] && kill -0 "$music_pid" 2>/dev/null; then
+            current_song_name=$(ps -p "$music_pid" -o args= 2>/dev/null | sed 's/.*mpg123 [-q]* //; s/ *$//' || echo "Playing Track")
+            [[ -z "$current_song_name" ]] && current_song_name="Playing Track"
+            current_status="Playing: $(basename "$current_song_name") (PID: $music_pid)"
+        else
+            [[ -n "$music_pid" ]] && music_pid="" # Clear stale PID
+            current_status="Stopped"
+        fi
+        echo " Status: $current_status"
+        echo "----------------------------------------"
+        echo " Available Tracks:"
+        for i in "${!music_files[@]}"; do printf " %d. %s\n" $((i + 1)) "$(basename "${music_files[$i]}")"; done
+        echo "----------------------------------------"
+        printf " [%s] Stop Music | [%s] Back to Game\n" "$choice_stop" "$choice_back"
+        echo "----------------------------------------"
+
+        # Ensure terminal echo is ON before this prompt
+        stty echo
+        read -r -p "Enter choice (number, s, b): " music_choice
+
+        case "$music_choice" in
+            "$choice_stop" | "q")
+                if [[ -n "$music_pid" ]] && kill -0 "$music_pid" 2>/dev/null; then
+                    echo "Stopping music (PID: $music_pid)..."
+                    kill "$music_pid" &>/dev/null; sleep 0.2
+                    if kill -0 "$music_pid" &>/dev/null; then kill -9 "$music_pid" &>/dev/null; fi
+                    wait "$music_pid" 2>/dev/null; music_pid=""; echo "Music stopped."
+                else echo "No music is currently playing."; fi
+                # Ensure echo restored after stopping attempt
+                stty echo
+                sleep 1 # Pause briefly
+                ;; # Loop will repeat and show updated menu
+            "$choice_back" | "b")
+                echo "Returning to game..."; sleep 1; break # Exit the music loop
+                ;;
+            *)
+                if [[ "$music_choice" =~ ^[0-9]+$ ]] && (( music_choice >= 1 && music_choice <= ${#music_files[@]} )); then
+                    local selected_track="${music_files[$((music_choice - 1))]}"
+                    if [[ ! -f "$selected_track" ]]; then echo "Error: File '$selected_track' not found!"; sleep 2; continue; fi
+
+                    if [[ -n "$music_pid" ]] && kill -0 "$music_pid" 2>/dev/null; then
+                        echo "Stopping previous track..."; kill "$music_pid" &>/dev/null; wait "$music_pid" 2>/dev/null; music_pid=""; sleep 0.2;
+                    fi
+
+                    echo "Attempting to play: $(basename "$selected_track")"
+
+                    # --- Play Command (No Subshell) ---
+                    echo "--- BTA Log $(date) --- Playing: $selected_track" >> "$mpg123_log"
+                    mpg123 -q "$selected_track" 2>> "$mpg123_log" &
+                    # ---------------------------------
+
+                    local new_pid=$!
+                    sleep 0.5 # Give it a moment to start or fail
+
+                    if kill -0 "$new_pid" 2>/dev/null; then
+                        music_pid=$new_pid; echo "Playback started (PID: $music_pid)."
+                        # Don't pause here, let loop repeat to show status
+                    else
+                        echo "Error: Failed to start mpg123 process for $(basename "$selected_track")."
+                        echo "       Check log for errors (if any): $mpg123_log"
+                        if [[ -f "$mpg123_log" ]]; then
+                            echo "--- Last lines of log ---"; tail -n 5 "$mpg123_log"; echo "-------------------------"
+                        fi
+                        music_pid=""; read -r -p "Press Enter..." # Pause
+                    fi
+                else
+                    echo "Invalid choice '$music_choice'."
+                    sleep 1
+                fi;;
+        esac
+    done
+    # Clean up log file for this session when exiting music player? Optional.
+    # rm -f "$mpg123_log"
 }
 
 
@@ -1020,20 +1113,16 @@ show_territory_map() {
     run_clock 0; clear_screen; echo "--- ${location} Territory Map ---"; echo "---------------------------------"
     local territory_found=false
     for key in "${!territory_owner[@]}"; do
-        local owner="${territory_owner[$key]}"
-        local city="${key%|*}"
-        local district="${key#*|}"
+        local owner="${territory_owner[$key]}"; local city district; IFS='|' read -r city district <<< "$key"
         if [[ "$city" == "$location" ]]; then
-            local display_owner="$owner"
             territory_found=true; local color="\e[0m"
             if [[ "$owner" == "$player_gang" && "$player_gang" != "None" ]]; then color="\e[1;36m"
             elif [[ "$owner" == "Grove Street" ]]; then color="\e[1;32m"
             elif [[ "$owner" == "Ballas" || "$owner" == "Leone Family" ]]; then color="\e[1;35m"
             elif [[ "$owner" == "Vagos" || "$owner" == "Triads" ]]; then color="\e[1;33m"
             elif [[ "$owner" == "Da Nang Boys" || "$owner" == "Sindacco Family" ]]; then color="\e[1;31m"
-            elif [[ "$owner" == "Unaffiliated" ]]; then color="\e[1;37m"; display_owner="Government Control";
-            else color="\e[1;37m"; fi
-            printf "| %-20s | Owner: %b%s\e[0m\n" "$district" "$color" "$display_owner"
+            elif [[ "$owner" != "Unaffiliated" ]]; then color="\e[1;37m"; fi
+            printf "| %-20s | Owner: %b%s\e[0m\n" "$district" "$color" "$owner"
         fi
     done
     if ! $territory_found; then echo "No contested territories in this city."; fi
@@ -1113,7 +1202,7 @@ join_gang_interface() {
         echo "'So you want to roll with us? You gotta prove yourself first.'"
         if (( cash >= 200 )); then
             echo "They ask for a \$200 'tribute' to show you're serious."; read -r -p "Pay the tribute? (y/n): " pay
-            if [[ "$pay" == "y" || "$pay" == "Y" ]]; then
+            if [[ "$pay" == "y" ]]; then
                 cash=$((cash-200)); player_gang="$new_gang"; player_gang_rank="Associate"; set_initial_gang_relations
                 echo "You've paid your dues. Welcome to ${player_gang}."; award_respect 100
             else echo "You walked away. They won't be asking again."; fi
@@ -1121,89 +1210,29 @@ join_gang_interface() {
     else echo "Invalid choice."; fi
     read -r -p "Press Enter to continue..."
 }
-
 initiate_gang_war() {
     run_clock 3
-    if [[ "$player_gang" == "None" || "$player_gang_rank" == "Outsider" ]]; then
-        echo "You need to be part of a gang to start a war."; read -r -p "Press Enter..."; return
-    fi
-    if (( ${#guns[@]} == 0 )); then
-        echo "You need a weapon to start a gang war!"; read -r -p "Press Enter..."; return
-    fi
-
-    local -a attackable_keys=()
-    local i=0 # BUG FIX: Initialize counter to 0
-    clear_screen
-    echo "--- Select a Territory to Attack in ${location} ---"
-    for key in "${!territory_owner[@]}"; do
-        local city="${key%|*}"
-        local district="${key#*|}"
-        local owner="${territory_owner[$key]}"
-        
-        if [[ "$city" == "$location" && "$owner" != "$player_gang" ]]; then
-            local display_owner="$owner"
-            local color="\e[1;31m"
-            if [[ "$owner" == "Unaffiliated" ]]; then
-                display_owner="Government Control"
-                color="\e[1;37m"
-            fi
-            # BUG FIX: Increment counter *before* printing the line
-            i=$((i + 1))
-            printf " %d. Attack \e[1;33m%s\e[0m (Controlled by: %b%s\e[0m)\n" "$i" "$district" "$color" "$display_owner"
-            attackable_keys+=("$key")
-        fi
+    if [[ "$player_gang" == "None" || "$player_gang_rank" == "Outsider" ]]; then echo "You need to be part of a gang to start a war."; read -r -p "Press Enter..."; return; fi
+    if (( ${#guns[@]} == 0 )); then echo "You need a weapon to start a gang war!"; read -r -p "Press Enter..."; return; fi
+    local target_key=""; for key in "${!territory_owner[@]}"; do
+        local city district; IFS='|' read -r city district <<< "$key"
+        if [[ "$city" == "$location" && "${territory_owner[$key]}" != "$player_gang" && "${territory_owner[$key]}" != "Unaffiliated" ]]; then target_key="$key"; break; fi
     done
-
-    if (( ${#attackable_keys[@]} == 0 )); then
-        echo "You hold all available territories in this city!"; read -r -p "Press Enter..."; return
-    fi
-    echo "---------------------------------------------------"
-    local back_option_num=$((i + 1)); echo " ${back_option_num}. Back"; echo "---------------------------------------------------"
-    read -r -p "Choose your target: " choice
-
-    if ! [[ "$choice" =~ ^[0-9]+$ ]] || (( choice < 1 || choice > back_option_num )); then
-        echo "Invalid choice."; read -r -p "Press Enter..."; return
-    fi
-    if (( choice == back_option_num )); then return; fi
-
-    local index=$((choice - 1))
-    if [[ -z "${attackable_keys[$index]}" ]]; then
-        echo "Internal Error: Invalid territory key selected."
-        read -r -p "Press Enter..."; return
-    fi
-    
-    local target_key="${attackable_keys[$index]}"
-    local rival_gang="${territory_owner[$target_key]}"
-    local target_district="${target_key#*|}"
-
+    if [[ -z "$target_key" ]]; then echo "There are no rival territories in ${location} to attack."; read -r -p "Press Enter..."; return; fi
+    local rival_gang="${territory_owner[$target_key]}"; local target_district; IFS='|' read -r - target_district <<< "$target_key"
     clear_screen; echo -e "You are about to start a war for \e[1;33m${target_district}\e[0m in ${location}."
-    if [[ "$rival_gang" != "Unaffiliated" ]]; then
-        echo -e "It's controlled by the \e[1;31m${rival_gang}\e[0m."
-    else
-        echo "It's currently under government control, ripe for the taking."
-    fi
-    read -r -p "Are you ready to fight? (y/n) " confirm
-
-    if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
-        echo "You back off for now."; read -r -p "Press Enter..."; return
-    fi
-
-    local recruit_bonus=0; for recruit in "${player_recruits[@]}"; do local _ str _; IFS=':' read -r _ str _ <<< "$recruit"; recruit_bonus=$((recruit_bonus + str)); done
+    echo -e "It's controlled by the \e[1;31m${rival_gang}\e[0m."; read -r -p "Are you ready to fight? (y/n) " confirm
+    if [[ "$confirm" != "y" ]]; then echo "You back off for now."; read -r -p "Press Enter..."; return; fi
+    local recruit_bonus=0; for recruit in "${player_recruits[@]}"; do local str; IFS=':' read -r - str - <<< "$recruit"; recruit_bonus=$((recruit_bonus + str)); done
     local locker_level=${gang_upgrades[weapon_locker]:-0}; local locker_bonus=$((locker_level * 2)); local total_bonus=$((recruit_bonus + locker_bonus))
     if (( total_bonus > 0 )); then echo "Your crew gives you an edge: Recruits (+${recruit_bonus}%) + Weapon Locker (+${locker_bonus}%) = \e[1;32m+${total_bonus}%\e[0m"; fi
     
+    # ANIMATION INTEGRATION
     if command -v gang_war_animation &> /dev/null; then gang_war_animation; else echo "Bullets start flying!"; sleep 1; fi
     
-    if [[ "$rival_gang" != "Unaffiliated" ]]; then
-        echo "The streets clear as the first wave of ${rival_gang} members arrive..."; sleep 2
-    else
-        echo "You move in to assert your dominance over the area..."; sleep 2
-    fi
+    echo "The streets clear as the first wave of ${rival_gang} members arrive..."; sleep 2
     local wave=1; local success=true
-    local num_waves=$(( $RANDOM % 2 + 2 ))
-    if [[ "$rival_gang" != "Unaffiliated" ]]; then num_waves=3; fi
-
-    while (( wave <= num_waves )); do
+    while (( wave <= 3 )); do
         echo "--- WAVE ${wave} ---"; local strength_skill=${skills[strength]:-1}
         local success_chance=$(( 60 + strength_skill*3 - wave*10 + total_bonus ))
         if (( RANDOM % 100 < success_chance )); then
@@ -1227,18 +1256,12 @@ initiate_gang_war() {
         territory_owner["$target_key"]="$player_gang"; award_respect $((RANDOM % 150 + 100))
         district_heat["$location"]=$(( ${district_heat[$location]:-0} + 20 )); play_sfx_mpg "win_big"
     else
-        clear_screen; echo -e "\e[1;31m--- DEFEAT! ---\e[0m"
-        if [[ "$rival_gang" == "Unaffiliated" ]]; then
-            echo "You were forced to retreat. The area is too hot and remains under government control."
-        else
-            echo "You were forced to retreat. The ${rival_gang} hold their turf."
-        fi
+        clear_screen; echo -e "\e[1;31m--- DEFEAT! ---\e[0m"; echo "You were forced to retreat. The ${rival_gang} hold their turf."
         player_respect=$((player_respect - 50)); ((player_respect < 0)) && player_respect=0; echo "You lost 50 Respect."
         play_sfx_mpg "lose_big"
     fi
     check_health; read -r -p "Press Enter..."
 }
-
 manage_recruits_menu() {
     run_clock 1; local recruit_names=("Spike" "Knuckles" "Ghost" "Tiny" "Whisper" "Shadow" "Rico" "Vinnie")
     while true; do
@@ -1327,13 +1350,15 @@ diplomacy_menu() {
     done
 }
 
-# --- Save/Load System & Game Init ---
+# --- Save/Load System (NEW) & Game Init ---
 save_game() {
     run_clock 0
     local save_path="$BASEDIR/$SAVE_DIR"
     mkdir -p "$save_path" || { echo "Error: Could not create save directory '$save_path'."; return 1; }
     echo "Saving game state..."
 
+    ### BUG FIX: Changed the save delimiter from ':' to '@@@' to prevent errors if a
+    ### player name or other value contains a colon. This makes the save file more robust.
     (
         echo "name@@@$player_name"
         echo "location@@@$location"
@@ -1355,7 +1380,6 @@ save_game() {
     printf '%s\n' "${items[@]}" > "$save_path/items.sav"
     printf '%s\n' "${owned_vehicles[@]}" > "$save_path/vehicles.sav"
     printf '%s\n' "${player_recruits[@]}" > "$save_path/recruits.sav"
-    printf '%s\n' "${world_event_log[@]}" > "$save_path/log.sav"
     
     save_assoc_array() { local file_path="$1"; shift; declare -n arr_ref="$1"; : > "$file_path"; for key in "${!arr_ref[@]}"; do printf "%s@@@%s\n" "$key" "${arr_ref[$key]}" >> "$file_path"; done; }
     save_assoc_array "$save_path/skills.sav" "skills"
@@ -1372,6 +1396,8 @@ load_game() {
     local save_path="$BASEDIR/$SAVE_DIR"; if [[ ! -f "$save_path/player.sav" ]]; then echo "Error: Save file not found."; return 1; fi
     echo "Attempting to load game..."; initialize_world_data
 
+    ### BUG FIX: Changed the read delimiter from ':' to '@@@' to match the new,
+    ### more robust save format.
     while IFS='@@@' read -r key value; do
         case "$key" in
             "name") player_name="$value";;
@@ -1400,7 +1426,6 @@ load_game() {
     load_indexed_array "$save_path/items.sav" "items"
     load_indexed_array "$save_path/vehicles.sav" "owned_vehicles"
     load_indexed_array "$save_path/recruits.sav" "player_recruits"
-    load_indexed_array "$save_path/log.sav" "world_event_log"
 
     load_assoc_array() { local file_path="$1"; shift; declare -n arr_ref="$1"; arr_ref=(); if [[ -f "$file_path" ]]; then while IFS='@@@' read -r key value; do [[ -n "$key" ]] && arr_ref["$key"]="$value"; done < "$file_path"; fi; }
     load_assoc_array "$save_path/skills.sav" "skills"
@@ -1414,7 +1439,7 @@ load_game() {
     echo "Game loaded successfully." && read -r -p "Press Enter..."
     return 0
 }
-remove_save_files() { rm -f "$BASEDIR/$SAVE_DIR"/*.sav &> /dev/null; }
+remove_save_files() { rm -f "$BASEDIR/$SAVE_DIR"/*.sav; }
 Game_variables() {
 	clear_screen; read -r -p "Enter your player name: " player_name; [[ -z "$player_name" ]] && player_name="toolazytowritename"
 	play_sfx_mpg "new_game"; location="Los Santos"; cash=500; health=100; guns=(); items=();
@@ -1441,147 +1466,6 @@ run_initial_menu() {
 	done
 }
 
-# --- World Event System ---
-show_news_feed() {
-    clear_screen
-    echo "--- World News & Rumors ---"
-    if (( ${#world_event_log[@]} == 0 )); then
-        echo "The streets are quiet... for now."
-    else
-        # Print logs in reverse chronological order
-        for (( i=${#world_event_log[@]}-1; i>=0; i-- )); do
-            echo -e "${world_event_log[i]}"
-        done
-    fi
-    echo "---------------------------"
-    read -r -p "Press Enter to return..."
-}
-
-calculate_gang_strength() {
-    local gang_name="$1"
-    local strength=0
-
-    if [[ "$gang_name" == "Unaffiliated" ]]; then
-        echo 15 # Base strength for government control/police
-        return
-    fi
-
-    local territory_count=0
-    for key in "${!territory_owner[@]}"; do
-        if [[ "${territory_owner[$key]}" == "$gang_name" ]]; then
-            ((territory_count++))
-        fi
-    done
-    strength=$(( territory_count * 10 ))
-
-    if [[ "$gang_name" == "$player_gang" ]]; then
-        local recruit_bonus=0
-        for recruit in "${player_recruits[@]}"; do
-            local _ str _; IFS=':' read -r _ str _ <<< "$recruit"
-            recruit_bonus=$((recruit_bonus + str * 2))
-        done
-        local locker_level=${gang_upgrades[weapon_locker]:-0}
-        local locker_bonus=$((locker_level * 5))
-        strength=$(( strength + recruit_bonus + locker_bonus ))
-    fi
-    echo $strength
-}
-
-handle_player_territory_defense() {
-    local attacker_gang="$1"
-    local target_key="$2"
-    local city="${target_key%|*}"
-    local district="${target_key#*|}"
-
-    clear_screen
-    play_sfx_mpg "police_siren"
-    echo -e "\e[1;91m*** INCOMING ATTACK! ***\e[0m"
-    echo -e "The \e[1;31m${attacker_gang}\e[0m are making a move on your territory in \e[1;33m${district}\e[0m!"
-    echo "------------------------------------------------"
-    echo "How do you want to respond?"
-    echo "1. Lead the defense personally! (Higher success chance)"
-    echo "2. Let your crew handle it. (Risky)"
-    read -r -p "Choice: " defense_choice
-
-    local player_gang_strength=$(calculate_gang_strength "$player_gang")
-    local attacker_strength=$(calculate_gang_strength "$attacker_gang")
-    local success=false
-
-    case "$defense_choice" in
-        1)
-            echo "You rush to the scene to command your forces!"; sleep 2
-            local success_chance=$(( 60 + player_gang_strength - attacker_strength ))
-            (( success_chance < 10 )) && success_chance=10; (( success_chance > 90 )) && success_chance=90
-            if (( RANDOM % 100 < success_chance )); then success=true; else health=$((health - (RANDOM % 30 + 10))); fi
-            ;;
-        2)
-            echo "You trust your crew to handle the threat..."; sleep 2
-            local success_chance=$(( 40 + player_gang_strength - attacker_strength ))
-            (( success_chance < 5 )) && success_chance=5; (( success_chance > 80 )) && success_chance=80
-            if (( RANDOM % 100 < success_chance )); then success=true; fi
-            ;;
-        *)
-            echo "You hesitated and the opportunity was lost! Your crew was unprepared."; sleep 2
-            success=false
-            ;;
-    esac
-
-    if $success; then
-        clear_screen; echo -e "\e[1;32m*** DEFENSE SUCCESSFUL! ***\e[0m"
-        echo "You successfully repelled the ${attacker_gang}'s attack on ${district}!"; award_respect $((RANDOM % 50 + 25)); play_sfx_mpg "win"
-    else
-        clear_screen; echo -e "\e[1;31m--- TERRITORY LOST! ---\e[0m"
-        echo "The ${attacker_gang} have overwhelmed your forces and seized control of ${district}!"; territory_owner["$target_key"]="$attacker_gang"
-        player_respect=$((player_respect - 75)); ((player_respect < 0)) && player_respect=0
-        echo "You lost 75 Respect in the humiliating defeat."; play_sfx_mpg "lose_big"; check_health
-    fi
-    read -r -p "Press Enter to continue..."
-}
-
-process_world_events() {
-    local event_chance=25
-    if (( RANDOM % 100 >= event_chance )); then return; fi
-
-    local -a ai_gangs=(); for gang in "${!GANG_HOME_CITY[@]}"; do if [[ "$gang" != "$player_gang" ]]; then ai_gangs+=("$gang"); fi; done
-    if (( ${#ai_gangs[@]} == 0 )); then return; fi
-    local attacker_gang="${ai_gangs[RANDOM % ${#ai_gangs[@]}]}"
-    local attacker_home_city="${GANG_HOME_CITY[$attacker_gang]}"
-    
-    local -a potential_targets=(); for key in "${!territory_owner[@]}"; do local city="${key%|*}"; if [[ "$city" == "$attacker_home_city" && "${territory_owner[$key]}" != "$attacker_gang" ]]; then potential_targets+=("$key"); fi; done
-    if (( ${#potential_targets[@]} == 0 )); then return; fi
-    
-    local target_key="${potential_targets[RANDOM % ${#potential_targets[@]}]}"
-    local defender_gang="${territory_owner[$target_key]}"
-    
-    if [[ "$defender_gang" == "$player_gang" ]]; then handle_player_territory_defense "$attacker_gang" "$target_key"; return; fi
-    
-    local attacker_strength=$(calculate_gang_strength "$attacker_gang")
-    local defender_strength=$(calculate_gang_strength "$defender_gang")
-    
-    local city="${target_key%|*}"
-    local district="${target_key#*|}"
-    
-    local log_msg=""
-    if (( attacker_strength + (RANDOM % 30 - 15) > defender_strength )); then
-        if [[ "$defender_gang" == "Unaffiliated" ]]; then
-            log_msg="[Day $game_day] NEWS: The \e[1;31m${attacker_gang}\e[0m have wrestled control of \e[1;33m${district}\e[0m from government forces in ${city}!"
-        else
-            log_msg="[Day $game_day] NEWS: The \e[1;31m${attacker_gang}\e[0m have taken \e[1;33m${district}\e[0m from the \e[1;32m${defender_gang}\e[0m in ${city}!"
-        fi
-        territory_owner["$target_key"]="$attacker_gang"
-    else
-        if [[ "$defender_gang" == "Unaffiliated" ]]; then
-             log_msg="[Day $game_day] RUMOR: A move by the \e[1;31m${attacker_gang}\e[0m on \e[1;33m${district}\e[0m was thwarted by heavy police presence."
-        else
-            log_msg="[Day $game_day] RUMOR: The \e[1;32m${defender_gang}\e[0m successfully defended \e[1;33m${district}\e[0m from an attack by the \e[1;31m${attacker_gang}\e[0m."
-        fi
-    fi
-    world_event_log+=("$log_msg")
-    
-    if (( ${#world_event_log[@]} > 15 )); then world_event_log=("${world_event_log[@]:1}"); fi
-}
-
-
 # --- Main Execution & Loop ---
 if ! run_initial_menu; then echo "Exiting due to initial menu failure or user request."; exit 1; fi
 
@@ -1596,7 +1480,7 @@ while true; do
 	echo "5. Work (Legal)   | 11. Buy Drugs" 
 	echo "6. Work (Crime)   | G. Gang & Empire Management"
 	echo "------------------------------------------------------------"
-	echo "S. Save Game     | L. Load Game     | N. News Feed"
+	echo "S. Save Game     | L. Load Game"
 	echo "M. Music Player  | A. About"
 	echo "X. Exit Game     |"
 	echo "------------------------------------------------------------"
@@ -1619,7 +1503,6 @@ while true; do
         'g') show_gang_menu;; 's') save_game;;
 		'l') read -r -p "Load game? Unsaved progress will be lost. (y/n): " confirm
 			 if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then load_game; fi ;;
-        'n') show_news_feed;;
 		'm') play_music;; 'a') about_music_sfx;;
 		'x') read -r -p "Are you sure you want to exit? (y/n): " confirm
 			 if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then cleanup_and_exit; fi ;;
