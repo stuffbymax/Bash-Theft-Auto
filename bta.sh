@@ -1,5 +1,5 @@
 #!/bin/bash
-# ver 2.4.0
+# ver 2.4.1
 # Bash-Theft-Auto music © 2024 by stuffbymax - Martin Petik is licensed under CC BY 4.0
 # https://creativecommons.org/licenses/by/4.0/
 
@@ -32,7 +32,7 @@ declare -A drugs=()
 declare -A skills=()
 body_armor_equipped=false
 SAVE_DIR="saves"
-MUSIC_DIR="music" # Directory for music files
+MUSIC_DIR="music" 
 declare -A gun_attributes=()
 music_pid=""
 wanted_level=0 # Player's current wanted level (0-5 stars)
@@ -42,7 +42,7 @@ declare -A vehicle_types=( ["Sedan"]=2000 ["Motorcycle"]=1500 ["Truck"]=2500 ["S
 declare -A market_conditions=() # Stores current event modifiers ["crackdown_multiplier", "demand_multiplier", "event_message"]
 declare -a world_event_log=() # Log for AI gang activities
 
-# --- NEW: Perk System ---
+# --- Perk System ---
 declare -A perks=()
 declare -A perk_costs=( ["Street Negotiator"]=1 ["Back Alley Surgeon"]=1 ["Grease Monkey"]=1 ["Master of Disguise"]=2 ["Professional Driver"]=2 ["Charismatic Leader"]=3 )
 declare -A perk_descriptions=(
@@ -623,7 +623,8 @@ work_job() {
 street_race() {
     run_clock 2
 	local driving_skill=${skills[driving]:-1}; local base_win_chance=40
-	local win_chance=$(( base_win_chance + driving_skill * 5 )); (( win_chance > 90 )) && win_chance=90
+    if [[ -v "perks[Professional Driver]" ]]; then base_win_chance=60; fi
+	local win_chance=$(( base_win_chance + driving_skill * 5 )); (( win_chance > 95 )) && win_chance=95
 	clear_screen; echo "--- Street Race ---"; echo "Win Chance: ${win_chance}%"; sleep 1
     
     # ANIMATION INTEGRATION
@@ -698,6 +699,10 @@ visit_hospital() {
 
 buy_hospital_item() {
 	local item_cost="$1" item_type="$2"
+    if [[ -v "perks[Street Negotiator]" ]]; then
+        item_cost=$(( item_cost * 90 / 100 )) # 10% discount
+    fi
+
 	if (( cash >= item_cost )); then
 		play_sfx_mpg "cash_register"; cash=$((cash - item_cost))
 		case "$item_type" in
@@ -736,8 +741,10 @@ rob_store() {
         echo "Your actions increased the heat in this district."
 		if (( RANDOM % 3 == 0 )); then skills[stealth]=$((stealth_skill + 1)); printf "Your \e[1;32mstealth\e[0m skill increased!\n"; fi
 	else
-		wanted_level=$((wanted_level + 1)); (( wanted_level > MAX_WANTED_LEVEL )) && wanted_level=$MAX_WANTED_LEVEL
-		echo -e "\e[1;31mWanted Level Increased!\e[0m"; play_sfx_mpg "police_siren"
+        local wanted_gain=1
+        if [[ -v "perks[Master of Disguise]" ]]; then wanted_gain=0; fi
+		wanted_level=$((wanted_level + wanted_gain)); (( wanted_level > MAX_WANTED_LEVEL )) && wanted_level=$MAX_WANTED_LEVEL
+        if (( wanted_gain > 0 )); then echo -e "\e[1;31mWanted Level Increased!\e[0m"; play_sfx_mpg "police_siren"; fi
 		local fine=$((RANDOM % 101 + 50 + wanted_level * 25)); cash=$((cash - fine)); (( cash < 0 )) && cash=0
 		health=$((health - (RANDOM % 26 + 10 + wanted_level * 5))); clear_screen
 		printf "\e[1;31mFailed!\e[0m Cops arrived quickly.\n"; printf "You were fined \$%d and took damage.\n" "$fine"
@@ -762,8 +769,10 @@ burglary() {
 		play_sfx_mpg "burglary_success"; award_respect $((RANDOM % 20 + 10)); district_heat["$location"]=$(( ${district_heat[$location]:-0} + 5 ))
 		if (( RANDOM % 2 == 0 )); then skills[stealth]=$((stealth_skill + 1)); printf "Your \e[1;32mstealth\e[0m skill increased!\n"; fi
 	else
-		wanted_level=$((wanted_level + 1)); (( wanted_level > MAX_WANTED_LEVEL )) && wanted_level=$MAX_WANTED_LEVEL
-		echo -e "\e[1;31mWanted Level Increased!\e[0m"; play_sfx_mpg "police_siren"
+        local wanted_gain=1
+        if [[ -v "perks[Master of Disguise]" ]]; then wanted_gain=0; fi
+		wanted_level=$((wanted_level + wanted_gain)); (( wanted_level > MAX_WANTED_LEVEL )) && wanted_level=$MAX_WANTED_LEVEL
+		if (( wanted_gain > 0 )); then echo -e "\e[1;31mWanted Level Increased!\e[0m"; play_sfx_mpg "police_siren"; fi
 		local fine=$((RANDOM % 151 + 75 + wanted_level * 30)); cash=$((cash - fine)); (( cash < 0 )) && cash=0
 		health=$((health - (RANDOM % 31 + 15 + wanted_level * 7))); clear_screen
 		printf "\e[1;31mFailed!\e[0m You triggered an alarm or were spotted!\n"; printf "You were fined \$%d and took damage escaping.\n" "$fine"
@@ -787,8 +796,10 @@ heist() {
         award_respect $((RANDOM % 100 + 50)); district_heat["$location"]=$(( ${district_heat[$location]:-0} + 15 ))
 		if (( RANDOM % 2 == 0 )); then skills[stealth]=$((stealth_skill + 2)); printf "Your \e[1;32mstealth\e[0m skill increased significantly!\n"; fi
 	else
-		wanted_level=$((wanted_level + 2)); (( wanted_level > MAX_WANTED_LEVEL )) && wanted_level=$MAX_WANTED_LEVEL
-		echo -e "\e[1;31mWanted Level Increased!\e[0m"; play_sfx_mpg "police_siren"
+        local wanted_gain=2
+        if [[ -v "perks[Master of Disguise]" ]]; then wanted_gain=1; fi
+		wanted_level=$((wanted_level + wanted_gain)); (( wanted_level > MAX_WANTED_LEVEL )) && wanted_level=$MAX_WANTED_LEVEL
+		if (( wanted_gain > 0 )); then echo -e "\e[1;31mWanted Level Increased!\e[0m"; play_sfx_mpg "police_siren"; fi
 		local fine=$((RANDOM % 201 + 100 + wanted_level * 50)); cash=$((cash - fine)); (( cash < 0 )) && cash=0
 		health=$((health - (RANDOM % 41 + 20 + wanted_level * 10))); clear_screen
 		printf "\e[1;31m--- HEIST FAILED! ---\e[0m\n Security was too tight.\n"; printf "You lost \$%d and took damage.\n" "$fine"
@@ -816,8 +827,10 @@ carjack() {
 		if (( RANDOM % 4 == 0 )); then skills[driving]=$((driving_skill+1)); printf "Your \e[1;32mdriving\e[0m skill increased!\n"; fi
 		if (( RANDOM % 4 == 0 )); then skills[stealth]=$((stealth_skill+1)); printf "Your \e[1;32mstealth\e[0m skill increased!\n"; fi
 	else
-		wanted_level=$((wanted_level + 1)); (( wanted_level > MAX_WANTED_LEVEL )) && wanted_level=$MAX_WANTED_LEVEL
-		echo -e "\e[1;31mWanted Level Increased!\e[0m"; play_sfx_mpg "police_siren"
+        local wanted_gain=1
+        if [[ -v "perks[Master of Disguise]" ]]; then wanted_gain=0; fi
+		wanted_level=$((wanted_level + wanted_gain)); (( wanted_level > MAX_WANTED_LEVEL )) && wanted_level=$MAX_WANTED_LEVEL
+		if (( wanted_gain > 0 )); then echo -e "\e[1;31mWanted Level Increased!\e[0m"; play_sfx_mpg "police_siren"; fi
 		local fine=$((RANDOM % 76 + 25 + wanted_level * 20)); cash=$((cash - fine)); (( cash < 0 )) && cash=0
 		health=$((health - (RANDOM % 26 + 10 + wanted_level * 6))); clear_screen
 		printf "\e[1;31mFailed!\e[0m The owner fought back.\n"; printf "You were fined \$%d and took damage.\n" "$fine"
@@ -995,7 +1008,7 @@ sell_drugs() {
 	drug_transaction "sell" "$chosen_drug_name" "$chosen_drug_price" "$drug_amount"; read -r -p "Press Enter..."
 }
 
-# --- RESTORED: Music Player Functions ---
+# --- Music Player Functions ---
 stop_music() {
     if [[ -n "$music_pid" ]] && kill -0 "$music_pid" 2>/dev/null; then
         echo "Stopping currently playing music..."
@@ -1519,7 +1532,11 @@ load_game() {
     local save_path="$BASEDIR/$SAVE_DIR"; if [[ ! -f "$save_path/player.sav" ]]; then echo "Error: Save file not found."; return 1; fi
     echo "Attempting to load game..."; initialize_world_data
 
-    while IFS='@@@' read -r key value; do
+    # BUG FIX: Use robust parameter expansion to parse save files instead of IFS
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        [[ -z "$line" ]] && continue
+        local key="${line%%@@@*}"
+        local value="${line#*@@@}"
         case "$key" in
             "name") player_name="$value";;
             "location") location="$value";;
@@ -1534,7 +1551,10 @@ load_game() {
     done < "$save_path/player.sav"
 
     if [[ -f "$save_path/time.sav" ]]; then
-        while IFS='@@@' read -r key value; do
+        while IFS= read -r line || [[ -n "$line" ]]; do
+            [[ -z "$line" ]] && continue
+            local key="${line%%@@@*}"
+            local value="${line#*@@@}"
             case "$key" in
                 "day") game_day="$value";;
                 "hour") game_hour="$value";;
@@ -1549,7 +1569,7 @@ load_game() {
     load_indexed_array "$save_path/recruits.sav" "player_recruits"
     load_indexed_array "$save_path/log.sav" "world_event_log"
 
-    load_assoc_array() { local file_path="$1"; shift; declare -n arr_ref="$1"; arr_ref=(); if [[ -f "$file_path" ]]; then while IFS='@@@' read -r key value; do [[ -n "$key" ]] && arr_ref["$key"]="$value"; done < "$file_path"; fi; }
+    load_assoc_array() { local file_path="$1"; shift; declare -n arr_ref="$1"; arr_ref=(); if [[ -f "$file_path" ]]; then while IFS= read -r line || [[ -n "$line" ]]; do [[ -n "$line" ]] && local key="${line%%@@@*}" && local value="${line#*@@@}" && arr_ref["$key"]="$value"; done < "$file_path"; fi; }
     load_assoc_array "$save_path/skills.sav" "skills"
     load_assoc_array "$save_path/drugs.sav" "drugs"
     load_assoc_array "$save_path/territory.sav" "territory_owner"
@@ -1744,7 +1764,7 @@ while true; do
 	echo "6. Work (Crime)   | G. Gang & Empire Management"
 	echo "------------------------------------------------------------"
 	echo "S. Save Game     | L. Load Game     | N. News Feed"
-	echo "M. Music Player  | A. About"
+	echo "M. Music Player  | A. About         | P. Perks"
 	echo "X. Exit Game     |"
 	echo "------------------------------------------------------------"
 	stty echo; read -r -p "Enter your choice: " choice; choice_lower=$(echo "$choice" | tr '[:upper:]' '[:lower:]')
@@ -1768,6 +1788,7 @@ while true; do
 			 if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then load_game; fi ;;
         'n') show_news_feed;;
 		'm') play_music;; 'a') about_music_sfx;;
+        'p') manage_perks;;
 		'x') read -r -p "Are you sure you want to exit? (y/n): " confirm
 			 if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then cleanup_and_exit; fi ;;
 		*) echo "Invalid choice '$choice'."; sleep 1;;
