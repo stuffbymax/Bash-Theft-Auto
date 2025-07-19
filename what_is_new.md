@@ -1,3 +1,9 @@
+### Update 
+
+Hey folks — just a quick note that this project is currently on hold. I’ve temporarily shifted gears to work on something very important: a game for my cat. Yes, really. 🐾
+
+I’ll be back to updating this once my feline overlord is entertained enough to let me focus again. Thanks for your understanding!
+
 ---
 
 ### **1. Major New Feature: The Perk System**
