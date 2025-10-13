@@ -125,6 +125,8 @@ initialize_world_data() {
     )
     available_properties=(
         ["LS Car Wash"]="15000:Los Santos:Legal"
+		["LS Auto Repair"]="12400:Los Santos:Legal"
+		["LS Pizza Shop"]="20000:Los Santos:Legal"
         ["LS Warehouse"]="25000:Los Santos:IllegalFront"
         ["LS Nightclub"]="75000:Los Santos:Legal"
         ["LS Chop Shop"]="40000:Los Santos:IllegalFront"
@@ -136,6 +138,7 @@ initialize_world_data() {
         ["LV Casino Front"]="100000:Las Venturas:IllegalFront"
         ["LV Pawn Shop"]="22000:Las Venturas:Legal"
         ["LV Smuggling Ring"]="85000:Las Venturas:IllegalFront"
+		["Lc Nightclub"]="19100:Liberty City:Legal"
     )
     owned_businesses=()
     world_event_log=() # Clear the log on new game
