@@ -4,7 +4,9 @@
 
 3. Gambling , especially for Las Venturas.
 
-4. Property and Time Cycle 
+4. Property and Time Cycle
+
+5. Finish gangs functions
 
 # every time
  
