@@ -1,5 +1,6 @@
 # Bash Theft Auto
 
+## developent status **halted**
 
 ## licensing
 
@@ -7,7 +8,7 @@
 - [The music and SFX is under CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/)
 - The ASCII animation is AI-generated.
 
-## Overview
+## Overview made by **AI**
 
 Bash Theft Auto is a text-based adventure game implemented entirely in Bash. Inspired by classic open-world crime games, this script allows players to navigate a virtual world, earn money through legitimate jobs or criminal activities, purchase weapons and items, engage in dangerous encounters, and manage their health and inventory. 
 
