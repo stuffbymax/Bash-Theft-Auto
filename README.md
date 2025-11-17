@@ -1,6 +1,6 @@
 # Bash Theft Auto
 
-## developent status **halted**
+## developent status **halted** i am gonna update the game but after exams and stuff
 
 ## licensing
 
