@@ -2,7 +2,7 @@
 
 # Get local version from version.txt
 if [[ ! -f version.txt ]]; then
-    echo "❌ version.txt not found locally."
+    echo "version.txt not found locally."
     exit 1
 fi
 
@@ -16,8 +16,8 @@ REMOTE_VERSION=$(curl -sL "$REMOTE_URL")
 
 # Check if fetch was successful
 if [[ -z "$REMOTE_VERSION" ]]; then
-    echo "❌ Failed to fetch remote version from GitHub."
-    echo "🔗 Tried: $REMOTE_URL"
+    echo " Failed to fetch remote version from GitHub."
+    echo "Tried: $REMOTE_URL"
     exit 1
 fi
 
