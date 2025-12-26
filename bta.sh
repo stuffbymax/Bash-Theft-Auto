@@ -1,4 +1,6 @@
 #!/bin/bash
+# creator: stuffbymax (martinP)
+# description: open world crime TUI "simulator"
 # ver 2.4.1
 # Bash-Theft-Auto music © 2024 by stuffbymax - Martin Petik is licensed under CC BY 4.0
 # https://creativecommons.org/licenses/by/4.0/
