@@ -34,10 +34,10 @@ echo "Remote version: $REMOTE_VERSION"
 
 # Compare and report
 if version_gt "$REMOTE_VERSION" "$LOCAL_VERSION"; then
-    echo "🔔 A new version is available! Please update:"
-    echo "➡️  https://github.com/stuffbymax/Bash-Theft-Auto"
+    echo " A new version is available! Please update:"
+    echo "https://github.com/stuffbymax/Bash-Theft-Auto"
 elif [[ "$REMOTE_VERSION" == "$LOCAL_VERSION" ]]; then
-    echo "✅ You are using the latest version."
+    echo " You are using the latest version."
 else
-    echo "⚠️ Local version is newer than remote. (Dev build?)"
+    echo "Local version is newer than remote. (Dev build?)"
 fi
