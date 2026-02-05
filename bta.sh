@@ -1,7 +1,7 @@
 #!/bin/bash
 # creator: stuffbymax (martinP)
 # description: open world crime TUI "simulator"
-# ver 2.4.1
+# ver 2.4.1.9
 # Bash-Theft-Auto music © 2024 by stuffbymax - Martin Petik is licensed under CC BY 4.0
 # https://creativecommons.org/licenses/by/4.0/
 
@@ -121,17 +121,30 @@ initialize_world_data() {
         ["Las Venturas|Roca Escalante"]="Sindacco Family"
         ["Las Venturas|Redsands East"]="Unaffiliated"
         ["Las Venturas|Old Venturas Strip"]="Unaffiliated"
+        ["Liberty City|Bohan"]="Unaffiliated"
+        ["Liberty City|Dukes"]="Unaffiliated"
+        ["Liberty City|Broker"]="Unaffiliated"
+        ["Liberty City|Algonquin"]="Unaffiliated"
+        ["Liberty City|Alderney"]="Unaffiliated"
+        ["Vice City|Vice Beach"]="Unaffiliated"
+        ["Vice City|Washington Beach"]="Unaffiliated"
+        ["Vice City|Starfish Island"]="Unaffiliated"
+        ["Vice City|Downtown"]="Unaffiliated"
+        ["Vice City|Little Havana"]="Unaffiliated"
     )
     district_heat=(
         ["Los Santos"]=10 ["San Fierro"]=5 ["Las Venturas"]=15 ["Liberty City"]=20 ["Vice City"]=5
     )
     available_properties=(
         ["LS Car Wash"]="15000:Los Santos:Legal"
+        ["LS Grocery Store"]="9000:Los Santos:Legal"
+        ["LS BANK"]="2919649:Los Santos:Legal"
 		["LS Auto Repair"]="12400:Los Santos:Legal"
 		["LS Pizza Shop"]="20000:Los Santos:Legal"
         ["LS Warehouse"]="25000:Los Santos:IllegalFront"
         ["LS Nightclub"]="75000:Los Santos:Legal"
         ["LS Chop Shop"]="40000:Los Santos:IllegalFront"
+        ["LS Ammunation"]="30000:Los Santos:Legal"
         ["SF Pizza Shop"]="20000:San Fierro:Legal"
         ["SF Auto Repair"]="35000:San Fierro:Legal"
         ["SF Shipping Depot"]="60000:San Fierro:IllegalFront"
@@ -140,7 +153,26 @@ initialize_world_data() {
         ["LV Casino Front"]="100000:Las Venturas:IllegalFront"
         ["LV Pawn Shop"]="22000:Las Venturas:Legal"
         ["LV Smuggling Ring"]="85000:Las Venturas:IllegalFront"
-		["Lc Nightclub"]="19100:Liberty City:Legal"
+		["LV Nightclub"]="19100:Liberty City:Legal"
+        ["LV Nightclub2"]="20000:Liberty City:Legal"
+        ["LV Pawn Shop"]="25000:Liberty City:Legal"
+        ["LV Chop Shop"]="45000:Liberty City:IllegalFront"
+        ["LV Warehouse"]="70000:Liberty City:IllegalFront"
+        ["LV Casino"]="120000:Liberty City:IllegalFront"
+        ["Vc Bank"]="29102:Vice City:Legal"
+        ["Vc Bar"]="15000:Vice City:Legal"
+        ["Vc Club"]="30000:Vice City:Legal"
+        ["Vc Smuggling Ring"]="50000:Vice City:IllegalFront"
+        ["Vc Chop Shop"]="45000:Vice City:IllegalFront"
+        ["Vc Warehouse"]="70000:Vice City:IllegalFront"
+        ["Vc Casino"]="120000:Vice City:IllegalFront"
+        ["Vc Pawn Shop"]="25000:Vice City:Legal"
+        ["Vc Car Wash"]="15000:Vice City:Legal"
+        ["Vc Auto Repair"]="35000:Vice City:Legal"
+        ["Vc Nightclub"]="75000:Vice City:Legal"
+        ["Vc Strip Club"]="80000:Vice City:Legal"
+        ["Vc Bar"]="20000:Vice City:Legal"
+        [Vc ammunation]="30000:Vice City:Legal"
     )
     owned_businesses=()
     world_event_log=() # Clear the log on new game
@@ -152,6 +184,9 @@ initialize_world_data() {
         ["Grove Street"]="Los Santos" ["Ballas"]="Los Santos" ["Vagos"]="Los Santos"
         ["Triads"]="San Fierro" ["Da Nang Boys"]="San Fierro"
         ["Leone Family"]="Las Venturas" ["Sindacco Family"]="Las Venturas"
+        ["The Commission"]="Liberty City" ["Triads"]="Liberty City"  ["East Island Posse"]="Liberty City"
+        ["Pegorino Family"]="Liberty City" ["Ierse maffia"]="Liberty City" ["Ancelotti family"]="Liberty City" 
+        ["Lupisella family"]="Liberty City" ["Russische Bratva"]="Liberty City"
     )
 
     # Initialize gang systems for a new game
@@ -168,16 +203,22 @@ if ! command -v mpg123 &> /dev/null; then
 	echo "# Warning: 'mpg123' command not found.                    #"
 	echo "# Sound effects and music require mpg123.                 #"
 	echo "# On Debian/Ubuntu: sudo apt install mpg123               #"
+    echo "# On Arch Linux: sudo pacman -S mpg123                    #"
+    echo "# On macOS with Homebrew: brew install mpg123             #"
+    echo "# You can still play the game, but it will be silent.     #"
 	echo "###########################################################"
 	read -r -p "Press Enter to continue without sound..."
 	mpg123_available=false
 fi
 if ! command -v bc &> /dev/null; then
-	echo "############################################################"
-	echo "# Warning: 'bc' command not found.                         #"
-	echo "# Advanced drug market calculations require bc.            #"
-	echo "# On Debian/Ubuntu: sudo apt install bc                    #"
-	echo "############################################################"
+	echo "###############################################################################"
+	echo "# Warning: 'bc' command not found.                                            #"
+	echo "# Advanced drug market calculations require bc.                               #"
+	echo "# On Debian/Ubuntu: sudo apt install bc                                       #"
+    echo "# On Arch Linux: sudo pacman -S bc                                            #"
+    echo "# On macOS with Homebrew: brew install bc                                     #"
+    echo "# You can still play the game, but drug market calculations will be basic.    #"
+	echo "###############################################################################"
 	read -r -p "Press Enter to continue with basic market calculations..."
 fi
 
