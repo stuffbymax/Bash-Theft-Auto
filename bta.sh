@@ -1,7 +1,7 @@
 #!/bin/bash
 # creator: stuffbymax (martinP)
 # description: open world crime TUI "simulator"
-# ver 2.4.1.9
+# ver 2.4.2
 # Bash-Theft-Auto music © 2024 by stuffbymax - Martin Petik is licensed under CC BY 4.0
 # https://creativecommons.org/licenses/by/4.0/
 
@@ -126,6 +126,8 @@ initialize_world_data() {
         ["Liberty City|Broker"]="Unaffiliated"
         ["Liberty City|Algonquin"]="Unaffiliated"
         ["Liberty City|Alderney"]="Unaffiliated"
+        ["Vice City|Ocean Beach"]="Unaffiliated"
+        ["Vice City|Vice Point"]="Unaffiliated"
         ["Vice City|Vice Beach"]="Unaffiliated"
         ["Vice City|Washington Beach"]="Unaffiliated"
         ["Vice City|Starfish Island"]="Unaffiliated"
@@ -137,6 +139,7 @@ initialize_world_data() {
     )
     available_properties=(
         ["LS Car Wash"]="15000:Los Santos:Legal"
+        ["LS Bar"]="20000:Los Santos:Legal"
         ["LS Grocery Store"]="9000:Los Santos:Legal"
         ["LS BANK"]="2919649:Los Santos:Legal"
 		["LS Auto Repair"]="12400:Los Santos:Legal"
@@ -149,37 +152,45 @@ initialize_world_data() {
         ["SF Auto Repair"]="35000:San Fierro:Legal"
         ["SF Shipping Depot"]="60000:San Fierro:IllegalFront"
         ["SF Docks Crane"]="90000:San Fierro:IllegalFront"
+        ["SF Nightclub"]="75000:San Fierro:Legal"
+        ["SF Pawn Shop"]="22000:San Fierro:Legal"
+        ["SF Smuggling Ring"]="85000:San Fierro:IllegalFront"
+        ["LV Bar"]="15000:Las Venturas:Legal"
         ["LV Chapel"]="18000:Las Venturas:Legal"
         ["LV Casino Front"]="100000:Las Venturas:IllegalFront"
         ["LV Pawn Shop"]="22000:Las Venturas:Legal"
         ["LV Smuggling Ring"]="85000:Las Venturas:IllegalFront"
-		["LV Nightclub"]="19100:Liberty City:Legal"
-        ["LV Nightclub2"]="20000:Liberty City:Legal"
-        ["LV Pawn Shop"]="25000:Liberty City:Legal"
-        ["LV Chop Shop"]="45000:Liberty City:IllegalFront"
-        ["LV Warehouse"]="70000:Liberty City:IllegalFront"
-        ["LV Casino"]="120000:Liberty City:IllegalFront"
-        ["Vc Bank"]="29102:Vice City:Legal"
-        ["Vc Bar"]="15000:Vice City:Legal"
-        ["Vc Club"]="30000:Vice City:Legal"
-        ["Vc Smuggling Ring"]="50000:Vice City:IllegalFront"
-        ["Vc Chop Shop"]="45000:Vice City:IllegalFront"
-        ["Vc Warehouse"]="70000:Vice City:IllegalFront"
-        ["Vc Casino"]="120000:Vice City:IllegalFront"
-        ["Vc Pawn Shop"]="25000:Vice City:Legal"
-        ["Vc Car Wash"]="15000:Vice City:Legal"
-        ["Vc Auto Repair"]="35000:Vice City:Legal"
-        ["Vc Nightclub"]="75000:Vice City:Legal"
-        ["Vc Strip Club"]="80000:Vice City:Legal"
-        ["Vc Bar"]="20000:Vice City:Legal"
-        [Vc ammunation]="30000:Vice City:Legal"
+		["LC Nightclub"]="19100:Liberty City:Legal"
+        ["LC Nightclub2"]="20000:Liberty City:Legal"
+        ["LC Pawn Shop"]="25000:Liberty City:Legal"
+        ["LC Chop Shop"]="45000:Liberty City:IllegalFront"
+        ["LC Warehouse"]="70000:Liberty City:IllegalFront"
+        ["LC Casino"]="120000:Liberty City:IllegalFront"
+        ["LC Bar"]="15000:Liberty City:Legal"
+        ["LC Grocery Store"]="9000:Liberty City:Legal"
+        ["LC Car Wash"]="15000:Liberty City:Legal"
+        ["VC Bank"]="29102:Vice City:Legal"
+        ["VC Bar"]="15000:Vice City:Legal"
+        ["VC Club"]="30000:Vice City:Legal"
+        ["VC Smuggling Ring"]="50000:Vice City:IllegalFront"
+        ["VC Chop Shop"]="45000:Vice City:IllegalFront"
+        ["VC Warehouse"]="70000:Vice City:IllegalFront"
+        ["VC Casino"]="120000:Vice City:IllegalFront"
+        ["VC Pawn Shop"]="25000:Vice City:Legal"
+        ["VC Car Wash"]="15000:Vice City:Legal"
+        ["VC Auto Repair"]="35000:Vice City:Legal"
+        ["VC Nightclub"]="75000:Vice City:Legal"
+        ["VC Strip Club"]="80000:Vice City:Legal"
+        ["VC Bar"]="20000:Vice City:Legal"
+        ["VC ammunation"]="30000:Vice City:Legal"
+        ["VC Smuggling Ring"]="50000:Vice City:IllegalFront"
     )
     owned_businesses=()
     world_event_log=() # Clear the log on new game
     perks=() # Clear perks on new game
     perk_points=0
     last_respect_milestone=0
-    
+    # 
     GANG_HOME_CITY=(
         ["Grove Street"]="Los Santos" ["Ballas"]="Los Santos" ["Vagos"]="Los Santos"
         ["Triads"]="San Fierro" ["Da Nang Boys"]="San Fierro"
