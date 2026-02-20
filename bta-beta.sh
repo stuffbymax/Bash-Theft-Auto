@@ -429,7 +429,7 @@ clear_screen() {
 about_music_sfx() {
 	clear_screen
 	echo "-----------------------------------------"
-	echo "|  About the Music and Sound Effects    |"
+	echo "          |       About       |          "
 	echo "-----------------------------------------"
 	echo ""
 	echo "Music and some SFX © 2024 by stuffbymax - Martin Petik"
@@ -438,7 +438,7 @@ about_music_sfx() {
 	echo "for more information check the Creators.md in /sfx"
 	echo ""
 	echo "Full game code is licensed under the MIT License."
-	echo "https://github.com/stuffbymax/Bash-Theft-Auto/blob/main/LICENSE"
+	echo "https://raw.githubusercontent.com/stuffbymax/Bash-Theft-Auto/refs/heads/main/LICENSE"
 	echo ""
 	echo "Thank you for playing!"
 	echo "-----------------------------------------"
@@ -2559,7 +2559,7 @@ while true; do
 	echo "3. Buy Vehicle    | 9. Visit Hospital"
 	echo "4. Inventory      | 10. Street Race"
 	echo "5. Work (Legal)   | 11. Buy Drugs" 
-    echo "12. gambling      | 13. Visit Shop"
+    echo "12. gambling      | 13. Visit Shops"
 	echo "6. Work (Crime)   | G. Gang & Empire Management"
 	echo "------------------------------------------------------------"
 	echo "S. Save Game     | L. Load Game     | N. News Feed"
