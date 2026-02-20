@@ -143,4 +143,18 @@ This project is open-source. Feel free to use and modify the code for any purpos
 ### Disclaimer
 
 This game is a text-based simulation and does not condone real-life criminal activity.
-Rockstar Games has no involvement with this project, and the content within this game is not associated with or endorsed by them in any way.
+Rockstar Games and their Subsidiaryes has no involvement with this project, and the content within this game is not associated with or endorsed by them in any way.
+
+---
+
+#### disclaimer for rockstar games and their subsidiaries
+bash theft auto is a fan-made project and uses only the names of locations, gangs from the grand theft auto series, but it doesnt have rockstar code all content in this game is original and any similarities to rockstar games is purely coincidental.
+
+---
+
+#### music and sfx licensing
+The music and sound effects used in this game are licensed under the Creative Commons Attribution 4.0 International License (CC BY 4.0). This means that you are free to use, share, and adapt the music and sound effects for any purpose, as long as you give appropriate credit to the original creator.
+
+---
+
+but the sfx is not original please click this link [sfx](https://raw.githubusercontent.com/stuffbymax/Bash-Theft-Auto/refs/heads/main/sfx/Creators.md) for more information about the sfx used in this game and their respective licenses.
