@@ -5,7 +5,7 @@
 ## licensing
 
 - [The code and animation is under MIT](./LICENSE)
-- [The music and SFX is under CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/)zzzz
+- [The music and SFX is under CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/)
 - The ASCII animation is AI-generated.
 
 ## Overview made by **AI**
