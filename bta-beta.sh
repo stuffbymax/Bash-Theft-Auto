@@ -7,6 +7,8 @@ set +H
 # https://creativecommons.org/licenses/by/4.0/
 
 # set -e # Uncomment this for stricter error checking if desired, but might exit too easily
+BASEDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 # --- Cleanup Function and Trap ---
 cleanup_and_exit() {
 	echo -e "\nCleaning up and exiting..."
