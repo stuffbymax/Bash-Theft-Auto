@@ -5,12 +5,12 @@
 ## licensing
 
 - [The code and animation is under MIT](./LICENSE)
-- [The music and SFX is under CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+- [The music and SFX is under CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/)zzzz
 - The ASCII animation is AI-generated.
 
 ## Overview made by **AI**
 
-Bash Theft Auto is a text-based adventure game implemented entirely in Bash. Inspired by classic open-world crime games, this script allows players to navigate a virtual world, earn money through legitimate jobs or criminal activities, purchase weapons and items, engage in dangerous encounters, and manage their health and inventory. 
+Bash Theft Auto is a text-based adventure game implemented entirely in Bash. Inspired by classic open-world crime games made by Rockstar North, this script allows players to navigate a virtual world, earn money through legitimate jobs or criminal activities, purchase weapons and items, engage in dangerous encounters, and manage their health and inventory. 
 
 The game features several locations, a variety of jobs and crimes, drug dealing, and even a music player. The script also includes save and load functionality, so players can continue their progress at a later time.
 
