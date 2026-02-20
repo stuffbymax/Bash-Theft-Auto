@@ -2559,7 +2559,7 @@ while true; do
 	echo "3. Buy Vehicle    | 9. Visit Hospital"
 	echo "4. Inventory      | 10. Street Race"
 	echo "5. Work (Legal)   | 11. Buy Drugs" 
-    echo "                  | 12. gambling"
+    echo "12. gambling      | 13. Visit Shop"
 	echo "6. Work (Crime)   | G. Gang & Empire Management"
 	echo "------------------------------------------------------------"
 	echo "S. Save Game     | L. Load Game     | N. News Feed"
