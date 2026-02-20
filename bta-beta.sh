@@ -1,10 +1,12 @@
 #!/bin/bash
 set +H
 # creator: stuffbymax (martinP)
-# description: open world crime TUI "simulator"
-# ver 2.4.3 - beta
+# description: open world crime "simulator"
+# ver 2.4.4 - beta release
+# Licenses:
 # Bash-Theft-Auto music © 2024 by stuffbymax - Martin Petik is licensed under CC BY 4.0
 # https://creativecommons.org/licenses/by/4.0/
+# code is licensed under MIT License
 
 # set -e # Uncomment this for stricter error checking if desired, but might exit too easily
 BASEDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -749,38 +751,128 @@ buy_vehicle() {
 
 show_inventory() {
     run_clock 0
-	clear_screen; echo "--- Inventory & Stats ---"
-	printf " Cash: \$%d\n" "$cash"; printf " Health: %d%%\n" "$health"
-	echo "--------------------------"
-    echo " Gang Affiliation:"
-    if [[ "$player_gang" == "None" ]]; then printf "  - Gang: N/A\n"; printf "  - Rank: N/A\n"
-    else printf "  - Gang: %s\n" "$player_gang"; printf "  - Rank: %s\n" "$player_gang_rank"; fi
-    printf "  - Respect: %d\n" "$player_respect"
-	echo "--------------------------"
-	echo " Guns:"; if (( ${#guns[@]} > 0 )); then printf "  - %s\n" "${guns[@]}"; else echo "  (None)"; fi
-	echo "--------------------------"
-	echo " Items:"; if (( ${#items[@]} > 0 )); then printf "  - %s\n" "${items[@]}"; else echo "  (None)"; fi
-	echo "--------------------------"
-	echo " Drugs:"; local drug_found=false
-	for drug in "${!default_drugs[@]}"; do
-		local amount=${drugs[$drug]:-0}
-		if (( amount > 0 )); then printf "  - %-10s: %d units\n" "$drug" "$amount"; drug_found=true; fi
-	done
-	if ! $drug_found; then echo "  (None)"; fi
-	echo "--------------------------"
-	echo " Vehicles:"; if (( ${#owned_vehicles[@]} > 0 )); then printf "  - %s\n" "${owned_vehicles[@]}"; else echo "  (None)"; fi
-	echo "--------------------------"
-	echo " Skills:"; for skill in "${!default_skills[@]}"; do printf "  - %-12s: %d\n" "$skill" "${skills[$skill]:-0}"; done
-	echo "--------------------------"
-    echo " Owned Properties/Businesses:"
-    if (( ${#owned_businesses[@]} > 0 )); then
-        for prop in "${!owned_businesses[@]}"; do
-            printf "  - %-20s (%s)\n" "$prop" "${owned_businesses[$prop]// / | }"
+    while true; do
+        clear_screen; echo "--- Inventory & Stats ---"
+        printf " Cash: \$%d\n" "$cash"; printf " Health: %d%%\n" "$health"
+        echo "--------------------------"
+        echo " Gang Affiliation:"
+        if [[ "$player_gang" == "None" ]]; then
+            printf "  - Gang: N/A\n"; printf "  - Rank: N/A\n"
+        else
+            printf "  - Gang: %s\n" "$player_gang"
+            printf "  - Rank: %s\n" "$player_gang_rank"
+        fi
+        printf "  - Respect: %d\n" "$player_respect"
+        echo "--------------------------"
+        echo " Guns:"
+        if (( ${#guns[@]} > 0 )); then printf "  - %s\n" "${guns[@]}"; else echo "  (None)"; fi
+        echo "--------------------------"
+        echo " Items:"
+        if (( ${#items[@]} > 0 )); then
+            local i=1
+            for item in "${items[@]}"; do
+                printf "  %d. %s\n" "$i" "$item"; ((i++))
+            done
+            echo "--------------------------"
+            echo " U. Use an item   B. Back"
+        else
+            echo "  (None)"
+            echo "--------------------------"
+            echo " B. Back"
+        fi
+        echo "--------------------------"
+        echo " Drugs:"
+        local drug_found=false
+        for drug in "${!default_drugs[@]}"; do
+            local amount=${drugs[$drug]:-0}
+            if (( amount > 0 )); then
+                printf "  - %-10s: %d units\n" "$drug" "$amount"
+                drug_found=true
+            fi
         done
-    else
-        echo "  (None)"
-    fi
-	echo "--------------------------"; read -r -p "Press Enter to return..."
+        if ! $drug_found; then echo "  (None)"; fi
+        echo "--------------------------"
+        echo " Vehicles:"
+        if (( ${#owned_vehicles[@]} > 0 )); then printf "  - %s\n" "${owned_vehicles[@]}"; else echo "  (None)"; fi
+        echo "--------------------------"
+        echo " Skills:"
+        for skill in "${!default_skills[@]}"; do
+            printf "  - %-12s: %d\n" "$skill" "${skills[$skill]:-0}"
+        done
+        echo "--------------------------"
+        echo " Owned Properties/Businesses:"
+        if (( ${#owned_businesses[@]} > 0 )); then
+            for prop in "${!owned_businesses[@]}"; do
+                printf "  - %-20s (%s)\n" "$prop" "${owned_businesses[$prop]// / | }"
+            done
+        else
+            echo "  (None)"
+        fi
+        echo "--------------------------"
+        read -r -p "Choice: " inv_choice
+        case "${inv_choice,,}" in
+            u)
+                if (( ${#items[@]} == 0 )); then echo "No items to use."; sleep 1; continue; fi
+                read -r -p "Enter item number to use: " item_num
+                if ! [[ "$item_num" =~ ^[0-9]+$ ]] || (( item_num < 1 || item_num > ${#items[@]} )); then
+                    echo "Invalid."; sleep 1; continue
+                fi
+                local chosen_item="${items[$((item_num - 1))]}"
+                use_item "$chosen_item" $((item_num - 1))
+                ;;
+            b) return;;
+            *) sleep 1;;
+        esac
+    done
+}
+
+use_item() {
+    local item_name="$1"
+    local item_index="$2"
+    case "$item_name" in
+        "Health Pack")
+            local heal_amount=40
+            if [[ -v "perks[Back Alley Surgeon]" ]]; then
+                heal_amount=$(( heal_amount * 125 / 100 ))
+            fi
+            local old_health=$health
+            health=$(( health + heal_amount ))
+            (( health > 100 )) && health=100
+            local actual_heal=$(( health - old_health ))
+            echo -e "Used Health Pack. Restored \e[1;32m${actual_heal}%%\e[0m health."
+            play_sfx_mpg "heal"
+            # Remove the used item
+            items=("${items[@]:0:$item_index}" "${items[@]:$((item_index + 1))}")
+            ;;
+        "Molotov Cocktail")
+            echo "You hurl the Molotov at a nearby vehicle. Chaos erupts!"
+            district_heat["$location"]=$(( ${district_heat[$location]:-0} + 5 ))
+            wanted_level=$(( wanted_level + 1 ))
+            (( wanted_level > MAX_WANTED_LEVEL )) && wanted_level=$MAX_WANTED_LEVEL
+            play_sfx_mpg "lose"
+            items=("${items[@]:0:$item_index}" "${items[@]:$((item_index + 1))}")
+            ;;
+        "Fake ID")
+            if (( wanted_level > 0 )); then
+                wanted_level=$(( wanted_level - 1 ))
+                echo -e "\e[1;32mFake ID used!\e[0m The cops don't recognise you. Wanted level reduced."
+                items=("${items[@]:0:$item_index}" "${items[@]:$((item_index + 1))}")
+            else
+                echo "No wanted level to reduce. ID saved."
+            fi
+            ;;
+        "Adrenaline Shot")
+            health=$(( health + 25 ))
+            skills[strength]=$(( ${skills[strength]:-1} + 2 ))
+            echo -e "\e[1;32mAdrenaline pumping!\e[0m +25 health, temporary strength boost."
+            play_sfx_mpg "heal_adv"
+            items=("${items[@]:0:$item_index}" "${items[@]:$((item_index + 1))}")
+            ;;
+        *)
+            echo "You can't use $item_name right now."
+            ;;
+    esac
+    read -r -p "Press Enter..."
 }
 
 work_job() {
@@ -1098,6 +1190,143 @@ carjack() {
 	check_health; read -r -p "Press Enter..."
 }
 
+pickpocket() {
+    run_clock 1
+    local stealth_skill=${skills[stealth]:-1}
+    local base_chance=$(( 30 + stealth_skill * 6 ))
+    (( base_chance > 90 )) && base_chance=90
+    clear_screen; echo "--- Pickpocket ---"
+    echo "You scan the crowd for a target..."; sleep 1
+    if (( RANDOM % 100 < base_chance )); then
+        local loot=$(( RANDOM % 81 + 20 + stealth_skill * 5 ))
+        cash=$(( cash + loot ))
+        echo -e "\e[1;32mSuccess!\e[0m You lifted \$$loot without them noticing."
+        play_sfx_mpg "cash_register"
+        award_respect $(( RANDOM % 5 + 1 ))
+        district_heat["$location"]=$(( ${district_heat[$location]:-0} + 1 ))
+        if (( RANDOM % 4 == 0 )); then
+            skills[stealth]=$(( stealth_skill + 1 ))
+            echo -e "Your \e[1;32mstealth\e[0m skill increased!"
+        fi
+    else
+        local wanted_gain=1
+        if [[ -v "perks[Master of Disguise]" ]]; then wanted_gain=0; fi
+        wanted_level=$(( wanted_level + wanted_gain ))
+        (( wanted_level > MAX_WANTED_LEVEL )) && wanted_level=$MAX_WANTED_LEVEL
+        if (( wanted_gain > 0 )); then
+            echo -e "\e[1;31mCaught! They felt your hand.\e[0m"
+            play_sfx_mpg "police_siren"
+        fi
+        local fine=$(( RANDOM % 51 + 25 + wanted_level * 15 ))
+        cash=$(( cash - fine )); (( cash < 0 )) && cash=0
+        health=$(( health - (RANDOM % 11 + 5) ))
+        echo "Fined \$$fine and roughed up."
+    fi
+    check_health; read -r -p "Press Enter..."
+}
+
+mug_someone() {
+    run_clock 1
+    local strength_skill=${skills[strength]:-1}
+    local stealth_skill=${skills[stealth]:-1}
+    local base_chance=$(( 25 + strength_skill * 5 + stealth_skill * 3 ))
+    (( base_chance > 90 )) && base_chance=90
+    clear_screen; echo "--- Mugging ---"
+    echo "You follow someone into a quiet alley..."; sleep 1
+    local final_chance=$(apply_gun_bonus "$base_chance" "mugging")
+    echo "Final success chance: ${final_chance}%"
+    read -r -p "Press Enter to make your move..."
+    if (( RANDOM % 100 < final_chance )); then
+        local loot=$(( RANDOM % 121 + 40 + strength_skill * 8 ))
+        cash=$(( cash + loot ))
+        health=$(( health - (RANDOM % 11) ))
+        echo -e "\e[1;32mSuccess!\e[0m You got \$$loot."
+        play_sfx_mpg "cash_register"
+        award_respect $(( RANDOM % 8 + 3 ))
+        district_heat["$location"]=$(( ${district_heat[$location]:-0} + 3 ))
+        if (( RANDOM % 4 == 0 )); then
+            skills[strength]=$(( strength_skill + 1 ))
+            echo -e "Your \e[1;32mstrength\e[0m skill increased!"
+        fi
+    else
+        local wanted_gain=1
+        if [[ -v "perks[Master of Disguise]" ]]; then wanted_gain=0; fi
+        wanted_level=$(( wanted_level + wanted_gain ))
+        (( wanted_level > MAX_WANTED_LEVEL )) && wanted_level=$MAX_WANTED_LEVEL
+        if (( wanted_gain > 0 )); then
+            echo -e "\e[1;31mThey fought back and screamed for help!\e[0m"
+            play_sfx_mpg "police_siren"
+        fi
+        local fine=$(( RANDOM % 76 + 40 + wanted_level * 20 ))
+        cash=$(( cash - fine )); (( cash < 0 )) && cash=0
+        health=$(( health - (RANDOM % 21 + 10) ))
+        echo "Fined \$$fine and took a beating."
+    fi
+    check_health; read -r -p "Press Enter..."
+}
+
+arson() {
+    run_clock 3
+    local stealth_skill=${skills[stealth]:-1}
+    local base_chance=$(( 20 + stealth_skill * 5 ))
+    clear_screen; echo "--- Arson ---"
+    echo "You scout out a target building..."; sleep 1
+    echo "Final success chance: ${base_chance}%"
+    read -r -p "Press Enter to proceed..."
+    if (( RANDOM % 100 < base_chance )); then
+        local payout=$(( RANDOM % 201 + 100 + stealth_skill * 15 ))
+        cash=$(( cash + payout ))
+        echo -e "\e[1;32mSuccess!\e[0m The building goes up in flames. Insurance payout: \$$payout."
+        play_sfx_mpg "win"
+        award_respect $(( RANDOM % 25 + 15 ))
+        district_heat["$location"]=$(( ${district_heat[$location]:-0} + 10 ))
+        if (( RANDOM % 3 == 0 )); then
+            skills[stealth]=$(( stealth_skill + 1 ))
+            echo -e "Your \e[1;32mstealth\e[0m skill increased!"
+        fi
+    else
+        wanted_level=$(( wanted_level + 2 ))
+        (( wanted_level > MAX_WANTED_LEVEL )) && wanted_level=$MAX_WANTED_LEVEL
+        local fine=$(( RANDOM % 301 + 200 + wanted_level * 50 ))
+        cash=$(( cash - fine )); (( cash < 0 )) && cash=0
+        health=$(( health - (RANDOM % 31 + 20) ))
+        echo -e "\e[1;31mCaught in the act!\e[0m Fined \$$fine, took burn damage."
+        play_sfx_mpg "police_siren"
+    fi
+    check_health; read -r -p "Press Enter..."
+}
+
+kidnap_for_ransom() {
+    run_clock 6
+    local strength_skill=${skills[strength]:-1}
+    local charisma_skill=${skills[charisma]:-1}
+    local base_chance=$(( 15 + strength_skill * 4 + charisma_skill * 2 ))
+    (( base_chance > 80 )) && base_chance=80
+    clear_screen; echo "--- Kidnapping for Ransom ---"
+    echo "High risk, high reward. You stake out a wealthy target..."; sleep 2
+    local final_chance=$(apply_gun_bonus "$base_chance" "kidnapping")
+    echo "Final success chance: ${final_chance}%"
+    read -r -p "Press Enter to attempt..."
+    if (( RANDOM % 100 < final_chance )); then
+        local ransom=$(( RANDOM % 1001 + 500 + strength_skill * 50 ))
+        cash=$(( cash + ransom ))
+        health=$(( health - (RANDOM % 21 + 10) ))
+        echo -e "\e[1;32mSuccess!\e[0m Ransom paid: \$$ransom. Target released unharmed."
+        play_sfx_mpg "win_big"
+        award_respect $(( RANDOM % 50 + 30 ))
+        district_heat["$location"]=$(( ${district_heat[$location]:-0} + 20 ))
+    else
+        wanted_level=$(( wanted_level + 3 ))
+        (( wanted_level > MAX_WANTED_LEVEL )) && wanted_level=$MAX_WANTED_LEVEL
+        local fine=$(( RANDOM % 501 + 300 + wanted_level * 75 ))
+        cash=$(( cash - fine )); (( cash < 0 )) && cash=0
+        health=$(( health - (RANDOM % 41 + 20) ))
+        echo -e "\e[1;31mOperation blown!\e[0m Fined \$$fine, wanted level spiked."
+        play_sfx_mpg "lose_big"
+    fi
+    check_health; read -r -p "Press Enter..."
+}
+
 hospitalize_player() {
     run_clock 8
 	local hospital_bill=200
@@ -1148,6 +1377,210 @@ update_market_conditions() {
 		fi
 	fi
 }
+
+# shops
+
+visit_shop() {
+    run_clock 1
+    clear_screen
+    echo "--- Street Shops in ${location} ---"
+    echo "1. Convenience Store   (food, basic items)"
+    echo "2. Black Market        (illegal goods, risky)"
+    echo "3. Clothing Store      (disguises, armor)"
+    echo "4. Back"
+    read -r -p "Choice: " shop_choice
+    case "$shop_choice" in
+        1) convenience_store;;
+        2) black_market;;
+        3) clothing_store;;
+        4) return;;
+        *) echo "Invalid." && sleep 1;;
+    esac
+}
+
+convenience_store() {
+    while true; do
+        clear_screen
+        echo "--- Convenience Store ---"
+        printf " Cash: \$%d  |  Health: %d%%\n" "$cash" "$health"
+        echo "================================"
+        echo " 1. Snack          (\$10)  - Restore 10% health"
+        echo " 2. Energy Drink   (\$25)  - Restore 20% health"
+        echo " 3. First Aid Kit  (\$60)  - Restore 35% health"
+        echo " 4. Health Pack    (\$30)  - Usable item, +40% health"
+        echo " 5. Leave"
+        echo "================================"
+        read -r -p "Choice: " c
+        local discount=1
+        if [[ -v "perks[Street Negotiator]" ]]; then discount=0; fi
+        case "$c" in
+            1)
+                local cost=$(( 10 - discount ))
+                if (( cash >= cost )); then
+                    cash=$(( cash - cost ))
+                    health=$(( health + 10 ))
+                    (( health > 100 )) && health=100
+                    echo "Munching on a snack. +10% health."
+                    play_sfx_mpg "heal"
+                else echo "Not enough cash."; fi;;
+            2)
+                local cost=$(( 25 - (discount * 2) ))
+                if (( cash >= cost )); then
+                    cash=$(( cash - cost ))
+                    health=$(( health + 20 ))
+                    (( health > 100 )) && health=100
+                    echo "Chugging an energy drink. +20% health."
+                    play_sfx_mpg "heal"
+                else echo "Not enough cash."; fi;;
+            3)
+                local cost=$(( 60 - (discount * 6) ))
+                if (( cash >= cost )); then
+                    cash=$(( cash - cost ))
+                    health=$(( health + 35 ))
+                    (( health > 100 )) && health=100
+                    echo "Patched up with a first aid kit. +35% health."
+                    play_sfx_mpg "heal"
+                else echo "Not enough cash."; fi;;
+            4)
+                local cost=$(( 30 - (discount * 3) ))
+                if (( cash >= cost )); then
+                    cash=$(( cash - cost ))
+                    items+=("Health Pack")
+                    echo "Health Pack added to inventory."
+                    play_sfx_mpg "item_buy"
+                else echo "Not enough cash."; fi;;
+            5) return;;
+            *) echo "Invalid.";;
+        esac
+        read -r -p "Press Enter..."
+    done
+}
+
+black_market() {
+    clear_screen
+    echo "--- Black Market ---"
+    echo "You find a shady dealer in a back alley..."
+    sleep 1
+    # Random chance the dealer is actually a cop
+    if (( RANDOM % 10 == 0 )); then
+        echo -e "\e[1;31mIt's a sting operation!\e[0m Cops everywhere!"
+        wanted_level=$(( wanted_level + 2 ))
+        (( wanted_level > MAX_WANTED_LEVEL )) && wanted_level=$MAX_WANTED_LEVEL
+        play_sfx_mpg "police_siren"
+        read -r -p "Press Enter..."; return
+    fi
+    while true; do
+        clear_screen
+        echo "--- Black Market ---"
+        printf " Cash: \$%d\n" "$cash"
+        echo "================================"
+        echo " 1. Molotov Cocktail  (\$75)  - Usable chaos item"
+        echo " 2. Fake ID           (\$200) - Reduces wanted level by 1"
+        echo " 3. Adrenaline Shot   (\$150) - Temp health and strength boost"
+        echo " 4. Stolen Goods      (\$50)  - Sell for profit elsewhere"
+        echo " 5. Leave"
+        echo "================================"
+        read -r -p "Choice: " c
+        case "$c" in
+            1)
+                if (( cash >= 75 )); then
+                    cash=$(( cash - 75 ))
+                    items+=("Molotov Cocktail")
+                    echo "One Molotov, wrapped in newspaper."
+                    play_sfx_mpg "item_buy"
+                else echo "Not enough cash."; fi;;
+            2)
+                if (( cash >= 200 )); then
+                    cash=$(( cash - 200 ))
+                    items+=("Fake ID")
+                    echo "A convincing fake. Probably."
+                    play_sfx_mpg "item_buy"
+                else echo "Not enough cash."; fi;;
+            3)
+                if (( cash >= 150 )); then
+                    cash=$(( cash - 150 ))
+                    items+=("Adrenaline Shot")
+                    echo "Handle with care."
+                    play_sfx_mpg "item_buy"
+                else echo "Not enough cash."; fi;;
+            4)
+                if (( cash >= 50 )); then
+                    cash=$(( cash - 50 ))
+                    items+=("Stolen Goods")
+                    echo "Could be worth double if you find the right buyer."
+                    play_sfx_mpg "item_buy"
+                else echo "Not enough cash."; fi;;
+            5) return;;
+            *) echo "Invalid.";;
+        esac
+        read -r -p "Press Enter..."
+    done
+}
+
+clothing_store() {
+    while true; do
+        clear_screen
+        echo "--- Zip Clothing ---"
+        printf " Cash: \$%d\n" "$cash"
+        echo "================================"
+        echo " 1. Street Clothes    (\$50)  - Reduce heat by 2"
+        echo " 2. Business Suit     (\$150) - Reduce heat by 5, +charisma"
+        echo " 3. Body Armor        (\$100) - Equip armor (if not equipped)"
+        echo " 4. Disguise Kit      (\$175) - Reduce wanted level by 1"
+        echo " 5. Leave"
+        echo "================================"
+        local discount=0
+        if [[ -v "perks[Street Negotiator]" ]]; then discount=1; fi
+        read -r -p "Choice: " c
+        case "$c" in
+            1)
+                local cost=$(( 50 - (discount * 5) ))
+                if (( cash >= cost )); then
+                    cash=$(( cash - cost ))
+                    district_heat["$location"]=$(( ${district_heat[$location]:-0} - 2 ))
+                    (( ${district_heat[$location]:-0} < 0 )) && district_heat["$location"]=0
+                    echo "Fresh outfit. You blend in better."
+                    play_sfx_mpg "item_buy"
+                else echo "Not enough cash."; fi;;
+            2)
+                local cost=$(( 150 - (discount * 15) ))
+                if (( cash >= cost )); then
+                    cash=$(( cash - cost ))
+                    district_heat["$location"]=$(( ${district_heat[$location]:-0} - 5 ))
+                    (( ${district_heat[$location]:-0} < 0 )) && district_heat["$location"]=0
+                    skills[charisma]=$(( ${skills[charisma]:-1} + 1 ))
+                    echo "Looking sharp. Charisma up, heat down."
+                    play_sfx_mpg "item_buy"
+                else echo "Not enough cash."; fi;;
+            3)
+                local cost=$(( 100 - (discount * 10) ))
+                if $body_armor_equipped; then
+                    echo "You already have armor equipped."
+                elif (( cash >= cost )); then
+                    cash=$(( cash - cost ))
+                    body_armor_equipped=true
+                    echo "Body armor strapped on."
+                    play_sfx_mpg "item_equip"
+                else echo "Not enough cash."; fi;;
+            4)
+                local cost=$(( 175 - (discount * 17) ))
+                if (( cash >= cost )); then
+                    cash=$(( cash - cost ))
+                    if (( wanted_level > 0 )); then
+                        wanted_level=$(( wanted_level - 1 ))
+                        echo "Wanted level reduced. New look, new you."
+                    else
+                        echo "No wanted level to reduce, but you look great."
+                    fi
+                    play_sfx_mpg "item_buy"
+                else echo "Not enough cash."; fi;;
+            5) return;;
+            *) echo "Invalid.";;
+        esac
+        read -r -p "Press Enter..."
+    done
+}
+
 
 drug_transaction() {
 	local action="$1" drug_name="$2" base_price="$3" drug_amount="$4"
@@ -2162,12 +2595,24 @@ while true; do
         11) ;;
         *) echo "Invalid." && sleep 1;;
     esac;;
-		6) clear_screen; echo "--- Criminal Activities ---"
-			echo "1. Rob Store | 2. Carjack | 3. Burglary | 4. Heist | 5. Back"
-			read -r -p "Enter choice: " criminal_choice
-			case "$criminal_choice" in 1) rob_store;; 2) carjack;; 3) burglary;; 4) heist;; 5) ;; *) echo "Invalid." && sleep 1;; esac;;
+6) clear_screen; echo "--- Criminal Activities ---"
+    echo "1. Rob Store    | 2. Carjack"
+    echo "3. Burglary     | 4. Heist"
+    echo "5. Pickpocket   | 6. Mug Someone"
+    echo "7. Arson        | 8. Kidnap for Ransom"
+    echo "9. Back"
+    read -r -p "Enter choice: " criminal_choice
+    case "$criminal_choice" in
+        1) rob_store;; 2) carjack;;
+        3) burglary;; 4) heist;;
+        5) pickpocket;; 6) mug_someone;;
+        7) arson;; 8) kidnap_for_ransom;;
+        9) ;;
+        *) echo "Invalid." && sleep 1;;
+    esac;;
+
 		7) sell_drugs;; 8) hire_hooker;; 9) visit_hospital;; 10) street_race;; 11) buy_drugs;;
-        12) gambling_den;;
+        12) gambling_den;; 13) visit_shop;;
         'g') show_gang_menu;; 's') save_game;;
 		'l') read -r -p "Load game? Unsaved progress will be lost. (y/n): " confirm
 			 if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then load_game; fi ;;

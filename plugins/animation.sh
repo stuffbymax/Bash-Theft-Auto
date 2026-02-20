@@ -241,3 +241,142 @@ music_playing_animation() {
     sleep "$delay"
   done
 }
+
+
+# Pickpocket Animation
+pickpocket_animation() {
+    local delay=0.1
+    local crowd="[P] [P] [P] [P] [P]"
+    local thief="T"
+    local length=10
+
+    for i in $(seq 1 "$length"); do
+        clear
+        echo "Working the crowd..."
+        space=$(printf "%${i}s" " ")
+        echo "  $crowd"
+        echo "$space$thief"
+        sleep "$delay"
+    done
+}
+
+# Mugging Animation
+mugging_animation() {
+    local delay=0.12
+    local victim="V"
+    local mugger="M"
+    local length=10
+
+    for i in $(seq 1 "$length"); do
+        clear
+        echo "Moving in on the target..."
+        local gap=$(( 12 - i ))
+        (( gap < 1 )) && gap=1
+        space=$(printf "%${gap}s" " ")
+        echo "  $mugger${space}$victim"
+        sleep "$delay"
+    done
+    clear
+    echo "  $mugger $victim  *bam*"
+    sleep 0.8
+}
+
+# Arson Animation
+arson_animation() {
+    local delay=0.15
+    local frames=("    [BUILDING]    "
+                  "   [BUILDING]     "
+                  "  ~[BUILDING]~    "
+                  " ~~[BUILDING]~~   "
+                  "~~~[BUILDING]~~~  "
+                  "  *[BUILDING]*    "
+                  "  *[  FIRE  ]*    "
+                  "   *[ FIRE ]*     "
+                  "    *[FIRE]*      "
+                  "     *[F]*        ")
+    for frame in "${frames[@]}"; do
+        clear
+        echo "Setting the fire..."
+        echo ""
+        echo "$frame"
+        sleep "$delay"
+    done
+}
+
+# Kidnapping Animation
+kidnap_animation() {
+    local delay=0.12
+    local target="[V]"
+    local van="[VAN]"
+    local length=12
+
+    for i in $(seq 1 "$length"); do
+        clear
+        echo "Executing the plan..."
+        local gap=$(( 14 - i ))
+        (( gap < 1 )) && gap=1
+        space=$(printf "%${gap}s" " ")
+        echo "  $van${space}$target"
+        sleep "$delay"
+    done
+    clear
+    echo "  [VAN + V]  *screech*"
+    sleep 1
+}
+
+# Slots Animation
+slots_animation() {
+    local delay=0.07
+    local symbols=("CHERRY" "LEMON" "BELL" "BAR" "SEVEN" "SKULL")
+    local spins=15
+
+    for i in $(seq 1 "$spins"); do
+        local r1=${symbols[RANDOM % ${#symbols[@]}]}
+        local r2=${symbols[RANDOM % ${#symbols[@]}]}
+        local r3=${symbols[RANDOM % ${#symbols[@]}]}
+        clear
+        echo "--- SLOT MACHINE ---"
+        echo ""
+        echo "  [ $r1 | $r2 | $r3 ]"
+        echo ""
+        sleep "$delay"
+    done
+}
+
+# Police Chase Animation
+police_chase_animation() {
+    local delay=0.1
+    local player="[P]"
+    local cop="[C]"
+    local length=14
+
+    for i in $(seq 1 "$length"); do
+        clear
+        echo "WANTED -- EVADING POLICE"
+        local gap=$(( 14 - i ))
+        (( gap < 1 )) && gap=1
+        space=$(printf "%${gap}s" " ")
+        echo "  $player${space}$cop"
+        sleep "$delay"
+    done
+}
+
+# Shop browsing animation
+shopping_animation() {
+    local delay=0.1
+    local shelf="[item1] [item2] [item3] [item4]"
+    local customer="  C  "
+    local length=8
+
+    for i in $(seq 1 "$length"); do
+        clear
+        echo "Browsing the shop..."
+        echo ""
+        echo "  $shelf"
+        space=$(printf "%${i}s" " ")
+        echo "$space$customer"
+        sleep "$delay"
+    done
+}
+
+
