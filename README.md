@@ -1,7 +1,5 @@
 # Bash Theft Auto
 
-## developent status **halted** i am gonna update the game but after exams and stuff
-
 ## licensing
 
 - [The code and animation is under MIT](./LICENSE)
