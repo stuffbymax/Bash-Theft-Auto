@@ -631,7 +631,7 @@ if [[ -d "$BASEDIR/$plugin_dir" ]]; then
 fi
 
 # load mission plugins
-missions_dir="$BASEDIR/missions"
+# missions_dir="$BASEDIR/missions"
 # if [[ -d "$missions_dir" ]]; then
 #     while IFS= read -r -d $'\0' mission_script; do
 #         [[ -f "$mission_script" ]] && source "$mission_script"
