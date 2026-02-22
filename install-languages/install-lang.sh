@@ -8,6 +8,7 @@ fi
 
 # Function to select the language
 select_language() {
+    echo "this script is outdated"
     echo "Select your language:"
     echo "1. English"
     echo "2. Arabic"
