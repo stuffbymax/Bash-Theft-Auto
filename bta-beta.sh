@@ -252,82 +252,260 @@ declare -A owned_businesses
 # BTA_GANG_SYSTEM: Initialize world data
 initialize_world_data() {
     territory_owner=(
-        ["Los Santos|Idlewood"]="Ballas"
-        ["Los Santos|East Los Santos"]="Vagos"
-        ["Los Santos|Verdant Bluffs"]="Grove Street"
-        ["Los Santos|Downtown"]="Unaffiliated"
-        ["Los Santos|Docks"]="Unaffiliated"
-        ["San Fierro|Chinatown"]="Triads"
-        ["San Fierro|Doherty"]="Unaffiliated"
-        ["San Fierro|Easter Basin"]="Da Nang Boys"
-        ["San Fierro|Downtown"]="Unaffiliated"
-        ["Las Venturas|The Strip"]="Leone Family"
-        ["Las Venturas|Roca Escalante"]="Sindacco Family"
-        ["Las Venturas|Redsands East"]="Unaffiliated"
-        ["Las Venturas|Old Venturas Strip"]="Unaffiliated"
-        ["Liberty City|Bohan"]="Unaffiliated"
-        ["Liberty City|Dukes"]="Unaffiliated"
-        ["Liberty City|Broker"]="Unaffiliated"
-        ["Liberty City|Algonquin"]="Unaffiliated"
-        ["Liberty City|Alderney"]="Unaffiliated"
-        ["Vice City|Ocean Beach"]="Unaffiliated"
-        ["Vice City|Vice Point"]="Unaffiliated"
-        ["Vice City|Vice Beach"]="Unaffiliated"
-        ["Vice City|Washington Beach"]="Unaffiliated"
-        ["Vice City|Starfish Island"]="Unaffiliated"
-        ["Vice City|Downtown"]="Unaffiliated"
-        ["Vice City|Little Havana"]="Unaffiliated"
-    )
+# =====================================================
+# LOS SANTOS (San Andreas - 3D Universe)
+# =====================================================
+["Los Santos|Ganton"]="Grove Street"
+["Los Santos|Idlewood"]="Ballas"
+["Los Santos|Jefferson"]="Ballas"
+["Los Santos|East Los Santos"]="Vagos"
+["Los Santos|Las Colinas"]="Vagos"
+["Los Santos|Los Flores"]="Vagos"
+["Los Santos|Glen Park"]="Ballas"
+["Los Santos|Playa del Seville"]="Grove Street"
+["Los Santos|Temple"]="Ballas"
+["Los Santos|Willowfield"]="Ballas"
+["Los Santos|El Corona"]="Vagos"
+["Los Santos|Little Mexico"]="Vagos"
+["Los Santos|Commerce"]="Unaffiliated"
+["Los Santos|Market"]="Unaffiliated"
+["Los Santos|Pershing Square"]="Unaffiliated"
+["Los Santos|Downtown Los Santos"]="Unaffiliated"
+["Los Santos|Mulholland"]="Unaffiliated"
+["Los Santos|Mulholland Intersection"]="Unaffiliated"
+["Los Santos|Rodeo"]="Unaffiliated"
+["Los Santos|Richman"]="Unaffiliated"
+["Los Santos|Vinewood"]="Unaffiliated"
+["Los Santos|Verdant Bluffs"]="Grove Street"
+["Los Santos|Marina"]="Unaffiliated"
+["Los Santos|Santa Maria Beach"]="Unaffiliated"
+["Los Santos|Verona Beach"]="Unaffiliated"
+["Los Santos|Ocean Docks"]="Unaffiliated"
+["Los Santos|Los Santos International Airport"]="Unaffiliated"
+
+# =====================================================
+# SAN FIERRO (3D Universe)
+# =====================================================
+["San Fierro|Downtown"]="Unaffiliated"
+["San Fierro|Financial District"]="Unaffiliated"
+["San Fierro|Chinatown"]="Triads"
+["San Fierro|Garcia"]="Triads"
+["San Fierro|Doherty"]="Unaffiliated"
+["San Fierro|Easter Basin"]="Da Nang Boys"
+["San Fierro|Easter Bay Airport"]="Unaffiliated"
+["San Fierro|Hashbury"]="Unaffiliated"
+["San Fierro|Queens"]="Unaffiliated"
+["San Fierro|Paradiso"]="Unaffiliated"
+["San Fierro|Juniper Hill"]="Unaffiliated"
+["San Fierro|Battery Point"]="Unaffiliated"
+["San Fierro|Ocean Flats"]="Unaffiliated"
+["San Fierro|Avispa Country Club"]="Unaffiliated"
+
+# =====================================================
+# LAS VENTURAS (3D Universe)
+# =====================================================
+["Las Venturas|The Strip"]="Leone Family"
+["Las Venturas|Come-A-Lot"]="Leone Family"
+["Las Venturas|Roca Escalante"]="Sindacco Family"
+["Las Venturas|Redsands East"]="Unaffiliated"
+["Las Venturas|Redsands West"]="Unaffiliated"
+["Las Venturas|Old Venturas Strip"]="Unaffiliated"
+["Las Venturas|Whitewood Estates"]="Unaffiliated"
+["Las Venturas|Prickle Pine"]="Unaffiliated"
+["Las Venturas|Creek"]="Unaffiliated"
+["Las Venturas|Blackfield"]="Unaffiliated"
+["Las Venturas|Blackfield Chapel"]="Unaffiliated"
+["Las Venturas|Randolph Industrial Estate"]="Unaffiliated"
+["Las Venturas|Las Venturas Airport"]="Unaffiliated"
+
+# =====================================================
+# LIBERTY CITY (GTA III - 3D Universe)
+# =====================================================
+["Liberty City|Portland"]="Leone Family"
+["Liberty City|Portland Harbor"]="Leone Family"
+["Liberty City|Saint Mark's"]="Leone Family"
+["Liberty City|Chinatown"]="Triads"
+["Liberty City|Red Light District"]="Diablos"
+["Liberty City|Hepburn Heights"]="Diablos"
+["Liberty City|Callahan Point"]="Unaffiliated"
+["Liberty City|Staunton Island"]="Yakuza"
+["Liberty City|Torrington"]="Yakuza"
+["Liberty City|Newport"]="Unaffiliated"
+["Liberty City|Fort Staunton"]="Yakuza"
+["Liberty City|Shoreside Vale"]="Unaffiliated"
+["Liberty City|Cedar Grove"]="Colombian Cartel"
+["Liberty City|Wichita Gardens"]="Unaffiliated"
+["Liberty City|Francis International Airport"]="Unaffiliated"
+
+# =====================================================
+# LIBERTY CITY (GTA IV - HD Universe)
+# =====================================================
+["Liberty City|Broker"]="Unaffiliated"
+["Liberty City|Dukes"]="Unaffiliated"
+["Liberty City|Bohan"]="Unaffiliated"
+["Liberty City|Algonquin"]="Unaffiliated"
+["Liberty City|Alderney"]="Unaffiliated"
+["Liberty City|Hove Beach"]="Russian Mob"
+["Liberty City|Little Italy"]="Italian Mob"
+["Liberty City|Northwood"]="Drug Dealers"
+["Liberty City|South Bohan"]="Drug Dealers"
+["Liberty City|Star Junction"]="Unaffiliated"
+["Liberty City|Middle Park"]="Unaffiliated"
+["Liberty City|The Triangle"]="Unaffiliated"
+
+# =====================================================
+# VICE CITY (3D Universe)
+# =====================================================
+["Vice City|Ocean Beach"]="Unaffiliated"
+["Vice City|Washington Beach"]="Unaffiliated"
+["Vice City|Vice Point"]="Unaffiliated"
+["Vice City|Downtown"]="Unaffiliated"
+["Vice City|Little Havana"]="Cuban Gang"
+["Vice City|Little Haiti"]="Haitian Gang"
+["Vice City|Starfish Island"]="Unaffiliated"
+["Vice City|Prawn Island"]="Unaffiliated"
+["Vice City|Leaf Links"]="Unaffiliated"
+["Vice City|Escobar International Airport"]="Unaffiliated"
+["Vice City|Viceport"]="Unaffiliated"
+
+# =====================================================
+# LOS SANTOS (GTA V - HD Universe)
+# =====================================================
+["Los Santos|Pillbox Hill"]="Unaffiliated"
+["Los Santos|Mission Row"]="Unaffiliated"
+["Los Santos|Textile City"]="Unaffiliated"
+["Los Santos|Legion Square"]="Unaffiliated"
+["Los Santos|Burton"]="Unaffiliated"
+["Los Santos|Rockford Hills"]="Unaffiliated"
+["Los Santos|Alta"]="Unaffiliated"
+["Los Santos|Hawick"]="Unaffiliated"
+["Los Santos|West Vinewood"]="Unaffiliated"
+["Los Santos|East Vinewood"]="Unaffiliated"
+["Los Santos|Little Seoul"]="Unaffiliated"
+["Los Santos|Strawberry"]="Families"
+["Los Santos|Davis"]="Families"
+["Los Santos|Chamberlain Hills"]="Families"
+["Los Santos|Rancho"]="Families"
+["Los Santos|La Mesa"]="Vagos"
+["Los Santos|Cypress Flats"]="Vagos"
+["Los Santos|El Burro Heights"]="Vagos"
+["Los Santos|Murrieta Heights"]="Unaffiliated"
+["Los Santos|Elysian Island"]="Unaffiliated"
+["Los Santos|Banning"]="Unaffiliated"
+["Los Santos|Vespucci"]="Unaffiliated"
+["Los Santos|Vespucci Canals"]="Unaffiliated"
+["Los Santos|Del Perro"]="Unaffiliated"
+["Los Santos|Pacific Bluffs"]="Unaffiliated"
+["Los Santos|Morningwood"]="Unaffiliated"
+["Los Santos|Richman Glen"]="Unaffiliated"
+["Los Santos|Mirror Park"]="Unaffiliated"
+["Los Santos|Vinewood Hills"]="Unaffiliated"
+["Los Santos|Port of Los Santos"]="Unaffiliated"
+["Los Santos|Los Santos International Airport (HD)"]="Unaffiliated"
+
+# =====================================================
+# BLAINE COUNTY (HD Universe)
+# =====================================================
+["Blaine County|Sandy Shores"]="Lost MC"
+["Blaine County|Grapeseed"]="Unaffiliated"
+["Blaine County|Paleto Bay"]="Unaffiliated"
+["Blaine County|Harmony"]="Unaffiliated"
+["Blaine County|Grand Senora Desert"]="Unaffiliated"
+["Blaine County|Alamo Sea"]="Unaffiliated"
+["Blaine County|Mount Chiliad"]="Unaffiliated"
+["Blaine County|Fort Zancudo"]="Military"
+["Blaine County|Zancudo River"]="Unaffiliated"
+)
     district_heat=(
         ["Los Santos"]=10 ["San Fierro"]=5 ["Las Venturas"]=15 ["Liberty City"]=20 ["Vice City"]=5
     )
     available_properties=(
-        ["LS Car Wash"]="15000:Los Santos:Legal"
-        ["LS Bar"]="20000:Los Santos:Legal"
-        ["LS Grocery Store"]="9000:Los Santos:Legal"
-        ["LS BANK"]="2919649:Los Santos:Legal"
-		["LS Auto Repair"]="12400:Los Santos:Legal"
-		["LS Pizza Shop"]="20000:Los Santos:Legal"
-        ["LS Warehouse"]="25000:Los Santos:IllegalFront"
-        ["LS Nightclub"]="75000:Los Santos:Legal"
-        ["LS Chop Shop"]="40000:Los Santos:IllegalFront"
-        ["LS Ammunation"]="30000:Los Santos:Legal"
-        ["SF Pizza Shop"]="20000:San Fierro:Legal"
-        ["SF Auto Repair"]="35000:San Fierro:Legal"
-        ["SF Shipping Depot"]="60000:San Fierro:IllegalFront"
-        ["SF Docks Crane"]="90000:San Fierro:IllegalFront"
-        ["SF Nightclub"]="75000:San Fierro:Legal"
-        ["SF Pawn Shop"]="22000:San Fierro:Legal"
-        ["SF Smuggling Ring"]="85000:San Fierro:IllegalFront"
-        ["LV Bar"]="15000:Las Venturas:Legal"
-        ["LV Chapel"]="18000:Las Venturas:Legal"
-        ["LV Casino Front"]="100000:Las Venturas:IllegalFront"
-        ["LV Pawn Shop"]="22000:Las Venturas:Legal"
-        ["LV Smuggling Ring"]="85000:Las Venturas:IllegalFront"
-		["LC Nightclub"]="19100:Liberty City:Legal"
-        ["LC Nightclub2"]="20000:Liberty City:Legal"
-        ["LC Pawn Shop"]="25000:Liberty City:Legal"
-        ["LC Chop Shop"]="45000:Liberty City:IllegalFront"
-        ["LC Warehouse"]="70000:Liberty City:IllegalFront"
-        ["LC Casino"]="120000:Liberty City:IllegalFront"
-        ["LC Bar"]="15000:Liberty City:Legal"
-        ["LC Grocery Store"]="9000:Liberty City:Legal"
-        ["LC Car Wash"]="15000:Liberty City:Legal"
-        ["VC Bank"]="29102:Vice City:Legal"
-        ["VC Bar"]="15000:Vice City:Legal"
-        ["VC Club"]="30000:Vice City:Legal"
-        ["VC Smuggling Ring"]="50000:Vice City:IllegalFront"
-        ["VC Chop Shop"]="45000:Vice City:IllegalFront"
-        ["VC Warehouse"]="70000:Vice City:IllegalFront"
-        ["VC Casino"]="120000:Vice City:IllegalFront"
-        ["VC Pawn Shop"]="25000:Vice City:Legal"
-        ["VC Car Wash"]="15000:Vice City:Legal"
-        ["VC Auto Repair"]="35000:Vice City:Legal"
-        ["VC Nightclub"]="75000:Vice City:Legal"
-        ["VC Strip Club"]="80000:Vice City:Legal"
-        ["VC Bar"]="20000:Vice City:Legal"
-        ["VC ammunation"]="30000:Vice City:Legal"
-        ["VC Smuggling Ring"]="50000:Vice City:IllegalFront"
+# =====================================================
+# LOS SANTOS – EXPANSION
+# =====================================================
+["LS Luxury Car Showroom"]="350000:Los Santos:Legal"
+["LS Film Studio"]="500000:Los Santos:Legal"
+["LS Recording Studio"]="275000:Los Santos:Legal"
+["LS Private Security Firm"]="220000:Los Santos:Legal"
+["LS Import Export Garage"]="300000:Los Santos:Legal"
+["LS Real Estate Agency"]="180000:Los Santos:Legal"
+["LS Tech Campus"]="750000:Los Santos:Legal"
+
+["LS Cocaine Lockup"]="325000:Los Santos:IllegalFront"
+["LS Money Laundering Office"]="400000:Los Santos:IllegalFront"
+["LS Underground Fight Club"]="150000:Los Santos:IllegalFront"
+["LS Human Trafficking Ring"]="500000:Los Santos:IllegalFront"
+["LS Arms Manufacturing"]="600000:Los Santos:IllegalFront"
+
+# =====================================================
+# SAN FIERRO – EXPANSION
+# =====================================================
+["SF Cyber Security Firm"]="400000:San Fierro:Legal"
+["SF Investment Bank"]="850000:San Fierro:Legal"
+["SF Shipping Corporation"]="500000:San Fierro:Legal"
+["SF High Rise Apartments"]="320000:San Fierro:Legal"
+
+["SF Crypto Mining Farm"]="275000:San Fierro:IllegalFront"
+["SF Offshore Laundering"]="650000:San Fierro:IllegalFront"
+["SF Port Smuggling Network"]="450000:San Fierro:IllegalFront"
+["SF Underground Casino"]="500000:San Fierro:IllegalFront"
+
+# =====================================================
+# LAS VENTURAS – EXPANSION
+# =====================================================
+["LV Mega Casino"]="900000:Las Venturas:Legal"
+["LV Entertainment Arena"]="650000:Las Venturas:Legal"
+["LV Convention Center"]="550000:Las Venturas:Legal"
+["LV Luxury Resort"]="1200000:Las Venturas:Legal"
+
+["LV Rigged Casino"]="700000:Las Venturas:IllegalFront"
+["LV Underground Betting Syndicate"]="450000:Las Venturas:IllegalFront"
+["LV Counterfeit Chip Factory"]="500000:Las Venturas:IllegalFront"
+["LV Mafia Headquarters"]="1000000:Las Venturas:IllegalFront"
+
+# =====================================================
+# LIBERTY CITY – EXPANSION
+# =====================================================
+["LC Wall Street Office"]="950000:Liberty City:Legal"
+["LC Shipping Terminal"]="450000:Liberty City:Legal"
+["LC Media Corporation"]="800000:Liberty City:Legal"
+["LC Luxury Condos"]="600000:Liberty City:Legal"
+
+["LC Underground Arms Trade"]="550000:Liberty City:IllegalFront"
+["LC International Drug Hub"]="850000:Liberty City:IllegalFront"
+["LC Russian Syndicate HQ"]="950000:Liberty City:IllegalFront"
+["LC Mafia Commission Office"]="1200000:Liberty City:IllegalFront"
+
+["LC Illegal Gun Shop 1"]="120000:Liberty City:IllegalFront"
+["LC Illegal Gun Shop 2"]="135000:Liberty City:IllegalFront"
+["LC Underground Gun Market"]="200000:Liberty City:IllegalFront"
+["LC Black Market Firearms"]="250000:Liberty City:IllegalFront"
+["LC Arms Dealer Safehouse"]="300000:Liberty City:IllegalFront"
+# =====================================================
+# VICE CITY – EXPANSION
+# =====================================================
+["VC Beachfront Resort"]="750000:Vice City:Legal"
+["VC Yacht Marina"]="500000:Vice City:Legal"
+["VC Record Label"]="350000:Vice City:Legal"
+["VC Fashion House"]="450000:Vice City:Legal"
+
+["VC Cartel Mansion"]="900000:Vice City:IllegalFront"
+["VC Offshore Drug Route"]="800000:Vice City:IllegalFront"
+["VC Money Printing Operation"]="1000000:Vice City:IllegalFront"
+["VC Smuggler Fleet"]="650000:Vice City:IllegalFront"
+
+# =====================================================
+# BLAINE COUNTY – EXPANSION
+# =====================================================
+["BC Oil Field"]="600000:Blaine County:Legal"
+["BC Wind Farm"]="350000:Blaine County:Legal"
+["BC Private Airfield"]="500000:Blaine County:Legal"
+["BC Ranch Estate"]="275000:Blaine County:Legal"
+
+["BC Cartel Safehouse"]="450000:Blaine County:IllegalFront"
+["BC Desert Drug Pipeline"]="700000:Blaine County:IllegalFront"
+["BC Illegal Weapons Bunker"]="800000:Blaine County:IllegalFront"
+["BC Biker Gang Compound"]="650000:Blaine County:IllegalFront"
     )
     owned_businesses=()
     world_event_log=() # Clear the log on new game
@@ -336,12 +514,62 @@ initialize_world_data() {
     last_respect_milestone=0
     # 
     GANG_HOME_CITY=(
-        ["Grove Street"]="Los Santos" ["Ballas"]="Los Santos" ["Vagos"]="Los Santos"
-        ["Triads"]="San Fierro" ["Da Nang Boys"]="San Fierro"
-        ["Leone Family"]="Las Venturas" ["Sindacco Family"]="Las Venturas"
-        ["The Commission"]="Liberty City" ["Triads"]="Liberty City"  ["East Island Posse"]="Liberty City"
-        ["Pegorino Family"]="Liberty City" ["Ierse maffia"]="Liberty City" ["Ancelotti family"]="Liberty City" 
-        ["Lupisella family"]="Liberty City" ["Russische Bratva"]="Liberty City"
+    # =========================
+    # LOS SANTOS
+    # =========================
+    ["Grove Street"]="Los Santos"
+    ["Ballas"]="Los Santos"
+    ["Vagos"]="Los Santos"
+    ["Families"]="Los Santos"
+    ["Los Santos Triads"]="Los Santos"
+    ["Da Hood Crew"]="Los Santos"
+
+    # =========================
+    # BLAINE COUNTY (HD Universe)
+    # =========================
+    ["Lost MC"]="Blaine County"
+    ["Rednecks"]="Blaine County"
+    ["Blaine Outlaws"]="Blaine County"
+
+    # =========================
+    # SAN FIERRO
+    # =========================
+    ["Triads"]="San Fierro"
+    ["Da Nang Boys"]="San Fierro"
+    ["San Fierro Families"]="San Fierro"
+
+    # =========================
+    # LAS VENTURAS
+    # =========================
+    ["Leone Family"]="Las Venturas"
+    ["Sindacco Family"]="Las Venturas"
+    ["Vercetti Crew"]="Las Venturas"
+    ["Mafia Syndicate"]="Las Venturas"
+
+    # =========================
+    # LIBERTY CITY
+    # =========================
+    ["The Commission"]="Liberty City"
+    ["Triads"]="Liberty City"
+    ["East Island Posse"]="Liberty City"
+    ["Pegorino Family"]="Liberty City"
+    ["Ierse Maffia"]="Liberty City"
+    ["Ancelotti Family"]="Liberty City"
+    ["Lupisella Family"]="Liberty City"
+    ["Russische Bratva"]="Liberty City"
+    ["Colombian Cartel"]="Liberty City"
+    ["Yakuza"]="Liberty City"
+    ["Italian Mob"]="Liberty City"
+    ["Drug Dealers"]="Liberty City"
+
+    # =========================
+    # VICE CITY
+    # =========================
+    ["Cuban Gang"]="Vice City"
+    ["Haitian Gang"]="Vice City"
+    ["Cartel"]="Vice City"
+    ["Vice City Triads"]="Vice City"
+    ["Street Runners"]="Vice City"
     )
 
     # Initialize gang systems for a new game
