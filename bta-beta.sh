@@ -630,6 +630,14 @@ if [[ -d "$BASEDIR/$plugin_dir" ]]; then
 	done < <(find "$BASEDIR/$plugin_dir" -maxdepth 1 -name "*.sh" -print0 2>/dev/null)
 fi
 
+# load mission plugins
+missions_dir="$BASEDIR/missions"
+# if [[ -d "$missions_dir" ]]; then
+#     while IFS= read -r -d $'\0' mission_script; do
+#         [[ -f "$mission_script" ]] && source "$mission_script"
+#     done < <(find "$missions_dir" -maxdepth 1 -name "*.sh" -print0 2>/dev/null)
+# fi
+
 # --- Functions ---
 
 clear_screen() {
