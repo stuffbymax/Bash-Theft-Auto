@@ -1195,7 +1195,7 @@ work_job() {
             relevant_skill_name="charisma"
             relevant_skill_level=${skills[$relevant_skill_name]:-1}
             skill_bonus=$((relevant_skill_level * 6))
-            play_sfx_mpg "street_performer"
+            play_sfx_mpg "food_prep"
             ;;
 		*)
 			echo "Internal Error: Invalid Job Type '$job_type'"; return;;
