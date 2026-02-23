@@ -436,6 +436,8 @@ initialize_world_data() {
 ["LS Underground Fight Club"]="150000:Los Santos:IllegalFront"
 ["LS Human Trafficking Ring"]="500000:Los Santos:IllegalFront"
 ["LS Arms Manufacturing"]="600000:Los Santos:IllegalFront"
+["LS Counterfeit Cash Operation"]="450000:Los Santos:IllegalFront"
+["LS Diamond casino"]="92717297:Los Santos:legal"
 
 # =====================================================
 # SAN FIERRO – EXPANSION
