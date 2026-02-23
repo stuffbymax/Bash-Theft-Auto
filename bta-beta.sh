@@ -66,6 +66,7 @@ last_respect_milestone=0
 
 gun_attributes=(
     ["Hawk 9"]="success_bonus=5"
+    ["Hawk 9 silencer"]="success_bonus=20"
     ["Striker 12"]="success_bonus=10"
     ["Viper SMG"]="success_bonus=15"
     ["AR-7 Assault"]="success_bonus=20"
@@ -902,27 +903,28 @@ buy_guns() {
     echo "  1. Hawk 9        (\$100)  - Reliable sidearm"
     echo "  2. Rex 38        (\$150)  - Hard-hitting revolver"
     echo "  3. Bulldog 45    (\$200)  - Heavy duty handgun"
+    echo "  4. Hawk 9 silencer (\$120) - Reliable sidearm with silencer"
     echo "--------------------------------------------"
     echo " SHOTGUNS"
-    echo "  4. Striker 12    (\$250)  - Pump action"
-    echo "  5. Undertaker    (\$300)  - Sawn-off, close range"
+    echo "  5. Striker 12    (\$250)  - Pump action"
+    echo "  6. Undertaker    (\$300)  - Sawn-off, close range"
     echo "--------------------------------------------"
     echo " SUBMACHINE GUNS"
-    echo "  6. Viper SMG     (\$500)  - Fast and compact"
-    echo "  7. Spectre PDW   (\$600)  - Military grade"
+    echo "  7. Viper SMG     (\$500)  - Fast and compact"
+    echo "  8. Spectre PDW   (\$600)  - Military grade"
     echo "--------------------------------------------"
     echo " RIFLES & ASSAULT"
-    echo "  8. Phantom Carbine (\$700) - Versatile carbine"
-    echo "  9. AR-7 Assault  (\$750)  - Full auto rifle"
+    echo "  9. Phantom Carbine (\$700) - Versatile carbine"
+    echo " 10. AR-7 Assault  (\$750)  - Full auto rifle"
     echo "--------------------------------------------"
     echo " HEAVY"
-    echo " 10. Ravager LMG   (\$900)  - Light machine gun"
-    echo " 11. Diamondback MG(\$1100) - Destroyer"
+    echo " 11. Ravager LMG   (\$900)  - Light machine gun"
+    echo " 12. Diamondback MG(\$1100) - Destroyer"
     echo "--------------------------------------------"
     echo " SNIPER"
-    echo " 12. Ghost Sniper  (\$1000) - Long range precision"
+    echo " 13. Ghost Sniper  (\$1000) - Long range precision"
     echo "--------------------------------------------"
-    echo " 13. Leave"
+    echo " 14. Leave"
     echo "--------------------------------------------"
     read -r -p "Enter your choice: " gun_choice
     [[ ! "$gun_choice" =~ ^[0-9]+$ ]] && { echo "Invalid input."; read -r -p "Press Enter..."; return; }
@@ -930,16 +932,17 @@ buy_guns() {
         1)  buy_gun "Hawk 9" 100;;
         2)  buy_gun "Rex 38" 150;;
         3)  buy_gun "Bulldog 45" 200;;
-        4)  buy_gun "Striker 12" 250;;
-        5)  buy_gun "Undertaker Sawn-off" 300;;
-        6)  buy_gun "Viper SMG" 500;;
-        7)  buy_gun "Spectre PDW" 600;;
-        8)  buy_gun "Phantom Carbine" 700;;
-        9)  buy_gun "AR-7 Assault" 750;;
-        10) buy_gun "Ravager LMG" 900;;
-        11) buy_gun "Diamondback MG" 1100;;
-        12) buy_gun "Ghost Sniper" 1000;;
-        13) return;;
+        4)  buy_gun "Hawk 9 silencer" 120;;
+        5)  buy_gun "Striker 12" 250;;
+        6)  buy_gun "Undertaker Sawn-off" 300;;
+        7)  buy_gun "Viper SMG" 500;;
+        8)  buy_gun "Spectre PDW" 600;;
+        9)  buy_gun "Phantom Carbine" 700;;
+        10)  buy_gun "AR-7 Assault" 750;;
+        11) buy_gun "Ravager LMG" 900;;
+        12) buy_gun "Diamondback MG" 1100;;
+        13) buy_gun "Ghost Sniper" 1000;;
+        14) return;;
         *)  echo "Invalid choice."; read -r -p "Press Enter...";;
     esac
 }
@@ -1196,6 +1199,18 @@ work_job() {
             relevant_skill_level=${skills[$relevant_skill_name]:-1}
             skill_bonus=$((relevant_skill_level * 6))
             play_sfx_mpg "food_prep"
+            ;;
+        "pizza delivery")
+            relevant_skill_name="driving"
+            relevant_skill_level=${skills[$relevant_skill_name]:-1}
+            skill_bonus=$((relevant_skill_level * 3))
+            play_sfx_mpg "pizza_delivery"
+            ;;
+        "street vendor")
+            relevant_skill_name="charisma"
+            relevant_skill_level=${skills[$relevant_skill_name]:-1}
+            skill_bonus=$((relevant_skill_level * 4))
+            play_sfx_mpg "street_vendor"
             ;;
 		*)
 			echo "Internal Error: Invalid Job Type '$job_type'"; return;;
@@ -2827,7 +2842,8 @@ while true; do
     echo "5. Performer      | 6. Bus Driver"
     echo "7. Bartender      | 8. Dock Worker"
     echo "9. Construction   | 10. Chef"
-    echo "11. Back"
+    echo "11. Pizza Delivery | 12. Street Vendor"
+    echo "13. Back"
     read -r -p "Enter choice: " job_choice
     case "$job_choice" in
         1) work_job "taxi";;
@@ -2840,7 +2856,9 @@ while true; do
         8) work_job "dock_worker";;
         9) work_job "construction";;
         10) work_job "chef";;
-        11) ;;
+        11) work_job "pizza_delivery";;
+        12) work_job "street_vendor";;
+        13) ;;
         *) echo "Invalid." && sleep 1;;
     esac;;
 6) clear_screen; echo "--- Criminal Activities ---"
