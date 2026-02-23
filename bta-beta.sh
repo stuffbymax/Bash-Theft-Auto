@@ -463,12 +463,17 @@ initialize_world_data() {
 ["LV Rigged Casino"]="700000:Las Venturas:IllegalFront"
 ["LV Underground Betting Syndicate"]="450000:Las Venturas:IllegalFront"
 ["LV Counterfeit Chip Factory"]="500000:Las Venturas:IllegalFront"
+["LV Smuggling Tunnel"]="600000:Las Venturas:IllegalFront"
 ["LV Mafia Headquarters"]="1000000:Las Venturas:IllegalFront"
 
 # =====================================================
 # LIBERTY CITY – EXPANSION
 # =====================================================
 ["LC Wall Street Office"]="950000:Liberty City:Legal"
+["LC Wall Street Office 2"]="100000:Liberty City:Legal"
+["LC Wall Street Office 3"]="959216:Liberty City:Legal"
+["LC Wall Street Office 4"]="19283520:Liberty City:Legal"
+["LC Bank of Liberty"]="9217298:Liberty City:Legal"
 ["LC Shipping Terminal"]="450000:Liberty City:Legal"
 ["LC Media Corporation"]="800000:Liberty City:Legal"
 ["LC Luxury Condos"]="600000:Liberty City:Legal"
@@ -572,6 +577,11 @@ initialize_world_data() {
     ["Cartel"]="Vice City"
     ["Vice City Triads"]="Vice City"
     ["Street Runners"]="Vice City"
+
+    # =========================
+    # GTA 6
+    #===========================
+    
     )
 
     # Initialize gang systems for a new game
