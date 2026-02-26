@@ -416,6 +416,10 @@ initialize_world_data() {
 ["Blaine County|Mount Chiliad"]="Unaffiliated"
 ["Blaine County|Fort Zancudo"]="Military"
 ["Blaine County|Zancudo River"]="Unaffiliated"
+
+# =====================================================
+# GTA 6 Vice City (HD Universe)
+# =====================================================
 )
     district_heat=(
         ["Los Santos"]=10 ["San Fierro"]=5 ["Las Venturas"]=15 ["Liberty City"]=20 ["Vice City"]=5
@@ -514,6 +518,10 @@ initialize_world_data() {
 ["BC Desert Drug Pipeline"]="700000:Blaine County:IllegalFront"
 ["BC Illegal Weapons Bunker"]="800000:Blaine County:IllegalFront"
 ["BC Biker Gang Compound"]="650000:Blaine County:IllegalFront"
+
+# =====================================================
+# GTA 6 Vice City – EXPANSION
+# =====================================================
     )
     owned_businesses=()
     world_event_log=() # Clear the log on new game
@@ -580,7 +588,7 @@ initialize_world_data() {
     ["Street Runners"]="Vice City"
 
     # =========================
-    # GTA 6
+    # GTA 6 VICE CITY
     #===========================
     
     )
