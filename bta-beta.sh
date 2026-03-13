@@ -847,13 +847,13 @@ run_clock() {
 update_world_state() {
     # This function is now the main entry point for world simulation
     run_clock 0
+    command -v passive_bounty_encounter &>/dev/null && passive_bounty_encounter
+    command -v tick_stock_market &>/dev/null && tick_stock_market
 }
 
 while true; do
     update_world_state
     check_police_encounter
-    command -v passive_bounty_encounter &>/dev/null && passive_bounty_encounter
-    command -v tick_stock_market &>/dev/null && tick_stock_market
 
 # --- Game Actions ---
 travel_to() {
