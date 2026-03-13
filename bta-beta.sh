@@ -849,6 +849,12 @@ update_world_state() {
     run_clock 0
 }
 
+while true; do
+    update_world_state
+    check_police_encounter
+    command -v passive_bounty_encounter &>/dev/null && passive_bounty_encounter
+    command -v tick_stock_market &>/dev/null && tick_stock_market
+
 # --- Game Actions ---
 travel_to() {
 	local travel_cost="$1"
@@ -2592,6 +2598,8 @@ save_game() {
     save_assoc_array "$save_path/businesses.sav" "owned_businesses"
     save_assoc_array "$save_path/upgrades.sav" "gang_upgrades"
     save_assoc_array "$save_path/relations.sav" "gang_relations"
+    command -v bounty_save_extra &>/dev/null && bounty_save_extra
+    command -v economy_save_extra &>/dev/null && economy_save_extra
 
     echo "Game saved successfully." && read -r -p "Press Enter..."
 }
@@ -2644,6 +2652,8 @@ load_game() {
     load_assoc_array "$save_path/businesses.sav" "owned_businesses"
     load_assoc_array "$save_path/upgrades.sav" "gang_upgrades"
     load_assoc_array "$save_path/relations.sav" "gang_relations"
+    command -v bounty_load_extra &>/dev/null && bounty_load_extra
+    command -v economy_load_extra &>/dev/null && economy_load_extra
 
     apply_gang_upgrades
     echo "Game loaded successfully." && read -r -p "Press Enter..."
@@ -2832,6 +2842,7 @@ while true; do
 	echo "5. Work (Legal)   | 11. Buy Drugs" 
     echo "12. gambling      | 13. Visit Shops"
 	echo "6. Work (Crime)   | G. Gang & Empire Management"
+    echo "14. stock market  | 15. Bounties"
 	echo "------------------------------------------------------------"
 	echo "S. Save Game     | L. Load Game     | N. News Feed"
 	echo "M. Music Player  | A. About         | P. Perks"
@@ -2886,7 +2897,8 @@ while true; do
     esac;;
 
 		7) sell_drugs;; 8) hire_hooker;; 9) visit_hospital;; 10) street_race;; 11) buy_drugs;;
-        12) gambling_den;; 13) visit_shop;;
+        12) gambling_den;; 13) visit_shop;; 14) command -v show_economy_menu &>/dev/null && show_economy_menu || echo "Economy plugin not loaded.";;
+        15) command -v show_bounty_board &>/dev/null && show_bounty_board || echo "Bounty plugin not loaded.";;
         'g') show_gang_menu;; 's') save_game;;
 		'l') read -r -p "Load game? Unsaved progress will be lost. (y/n): " confirm
 			 if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then load_game; fi ;;
