@@ -2,7 +2,7 @@
 set +H
 # creator: stuffbymax (martinP)
 # description: open world crime "simulator"
-# ver 2.5.0 - beta release
+# ver 2.5.0.1 - beta release
 # New mechanics: Loan Shark, Black Market Auctions, Fence System,
 #   Ambush System, Bounty on Player, Safe House Renting,
 #   Drive-By Missions, Protection Racket, Gang Spy,
@@ -29,6 +29,180 @@ cleanup_and_exit() {
 	exit 0
 }
 trap cleanup_and_exit SIGINT SIGTERM SIGHUP
+
+
+### --- Debug Functions ---
+# =============================================================================
+# DEBUG SYSTEM
+# =============================================================================
+# Enable:  BTA_DEBUG=1 ./bta_enhanced.sh   OR   ./bta_enhanced.sh --debug
+# Log:     bta_debug.log  (in BASEDIR, appended each session)
+# Disable: BTA_DEBUG=0  or just don't set it
+# =============================================================================
+
+BTA_DEBUG_LOG="$BASEDIR/bta_debug.log"
+
+# Accept --debug as first argument
+if [[ "${1:-}" == "--debug" ]]; then
+    BTA_DEBUG=1
+    shift
+fi
+
+# Keep fd3 pointing at the real terminal so the game UI still displays,
+# and tee stdout+stderr into the log file.
+if [[ "${BTA_DEBUG:-0}" == "1" ]]; then
+    exec 3>&1
+    exec 1> >(tee -a "$BTA_DEBUG_LOG") 2>&1
+fi
+
+# --- dbg "message" ---
+# Timestamped line to log only. No-op when debug is off.
+dbg() {
+    [[ "${BTA_DEBUG:-0}" != "1" ]] && return 0
+    printf '[DBG %s] %s\n' "$(date '+%H:%M:%S')" "$*" >> "$BTA_DEBUG_LOG"
+}
+
+# --- dbg_section "title" ---
+# Bold divider in the log for readability.
+dbg_section() {
+    [[ "${BTA_DEBUG:-0}" != "1" ]] && return 0
+    {
+        printf '\n%s\n' "$(printf '=%.0s' {1..60})"
+        printf '  %s  [Day %s %02d:00]\n' "$*" "$game_day" "$game_hour"
+        printf '%s\n' "$(printf '=%.0s' {1..60})"
+    } >> "$BTA_DEBUG_LOG"
+}
+
+# --- dbg_var "VAR_NAME" ---
+# Dumps a variable. Handles scalars, indexed arrays, assoc arrays.
+dbg_var() {
+    [[ "${BTA_DEBUG:-0}" != "1" ]] && return 0
+    local var_name="$1"
+    local var_type
+    var_type=$(declare -p "$var_name" 2>/dev/null) || {
+        printf '[DBG %s] VAR %s = <undefined>\n' "$(date '+%H:%M:%S')" "$var_name" >> "$BTA_DEBUG_LOG"
+        return
+    }
+    printf '[DBG %s] VAR %s\n' "$(date '+%H:%M:%S')" "$var_name" >> "$BTA_DEBUG_LOG"
+    if [[ "$var_type" == *"declare -A"* ]]; then
+        local -n _dbg_ref="$var_name"
+        for k in "${!_dbg_ref[@]}"; do
+            printf '         [%s] = %s\n' "$k" "${_dbg_ref[$k]}" >> "$BTA_DEBUG_LOG"
+        done
+    elif [[ "$var_type" == *"declare -a"* ]]; then
+        local -n _dbg_ref="$var_name"
+        for i in "${!_dbg_ref[@]}"; do
+            printf '         [%d] = %s\n' "$i" "${_dbg_ref[$i]}" >> "$BTA_DEBUG_LOG"
+        done
+    else
+        local -n _dbg_ref="$var_name"
+        printf '         = %s\n' "$_dbg_ref" >> "$BTA_DEBUG_LOG"
+    fi
+}
+
+# --- dbg_player ---
+# Full snapshot of player state.
+dbg_player() {
+    [[ "${BTA_DEBUG:-0}" != "1" ]] && return 0
+    dbg_section "PLAYER STATE SNAPSHOT"
+    dbg "name=$player_name  location=$location  cash=$cash  health=$health"
+    dbg "wanted=$wanted_level  armor=$body_armor_equipped  respect=$player_respect"
+    dbg "gang=$player_gang  rank=$player_gang_rank  perk_points=$perk_points"
+    dbg "day=$game_day  hour=$game_hour"
+    dbg "loan=$loan_amount  interest=$loan_interest  rate=$loan_rate"
+    dbg "bounty=$player_bounty  hitman=$bounty_hitman_name"
+    dbg "safehouse=$rented_safehouse"
+    dbg_var "skills"
+    dbg_var "guns"
+    dbg_var "items"
+    dbg_var "drugs"
+    dbg_var "owned_vehicles"
+    dbg_var "perks"
+    dbg_var "contacts_unlocked"
+}
+
+# --- dbg_world ---
+# Snapshot of world/territory state.
+dbg_world() {
+    [[ "${BTA_DEBUG:-0}" != "1" ]] && return 0
+    dbg_section "WORLD STATE SNAPSHOT"
+    dbg_var "district_heat"
+    dbg_var "city_reputation"
+    dbg "territory_owner entries: ${#territory_owner[@]}"
+    dbg "owned_businesses entries: ${#owned_businesses[@]}"
+    dbg "protection_income entries: ${#protection_income[@]}"
+    dbg "world_event_log entries: ${#world_event_log[@]}"
+    if [[ "$player_gang" != "None" ]]; then
+        dbg_var "gang_upgrades"
+        dbg_var "gang_relations"
+        dbg "player_recruits count: ${#player_recruits[@]}"
+    fi
+}
+
+# --- dbg_timing_start "label" / dbg_timing_end "label" ---
+# Measures milliseconds between two points.
+declare -A _dbg_timers=()
+dbg_timing_start() {
+    [[ "${BTA_DEBUG:-0}" != "1" ]] && return 0
+    _dbg_timers["$1"]=$(date +%s%N)
+}
+dbg_timing_end() {
+    [[ "${BTA_DEBUG:-0}" != "1" ]] && return 0
+    local label="$1"
+    local start=${_dbg_timers[$label]:-0}
+    (( start == 0 )) && { dbg "TIMING [$label]: no start recorded"; return; }
+    local elapsed_ms=$(( ($(date +%s%N) - start) / 1000000 ))
+    dbg "TIMING [$label]: ${elapsed_ms}ms"
+    unset '_dbg_timers[$label]'
+}
+
+# --- dbg_assert "condition" "message" ---
+# Logs PASS or FAIL for a bash condition.
+# Example: dbg_assert "(( cash >= 0 ))" "cash must never be negative"
+dbg_assert() {
+    [[ "${BTA_DEBUG:-0}" != "1" ]] && return 0
+    if eval "$1" 2>/dev/null; then
+        dbg "ASSERT PASS: $2"
+    else
+        dbg "ASSERT FAIL: $2  [condition: $1]"
+    fi
+}
+
+# --- Session header ---
+if [[ "${BTA_DEBUG:-0}" == "1" ]]; then
+    {
+        printf '\n%s\n' "$(printf '#%.0s' {1..60})"
+        printf '# BTA DEBUG SESSION START\n'
+        printf '# Date:    %s\n' "$(date)"
+        printf '# Script:  %s\n' "$0"
+        printf '# BASEDIR: %s\n' "$BASEDIR"
+        printf '# PID:     %s\n' "$$"
+        printf '# Bash:    %s\n' "$BASH_VERSION"
+        printf '%s\n\n' "$(printf '#%.0s' {1..60})"
+    } >> "$BTA_DEBUG_LOG"
+fi
+# =====================================================
+# --- Debug Variables ---
+
+# Log a message
+dbg "rob_store called, base_chance=$base_chance"
+
+# Dump any variable
+dbg_var "skills"
+dbg_var "territory_owner"
+
+# Full state dumps
+dbg_player
+dbg_world
+
+# Time something (e.g. plugin load time)
+dbg_timing_start "plugin_load"
+source "$plugin_script"
+dbg_timing_end "plugin_load"
+
+# Sanity check
+dbg_assert "(( cash >= 0 ))" "cash should never be negative"
+# =============================================================================
 
 # --- Global Variables ---
 player_name=""
