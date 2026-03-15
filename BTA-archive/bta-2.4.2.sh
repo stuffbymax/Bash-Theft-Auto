@@ -1,12 +1,9 @@
 #!/bin/bash
-set +H
 # creator: stuffbymax (martinP)
-# description: open world crime "simulator"
-# ver 2.4.4 - added perk system, police encounters, and more world events
-# Licenses:
+# description: open world crime TUI "simulator"
+# ver 2.4.2
 # Bash-Theft-Auto music © 2024 by stuffbymax - Martin Petik is licensed under CC BY 4.0
 # https://creativecommons.org/licenses/by/4.0/
-# code is licensed under MIT License
 
 # set -e # Uncomment this for stricter error checking if desired, but might exit too easily
 BASEDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -65,154 +62,12 @@ perk_points=0
 last_respect_milestone=0
 
 gun_attributes=(
-    ["Hawk 9"]="success_bonus=5"
-    ["Hawk 9 silencer"]="success_bonus=20"
-    ["Striker 12"]="success_bonus=10"
-    ["Viper SMG"]="success_bonus=15"
-    ["AR-7 Assault"]="success_bonus=20"
-    ["Ghost Sniper"]="success_bonus=25"
-    ["Rex 38"]="success_bonus=7"
-    ["Bulldog 45"]="success_bonus=12"
-    ["Spectre PDW"]="success_bonus=18"
-    ["Ravager LMG"]="success_bonus=22"
-    ["Diamondback MG"]="success_bonus=28"
-    ["Phantom Carbine"]="success_bonus=16"
-    ["Undertaker Sawn-off"]="success_bonus=8"
+	["Pistol"]="success_bonus=5"
+	["Shotgun"]="success_bonus=10"
+	["SMG"]="success_bonus=15"
+	["Rifle"]="success_bonus=20"
+	["Sniper"]="success_bonus=25"
 )
-# perk functions
-manage_perks() {
-    clear_screen
-    while true; do
-        clear_screen
-        echo "--- Perk System ---"
-        printf " Available Perk Points: \e[1;95m%d\e[0m\n" "$perk_points"
-        echo " (Earn points by gaining Respect milestones every 1000 Respect)"
-        echo "================================================================"
-        echo " TIER 1 (Cost: 1 point)"
-        for perk in "${TIER_1_PERKS[@]}"; do
-            if [[ -v "perks[$perk]" ]]; then
-                printf "  \e[1;32m[OWNED]\e[0m %-25s - %s\n" "$perk" "${perk_descriptions[$perk]}"
-            else
-                printf "  \e[1;33m[%d pt ]\e[0m %-25s - %s\n" "${perk_costs[$perk]}" "$perk" "${perk_descriptions[$perk]}"
-            fi
-        done
-        echo "----------------------------------------------------------------"
-        echo " TIER 2 (Cost: 2 points)"
-        for perk in "${TIER_2_PERKS[@]}"; do
-            if [[ -v "perks[$perk]" ]]; then
-                printf "  \e[1;32m[OWNED]\e[0m %-25s - %s\n" "$perk" "${perk_descriptions[$perk]}"
-            else
-                printf "  \e[1;33m[%d pts]\e[0m %-25s - %s\n" "${perk_costs[$perk]}" "$perk" "${perk_descriptions[$perk]}"
-            fi
-        done
-        echo "----------------------------------------------------------------"
-        echo " TIER 3 (Cost: 3 points)"
-        for perk in "${TIER_3_PERKS[@]}"; do
-            if [[ -v "perks[$perk]" ]]; then
-                printf "  \e[1;32m[OWNED]\e[0m %-25s - %s\n" "$perk" "${perk_descriptions[$perk]}"
-            else
-                printf "  \e[1;33m[%d pts]\e[0m %-25s - %s\n" "${perk_costs[$perk]}" "$perk" "${perk_descriptions[$perk]}"
-            fi
-        done
-        echo "================================================================"
-        echo "Enter perk name to buy it, or B to go back."
-        read -r -p "Choice: " choice
-        if [[ "$choice" == "b" || "$choice" == "B" ]]; then return; fi
-
-        if [[ -v "perk_costs[$choice]" ]]; then
-            if [[ -v "perks[$choice]" ]]; then
-                echo "You already own the $choice perk."
-            elif (( perk_points >= perk_costs[$choice] )); then
-                perk_points=$(( perk_points - perk_costs[$choice] ))
-                perks["$choice"]=1
-                echo -e "\e[1;32mPerk unlocked: ${choice}!\e[0m"
-                play_sfx_mpg "win_big"
-            else
-                echo "Not enough perk points (need ${perk_costs[$choice]}, have ${perk_points})."
-            fi
-        else
-            echo "Invalid perk name. Type the exact name shown."
-        fi
-        read -r -p "Press Enter..."
-    done
-}
-
-# police encounter system
-check_police_encounter() {
-    (( wanted_level == 0 )) && return
-    local encounter_chance=$(( wanted_level * 12 ))
-    (( RANDOM % 100 >= encounter_chance )) && return
-
-    clear_screen
-    play_sfx_mpg "police_siren"
-    echo -e "\e[1;31m*** POLICE ENCOUNTER! ***\e[0m"
-    echo "Wanted Level: $(printf '*%.0s' $(seq 1 $wanted_level))"
-    echo "------------------------------------------------"
-
-    local outcome_roll=$(( RANDOM % 100 ))
-    local escape_chance=$(( 40 + ${skills[stealth]:-1} * 5 + ${skills[driving]:-1} * 3 ))
-    (( escape_chance > 85 )) && escape_chance=85
-
-    echo "1. Run for it!    (Escape chance: ${escape_chance}%)"
-    echo "2. Bribe them.    (Cost: \$$(( wanted_level * 150 )))"
-    echo "3. Surrender.     (Fine + jail time)"
-    read -r -p "Choice: " police_choice
-
-    case "$police_choice" in
-        1)
-            echo "You bolt down the alley..."; sleep 1
-            if (( RANDOM % 100 < escape_chance )); then
-                echo -e "\e[1;32mYou lost them! Nice moves.\e[0m"
-                if (( RANDOM % 3 == 0 )); then
-                    wanted_level=$(( wanted_level - 1 ))
-                    echo "Wanted level decreased."
-                fi
-                play_sfx_mpg "win"
-            else
-                local damage=$(( RANDOM % 20 + 10 + wanted_level * 5 ))
-                health=$(( health - damage ))
-                local fine=$(( RANDOM % 100 + wanted_level * 75 ))
-                cash=$(( cash - fine )); (( cash < 0 )) && cash=0
-                wanted_level=$(( wanted_level + 1 ))
-                (( wanted_level > MAX_WANTED_LEVEL )) && wanted_level=$MAX_WANTED_LEVEL
-                echo -e "\e[1;31mThey caught you! Took ${damage}%% damage and fined \$${fine}.\e[0m"
-                play_sfx_mpg "lose"
-            fi
-            ;;
-        2)
-            local bribe=$(( wanted_level * 150 ))
-            if [[ -v "perks[Street Negotiator]" ]]; then
-                bribe=$(( bribe * 90 / 100 ))
-            fi
-            if (( cash >= bribe )); then
-                cash=$(( cash - bribe ))
-                wanted_level=$(( wanted_level - 1 ))
-                (( wanted_level < 0 )) && wanted_level=0
-                echo -e "\e[1;32mOfficer pockets the cash and looks the other way. Wanted level reduced.\e[0m"
-                play_sfx_mpg "cash_register"
-            else
-                echo -e "\e[1;31mNot enough cash for the bribe (\$$bribe needed). They arrest you!\e[0m"
-                local fine=$(( RANDOM % 200 + wanted_level * 100 ))
-                cash=$(( cash - fine )); (( cash < 0 )) && cash=0
-                wanted_level=0; health=$(( health - 10 ))
-                echo "Fined \$$fine and released. Wanted level cleared."
-                play_sfx_mpg "lose"
-            fi
-            ;;
-        3|*)
-            echo "You put your hands up..."; sleep 1
-            local fine=$(( RANDOM % 150 + wanted_level * 80 ))
-            local time_lost=$(( wanted_level * 2 ))
-            cash=$(( cash - fine )); (( cash < 0 )) && cash=0
-            wanted_level=0
-            run_clock $time_lost
-            echo -e "Fined \e[1;31m\$$fine\e[0m and held for ${time_lost} hours. Wanted level cleared."
-            play_sfx_mpg "lose"
-            ;;
-    esac
-    check_health
-    read -r -p "Press Enter..."
-}
 
 declare -A default_skills=( ["driving"]=1 ["strength"]=1 ["charisma"]=1 ["stealth"]=1 ["drug_dealer"]=1 )
 declare -A default_drugs=( ["Weed"]=0 ["Cocaine"]=0 ["Heroin"]=0 ["Meth"]=0 )
@@ -253,275 +108,82 @@ declare -A owned_businesses
 # BTA_GANG_SYSTEM: Initialize world data
 initialize_world_data() {
     territory_owner=(
-# =====================================================
-# LOS SANTOS (San Andreas - 3D Universe)
-# =====================================================
-["Los Santos|Ganton"]="Grove Street"
-["Los Santos|Idlewood"]="Ballas"
-["Los Santos|Jefferson"]="Ballas"
-["Los Santos|East Los Santos"]="Vagos"
-["Los Santos|Las Colinas"]="Vagos"
-["Los Santos|Los Flores"]="Vagos"
-["Los Santos|Glen Park"]="Ballas"
-["Los Santos|Playa del Seville"]="Grove Street"
-["Los Santos|Temple"]="Ballas"
-["Los Santos|Willowfield"]="Ballas"
-["Los Santos|El Corona"]="Vagos"
-["Los Santos|Little Mexico"]="Vagos"
-["Los Santos|Commerce"]="Unaffiliated"
-["Los Santos|Market"]="Unaffiliated"
-["Los Santos|Pershing Square"]="Unaffiliated"
-["Los Santos|Downtown Los Santos"]="Unaffiliated"
-["Los Santos|Mulholland"]="Unaffiliated"
-["Los Santos|Mulholland Intersection"]="Unaffiliated"
-["Los Santos|Rodeo"]="Unaffiliated"
-["Los Santos|Richman"]="Unaffiliated"
-["Los Santos|Vinewood"]="Unaffiliated"
-["Los Santos|Verdant Bluffs"]="Grove Street"
-["Los Santos|Marina"]="Unaffiliated"
-["Los Santos|Santa Maria Beach"]="Unaffiliated"
-["Los Santos|Verona Beach"]="Unaffiliated"
-["Los Santos|Ocean Docks"]="Unaffiliated"
-["Los Santos|Los Santos International Airport"]="Unaffiliated"
-
-# =====================================================
-# SAN FIERRO (3D Universe)
-# =====================================================
-["San Fierro|Downtown"]="Unaffiliated"
-["San Fierro|Financial District"]="Unaffiliated"
-["San Fierro|Chinatown"]="Triads"
-["San Fierro|Garcia"]="Triads"
-["San Fierro|Doherty"]="Unaffiliated"
-["San Fierro|Easter Basin"]="Da Nang Boys"
-["San Fierro|Easter Bay Airport"]="Unaffiliated"
-["San Fierro|Hashbury"]="Unaffiliated"
-["San Fierro|Queens"]="Unaffiliated"
-["San Fierro|Paradiso"]="Unaffiliated"
-["San Fierro|Juniper Hill"]="Unaffiliated"
-["San Fierro|Battery Point"]="Unaffiliated"
-["San Fierro|Ocean Flats"]="Unaffiliated"
-["San Fierro|Avispa Country Club"]="Unaffiliated"
-
-# =====================================================
-# LAS VENTURAS (3D Universe)
-# =====================================================
-["Las Venturas|The Strip"]="Leone Family"
-["Las Venturas|Come-A-Lot"]="Leone Family"
-["Las Venturas|Roca Escalante"]="Sindacco Family"
-["Las Venturas|Redsands East"]="Unaffiliated"
-["Las Venturas|Redsands West"]="Unaffiliated"
-["Las Venturas|Old Venturas Strip"]="Unaffiliated"
-["Las Venturas|Whitewood Estates"]="Unaffiliated"
-["Las Venturas|Prickle Pine"]="Unaffiliated"
-["Las Venturas|Creek"]="Unaffiliated"
-["Las Venturas|Blackfield"]="Unaffiliated"
-["Las Venturas|Blackfield Chapel"]="Unaffiliated"
-["Las Venturas|Randolph Industrial Estate"]="Unaffiliated"
-["Las Venturas|Las Venturas Airport"]="Unaffiliated"
-
-# =====================================================
-# LIBERTY CITY (GTA III - 3D Universe)
-# =====================================================
-["Liberty City|Portland"]="Leone Family"
-["Liberty City|Portland Harbor"]="Leone Family"
-["Liberty City|Saint Mark's"]="Leone Family"
-["Liberty City|Chinatown"]="Triads"
-["Liberty City|Red Light District"]="Diablos"
-["Liberty City|Hepburn Heights"]="Diablos"
-["Liberty City|Callahan Point"]="Unaffiliated"
-["Liberty City|Staunton Island"]="Yakuza"
-["Liberty City|Torrington"]="Yakuza"
-["Liberty City|Newport"]="Unaffiliated"
-["Liberty City|Fort Staunton"]="Yakuza"
-["Liberty City|Shoreside Vale"]="Unaffiliated"
-["Liberty City|Cedar Grove"]="Colombian Cartel"
-["Liberty City|Wichita Gardens"]="Unaffiliated"
-["Liberty City|Francis International Airport"]="Unaffiliated"
-
-# =====================================================
-# LIBERTY CITY (GTA IV - HD Universe)
-# =====================================================
-["Liberty City|Broker"]="Unaffiliated"
-["Liberty City|Dukes"]="Unaffiliated"
-["Liberty City|Bohan"]="Unaffiliated"
-["Liberty City|Algonquin"]="Unaffiliated"
-["Liberty City|Alderney"]="Unaffiliated"
-["Liberty City|Hove Beach"]="Russian Mob"
-["Liberty City|Little Italy"]="Italian Mob"
-["Liberty City|Northwood"]="Drug Dealers"
-["Liberty City|South Bohan"]="Drug Dealers"
-["Liberty City|Star Junction"]="Unaffiliated"
-["Liberty City|Middle Park"]="Unaffiliated"
-["Liberty City|The Triangle"]="Unaffiliated"
-
-# =====================================================
-# VICE CITY (3D Universe)
-# =====================================================
-["Vice City|Ocean Beach"]="Unaffiliated"
-["Vice City|Washington Beach"]="Unaffiliated"
-["Vice City|Vice Point"]="Unaffiliated"
-["Vice City|Downtown"]="Unaffiliated"
-["Vice City|Little Havana"]="Cuban Gang"
-["Vice City|Little Haiti"]="Haitian Gang"
-["Vice City|Starfish Island"]="Unaffiliated"
-["Vice City|Prawn Island"]="Unaffiliated"
-["Vice City|Leaf Links"]="Unaffiliated"
-["Vice City|Escobar International Airport"]="Unaffiliated"
-["Vice City|Viceport"]="Unaffiliated"
-
-# =====================================================
-# LOS SANTOS (GTA V - HD Universe)
-# =====================================================
-["Los Santos|Pillbox Hill"]="Unaffiliated"
-["Los Santos|Mission Row"]="Unaffiliated"
-["Los Santos|Textile City"]="Unaffiliated"
-["Los Santos|Legion Square"]="Unaffiliated"
-["Los Santos|Burton"]="Unaffiliated"
-["Los Santos|Rockford Hills"]="Unaffiliated"
-["Los Santos|Alta"]="Unaffiliated"
-["Los Santos|Hawick"]="Unaffiliated"
-["Los Santos|West Vinewood"]="Unaffiliated"
-["Los Santos|East Vinewood"]="Unaffiliated"
-["Los Santos|Little Seoul"]="Unaffiliated"
-["Los Santos|Strawberry"]="Families"
-["Los Santos|Davis"]="Families"
-["Los Santos|Chamberlain Hills"]="Families"
-["Los Santos|Rancho"]="Families"
-["Los Santos|La Mesa"]="Vagos"
-["Los Santos|Cypress Flats"]="Vagos"
-["Los Santos|El Burro Heights"]="Vagos"
-["Los Santos|Murrieta Heights"]="Unaffiliated"
-["Los Santos|Elysian Island"]="Unaffiliated"
-["Los Santos|Banning"]="Unaffiliated"
-["Los Santos|Vespucci"]="Unaffiliated"
-["Los Santos|Vespucci Canals"]="Unaffiliated"
-["Los Santos|Del Perro"]="Unaffiliated"
-["Los Santos|Pacific Bluffs"]="Unaffiliated"
-["Los Santos|Morningwood"]="Unaffiliated"
-["Los Santos|Richman Glen"]="Unaffiliated"
-["Los Santos|Mirror Park"]="Unaffiliated"
-["Los Santos|Vinewood Hills"]="Unaffiliated"
-["Los Santos|Port of Los Santos"]="Unaffiliated"
-["Los Santos|Los Santos International Airport (HD)"]="Unaffiliated"
-
-# =====================================================
-# BLAINE COUNTY (HD Universe)
-# =====================================================
-["Blaine County|Sandy Shores"]="Lost MC"
-["Blaine County|Grapeseed"]="Unaffiliated"
-["Blaine County|Paleto Bay"]="Unaffiliated"
-["Blaine County|Harmony"]="Unaffiliated"
-["Blaine County|Grand Senora Desert"]="Unaffiliated"
-["Blaine County|Alamo Sea"]="Unaffiliated"
-["Blaine County|Mount Chiliad"]="Unaffiliated"
-["Blaine County|Fort Zancudo"]="Military"
-["Blaine County|Zancudo River"]="Unaffiliated"
-
-# =====================================================
-# GTA 6 Vice City (HD Universe)
-# =====================================================
-)
+        ["Los Santos|Idlewood"]="Ballas"
+        ["Los Santos|East Los Santos"]="Vagos"
+        ["Los Santos|Verdant Bluffs"]="Grove Street"
+        ["Los Santos|Downtown"]="Unaffiliated"
+        ["Los Santos|Docks"]="Unaffiliated"
+        ["San Fierro|Chinatown"]="Triads"
+        ["San Fierro|Doherty"]="Unaffiliated"
+        ["San Fierro|Easter Basin"]="Da Nang Boys"
+        ["San Fierro|Downtown"]="Unaffiliated"
+        ["Las Venturas|The Strip"]="Leone Family"
+        ["Las Venturas|Roca Escalante"]="Sindacco Family"
+        ["Las Venturas|Redsands East"]="Unaffiliated"
+        ["Las Venturas|Old Venturas Strip"]="Unaffiliated"
+        ["Liberty City|Bohan"]="Unaffiliated"
+        ["Liberty City|Dukes"]="Unaffiliated"
+        ["Liberty City|Broker"]="Unaffiliated"
+        ["Liberty City|Algonquin"]="Unaffiliated"
+        ["Liberty City|Alderney"]="Unaffiliated"
+        ["Vice City|Ocean Beach"]="Unaffiliated"
+        ["Vice City|Vice Point"]="Unaffiliated"
+        ["Vice City|Vice Beach"]="Unaffiliated"
+        ["Vice City|Washington Beach"]="Unaffiliated"
+        ["Vice City|Starfish Island"]="Unaffiliated"
+        ["Vice City|Downtown"]="Unaffiliated"
+        ["Vice City|Little Havana"]="Unaffiliated"
+    )
     district_heat=(
         ["Los Santos"]=10 ["San Fierro"]=5 ["Las Venturas"]=15 ["Liberty City"]=20 ["Vice City"]=5
     )
     available_properties=(
-# =====================================================
-# LOS SANTOS – EXPANSION
-# =====================================================
-["LS Luxury Car Showroom"]="350000:Los Santos:Legal"
-["LS Film Studio"]="500000:Los Santos:Legal"
-["LS Recording Studio"]="275000:Los Santos:Legal"
-["LS Private Security Firm"]="220000:Los Santos:Legal"
-["LS Import Export Garage"]="300000:Los Santos:Legal"
-["LS Real Estate Agency"]="180000:Los Santos:Legal"
-["LS Tech Campus"]="750000:Los Santos:Legal"
-
-["LS Cocaine Lockup"]="325000:Los Santos:IllegalFront"
-["LS Money Laundering Office"]="400000:Los Santos:IllegalFront"
-["LS Underground Fight Club"]="150000:Los Santos:IllegalFront"
-["LS Human Trafficking Ring"]="500000:Los Santos:IllegalFront"
-["LS Arms Manufacturing"]="600000:Los Santos:IllegalFront"
-["LS Counterfeit Cash Operation"]="450000:Los Santos:IllegalFront"
-["LS Diamond casino"]="92717297:Los Santos:legal"
-
-# =====================================================
-# SAN FIERRO – EXPANSION
-# =====================================================
-["SF Cyber Security Firm"]="400000:San Fierro:Legal"
-["SF Investment Bank"]="850000:San Fierro:Legal"
-["SF Shipping Corporation"]="500000:San Fierro:Legal"
-["SF High Rise Apartments"]="320000:San Fierro:Legal"
-
-["SF Crypto Mining Farm"]="275000:San Fierro:IllegalFront"
-["SF Offshore Laundering"]="650000:San Fierro:IllegalFront"
-["SF Port Smuggling Network"]="450000:San Fierro:IllegalFront"
-["SF Underground Casino"]="500000:San Fierro:IllegalFront"
-
-# =====================================================
-# LAS VENTURAS – EXPANSION
-# =====================================================
-["LV Mega Casino"]="900000:Las Venturas:Legal"
-["LV Entertainment Arena"]="650000:Las Venturas:Legal"
-["LV Convention Center"]="550000:Las Venturas:Legal"
-["LV Luxury Resort"]="1200000:Las Venturas:Legal"
-
-["LV Rigged Casino"]="700000:Las Venturas:IllegalFront"
-["LV Underground Betting Syndicate"]="450000:Las Venturas:IllegalFront"
-["LV Counterfeit Chip Factory"]="500000:Las Venturas:IllegalFront"
-["LV Smuggling Tunnel"]="600000:Las Venturas:IllegalFront"
-["LV Mafia Headquarters"]="1000000:Las Venturas:IllegalFront"
-
-# =====================================================
-# LIBERTY CITY – EXPANSION
-# =====================================================
-["LC Wall Street Office"]="950000:Liberty City:Legal"
-["LC Wall Street Office 2"]="100000:Liberty City:Legal"
-["LC Wall Street Office 3"]="959216:Liberty City:Legal"
-["LC Wall Street Office 4"]="19283520:Liberty City:Legal"
-["LC Bank of Liberty"]="9217298:Liberty City:Legal"
-["LC Shipping Terminal"]="450000:Liberty City:Legal"
-["LC Media Corporation"]="800000:Liberty City:Legal"
-["LC Luxury Condos"]="600000:Liberty City:Legal"
-
-["LC Underground Arms Trade"]="550000:Liberty City:IllegalFront"
-["LC International Drug Hub"]="850000:Liberty City:IllegalFront"
-["LC Russian Syndicate HQ"]="950000:Liberty City:IllegalFront"
-["LC Mafia Commission Office"]="1200000:Liberty City:IllegalFront"
-
-["LC Illegal Gun Shop 1"]="120000:Liberty City:IllegalFront"
-["LC Illegal Gun Shop 2"]="135000:Liberty City:IllegalFront"
-["LC Underground Gun Market"]="200000:Liberty City:IllegalFront"
-["LC Black Market Firearms"]="250000:Liberty City:IllegalFront"
-["LC Arms Dealer Safehouse"]="300000:Liberty City:IllegalFront"
-# =====================================================
-# VICE CITY – EXPANSION
-# =====================================================
-["VC Beachfront Resort"]="750000:Vice City:Legal"
-["VC Yacht Marina"]="500000:Vice City:Legal"
-["VC Record Label"]="350000:Vice City:Legal"
-["VC Fashion House"]="450000:Vice City:Legal"
-
-["VC Cartel Mansion"]="900000:Vice City:IllegalFront"
-["VC Offshore Drug Route"]="800000:Vice City:IllegalFront"
-["VC Money Printing Operation"]="1000000:Vice City:IllegalFront"
-["VC Smuggler Fleet"]="650000:Vice City:IllegalFront"
-
-# =====================================================
-# BLAINE COUNTY – EXPANSION
-# =====================================================
-["BC Oil Field"]="600000:Blaine County:Legal"
-["BC Wind Farm"]="350000:Blaine County:Legal"
-["BC Private Airfield"]="500000:Blaine County:Legal"
-["BC Ranch Estate"]="275000:Blaine County:Legal"
-
-["BC Cartel Safehouse"]="450000:Blaine County:IllegalFront"
-["BC Desert Drug Pipeline"]="700000:Blaine County:IllegalFront"
-["BC Illegal Weapons Bunker"]="800000:Blaine County:IllegalFront"
-["BC Biker Gang Compound"]="650000:Blaine County:IllegalFront"
-
-# =====================================================
-# GTA 6 Vice City – EXPANSION
-# =====================================================
+        ["LS Car Wash"]="15000:Los Santos:Legal"
+        ["LS Bar"]="20000:Los Santos:Legal"
+        ["LS Grocery Store"]="9000:Los Santos:Legal"
+        ["LS BANK"]="2919649:Los Santos:Legal"
+		["LS Auto Repair"]="12400:Los Santos:Legal"
+		["LS Pizza Shop"]="20000:Los Santos:Legal"
+        ["LS Warehouse"]="25000:Los Santos:IllegalFront"
+        ["LS Nightclub"]="75000:Los Santos:Legal"
+        ["LS Chop Shop"]="40000:Los Santos:IllegalFront"
+        ["LS Ammunation"]="30000:Los Santos:Legal"
+        ["SF Pizza Shop"]="20000:San Fierro:Legal"
+        ["SF Auto Repair"]="35000:San Fierro:Legal"
+        ["SF Shipping Depot"]="60000:San Fierro:IllegalFront"
+        ["SF Docks Crane"]="90000:San Fierro:IllegalFront"
+        ["SF Nightclub"]="75000:San Fierro:Legal"
+        ["SF Pawn Shop"]="22000:San Fierro:Legal"
+        ["SF Smuggling Ring"]="85000:San Fierro:IllegalFront"
+        ["LV Bar"]="15000:Las Venturas:Legal"
+        ["LV Chapel"]="18000:Las Venturas:Legal"
+        ["LV Casino Front"]="100000:Las Venturas:IllegalFront"
+        ["LV Pawn Shop"]="22000:Las Venturas:Legal"
+        ["LV Smuggling Ring"]="85000:Las Venturas:IllegalFront"
+		["LC Nightclub"]="19100:Liberty City:Legal"
+        ["LC Nightclub2"]="20000:Liberty City:Legal"
+        ["LC Pawn Shop"]="25000:Liberty City:Legal"
+        ["LC Chop Shop"]="45000:Liberty City:IllegalFront"
+        ["LC Warehouse"]="70000:Liberty City:IllegalFront"
+        ["LC Casino"]="120000:Liberty City:IllegalFront"
+        ["LC Bar"]="15000:Liberty City:Legal"
+        ["LC Grocery Store"]="9000:Liberty City:Legal"
+        ["LC Car Wash"]="15000:Liberty City:Legal"
+        ["VC Bank"]="29102:Vice City:Legal"
+        ["VC Bar"]="15000:Vice City:Legal"
+        ["VC Club"]="30000:Vice City:Legal"
+        ["VC Smuggling Ring"]="50000:Vice City:IllegalFront"
+        ["VC Chop Shop"]="45000:Vice City:IllegalFront"
+        ["VC Warehouse"]="70000:Vice City:IllegalFront"
+        ["VC Casino"]="120000:Vice City:IllegalFront"
+        ["VC Pawn Shop"]="25000:Vice City:Legal"
+        ["VC Car Wash"]="15000:Vice City:Legal"
+        ["VC Auto Repair"]="35000:Vice City:Legal"
+        ["VC Nightclub"]="75000:Vice City:Legal"
+        ["VC Strip Club"]="80000:Vice City:Legal"
+        ["VC Bar"]="20000:Vice City:Legal"
+        ["VC ammunation"]="30000:Vice City:Legal"
+        ["VC Smuggling Ring"]="50000:Vice City:IllegalFront"
     )
     owned_businesses=()
     world_event_log=() # Clear the log on new game
@@ -530,67 +192,12 @@ initialize_world_data() {
     last_respect_milestone=0
     # 
     GANG_HOME_CITY=(
-    # =========================
-    # LOS SANTOS
-    # =========================
-    ["Grove Street"]="Los Santos"
-    ["Ballas"]="Los Santos"
-    ["Vagos"]="Los Santos"
-    ["Families"]="Los Santos"
-    ["Los Santos Triads"]="Los Santos"
-    ["Da Hood Crew"]="Los Santos"
-
-    # =========================
-    # BLAINE COUNTY (HD Universe)
-    # =========================
-    ["Lost MC"]="Blaine County"
-    ["Rednecks"]="Blaine County"
-    ["Blaine Outlaws"]="Blaine County"
-
-    # =========================
-    # SAN FIERRO
-    # =========================
-    ["Triads"]="San Fierro"
-    ["Da Nang Boys"]="San Fierro"
-    ["San Fierro Families"]="San Fierro"
-
-    # =========================
-    # LAS VENTURAS
-    # =========================
-    ["Leone Family"]="Las Venturas"
-    ["Sindacco Family"]="Las Venturas"
-    ["Vercetti Crew"]="Las Venturas"
-    ["Mafia Syndicate"]="Las Venturas"
-
-    # =========================
-    # LIBERTY CITY
-    # =========================
-    ["The Commission"]="Liberty City"
-    ["Triads"]="Liberty City"
-    ["East Island Posse"]="Liberty City"
-    ["Pegorino Family"]="Liberty City"
-    ["Ierse Maffia"]="Liberty City"
-    ["Ancelotti Family"]="Liberty City"
-    ["Lupisella Family"]="Liberty City"
-    ["Russische Bratva"]="Liberty City"
-    ["Colombian Cartel"]="Liberty City"
-    ["Yakuza"]="Liberty City"
-    ["Italian Mob"]="Liberty City"
-    ["Drug Dealers"]="Liberty City"
-
-    # =========================
-    # VICE CITY
-    # =========================
-    ["Cuban Gang"]="Vice City"
-    ["Haitian Gang"]="Vice City"
-    ["Cartel"]="Vice City"
-    ["Vice City Triads"]="Vice City"
-    ["Street Runners"]="Vice City"
-
-    # =========================
-    # GTA 6 VICE CITY
-    #===========================
-    
+        ["Grove Street"]="Los Santos" ["Ballas"]="Los Santos" ["Vagos"]="Los Santos"
+        ["Triads"]="San Fierro" ["Da Nang Boys"]="San Fierro"
+        ["Leone Family"]="Las Venturas" ["Sindacco Family"]="Las Venturas"
+        ["The Commission"]="Liberty City" ["Triads"]="Liberty City"  ["East Island Posse"]="Liberty City"
+        ["Pegorino Family"]="Liberty City" ["Ierse maffia"]="Liberty City" ["Ancelotti family"]="Liberty City" 
+        ["Lupisella family"]="Liberty City" ["Russische Bratva"]="Liberty City"
     )
 
     # Initialize gang systems for a new game
@@ -651,14 +258,6 @@ if [[ -d "$BASEDIR/$plugin_dir" ]]; then
 	done < <(find "$BASEDIR/$plugin_dir" -maxdepth 1 -name "*.sh" -print0 2>/dev/null)
 fi
 
-# load mission plugins
-# missions_dir="$BASEDIR/missions"
-# if [[ -d "$missions_dir" ]]; then
-#     while IFS= read -r -d $'\0' mission_script; do
-#         [[ -f "$mission_script" ]] && source "$mission_script"
-#     done < <(find "$missions_dir" -maxdepth 1 -name "*.sh" -print0 2>/dev/null)
-# fi
-
 # --- Functions ---
 
 clear_screen() {
@@ -686,7 +285,7 @@ clear_screen() {
 about_music_sfx() {
 	clear_screen
 	echo "-----------------------------------------"
-	echo "          |       About       |          "
+	echo "|  About the Music and Sound Effects    |"
 	echo "-----------------------------------------"
 	echo ""
 	echo "Music and some SFX © 2024 by stuffbymax - Martin Petik"
@@ -695,7 +294,7 @@ about_music_sfx() {
 	echo "for more information check the Creators.md in /sfx"
 	echo ""
 	echo "Full game code is licensed under the MIT License."
-	echo "https://raw.githubusercontent.com/stuffbymax/Bash-Theft-Auto/refs/heads/main/LICENSE"
+	echo "https://github.com/stuffbymax/Bash-Theft-Auto/blob/main/LICENSE"
 	echo ""
 	echo "Thank you for playing!"
 	echo "-----------------------------------------"
@@ -847,13 +446,7 @@ run_clock() {
 update_world_state() {
     # This function is now the main entry point for world simulation
     run_clock 0
-    command -v passive_bounty_encounter &>/dev/null && passive_bounty_encounter
-    command -v tick_stock_market &>/dev/null && tick_stock_market
 }
-
-while true; do
-    update_world_state
-    check_police_encounter
 
 # --- Game Actions ---
 travel_to() {
@@ -900,65 +493,26 @@ travel_to() {
         location="$new_location"
         echo "You have arrived safely in $new_location after ${travel_time} hours."
 		read -r -p "Press Enter..."
-    else
+	else
 		echo "Not enough cash (\$$travel_cost needed) to travel to $new_location."
 		read -r -p "Press Enter..."
-    fi
+	fi
 }
 
 buy_guns() {
     run_clock 1
-    local gun_choice=""
-    clear_screen
-    echo "--- Ammu-Nation ---"
-    printf "Your Cash: \$%d\n" "$cash"
-    echo "--------------------------------------------"
-    echo " PISTOLS"
-    echo "  1. Hawk 9        (\$100)  - Reliable sidearm"
-    echo "  2. Rex 38        (\$150)  - Hard-hitting revolver"
-    echo "  3. Bulldog 45    (\$200)  - Heavy duty handgun"
-    echo "  4. Hawk 9 silencer (\$120) - Reliable sidearm with silencer"
-    echo "--------------------------------------------"
-    echo " SHOTGUNS"
-    echo "  5. Striker 12    (\$250)  - Pump action"
-    echo "  6. Undertaker    (\$300)  - Sawn-off, close range"
-    echo "--------------------------------------------"
-    echo " SUBMACHINE GUNS"
-    echo "  7. Viper SMG     (\$500)  - Fast and compact"
-    echo "  8. Spectre PDW   (\$600)  - Military grade"
-    echo "--------------------------------------------"
-    echo " RIFLES & ASSAULT"
-    echo "  9. Phantom Carbine (\$700) - Versatile carbine"
-    echo " 10. AR-7 Assault  (\$750)  - Full auto rifle"
-    echo "--------------------------------------------"
-    echo " HEAVY"
-    echo " 11. Ravager LMG   (\$900)  - Light machine gun"
-    echo " 12. Diamondback MG(\$1100) - Destroyer"
-    echo "--------------------------------------------"
-    echo " SNIPER"
-    echo " 13. Ghost Sniper  (\$1000) - Long range precision"
-    echo "--------------------------------------------"
-    echo " 14. Leave"
-    echo "--------------------------------------------"
-    read -r -p "Enter your choice: " gun_choice
-    [[ ! "$gun_choice" =~ ^[0-9]+$ ]] && { echo "Invalid input."; read -r -p "Press Enter..."; return; }
-    case "$gun_choice" in
-        1)  buy_gun "Hawk 9" 100;;
-        2)  buy_gun "Rex 38" 150;;
-        3)  buy_gun "Bulldog 45" 200;;
-        4)  buy_gun "Hawk 9 silencer" 120;;
-        5)  buy_gun "Striker 12" 250;;
-        6)  buy_gun "Undertaker Sawn-off" 300;;
-        7)  buy_gun "Viper SMG" 500;;
-        8)  buy_gun "Spectre PDW" 600;;
-        9)  buy_gun "Phantom Carbine" 700;;
-        10)  buy_gun "AR-7 Assault" 750;;
-        11) buy_gun "Ravager LMG" 900;;
-        12) buy_gun "Diamondback MG" 1100;;
-        13) buy_gun "Ghost Sniper" 1000;;
-        14) return;;
-        *)  echo "Invalid choice."; read -r -p "Press Enter...";;
-    esac
+	local gun_choice=""
+	clear_screen
+	echo "--- Ammu-Nation ---"
+	echo "1. Pistol(\$100) 2. Shotgun(\$250) 3. SMG(\$500) 4. Rifle(\$750) 5. Sniper(\$1000) 6. Leave"
+	printf "Your Cash: \$%d\n" "$cash"
+	read -r -p "Enter your choice: " gun_choice
+	[[ ! "$gun_choice" =~ ^[0-9]+$ ]] && { echo "Invalid input."; read -r -p "Press Enter..."; return; }
+	case "$gun_choice" in
+		1) buy_gun "Pistol" 100;; 2) buy_gun "Shotgun" 250;; 3) buy_gun "SMG" 500;;
+		4) buy_gun "Rifle" 750;; 5) buy_gun "Sniper" 1000;; 6) return;;
+		*) echo "Invalid choice."; read -r -p "Press Enter...";;
+	esac
 }
 
 buy_gun() {
@@ -1016,128 +570,38 @@ buy_vehicle() {
 
 show_inventory() {
     run_clock 0
-    while true; do
-        clear_screen; echo "--- Inventory & Stats ---"
-        printf " Cash: \$%d\n" "$cash"; printf " Health: %d%%\n" "$health"
-        echo "--------------------------"
-        echo " Gang Affiliation:"
-        if [[ "$player_gang" == "None" ]]; then
-            printf "  - Gang: N/A\n"; printf "  - Rank: N/A\n"
-        else
-            printf "  - Gang: %s\n" "$player_gang"
-            printf "  - Rank: %s\n" "$player_gang_rank"
-        fi
-        printf "  - Respect: %d\n" "$player_respect"
-        echo "--------------------------"
-        echo " Guns:"
-        if (( ${#guns[@]} > 0 )); then printf "  - %s\n" "${guns[@]}"; else echo "  (None)"; fi
-        echo "--------------------------"
-        echo " Items:"
-        if (( ${#items[@]} > 0 )); then
-            local i=1
-            for item in "${items[@]}"; do
-                printf "  %d. %s\n" "$i" "$item"; ((i++))
-            done
-            echo "--------------------------"
-            echo " U. Use an item   B. Back"
-        else
-            echo "  (None)"
-            echo "--------------------------"
-            echo " B. Back"
-        fi
-        echo "--------------------------"
-        echo " Drugs:"
-        local drug_found=false
-        for drug in "${!default_drugs[@]}"; do
-            local amount=${drugs[$drug]:-0}
-            if (( amount > 0 )); then
-                printf "  - %-10s: %d units\n" "$drug" "$amount"
-                drug_found=true
-            fi
+	clear_screen; echo "--- Inventory & Stats ---"
+	printf " Cash: \$%d\n" "$cash"; printf " Health: %d%%\n" "$health"
+	echo "--------------------------"
+    echo " Gang Affiliation:"
+    if [[ "$player_gang" == "None" ]]; then printf "  - Gang: N/A\n"; printf "  - Rank: N/A\n"
+    else printf "  - Gang: %s\n" "$player_gang"; printf "  - Rank: %s\n" "$player_gang_rank"; fi
+    printf "  - Respect: %d\n" "$player_respect"
+	echo "--------------------------"
+	echo " Guns:"; if (( ${#guns[@]} > 0 )); then printf "  - %s\n" "${guns[@]}"; else echo "  (None)"; fi
+	echo "--------------------------"
+	echo " Items:"; if (( ${#items[@]} > 0 )); then printf "  - %s\n" "${items[@]}"; else echo "  (None)"; fi
+	echo "--------------------------"
+	echo " Drugs:"; local drug_found=false
+	for drug in "${!default_drugs[@]}"; do
+		local amount=${drugs[$drug]:-0}
+		if (( amount > 0 )); then printf "  - %-10s: %d units\n" "$drug" "$amount"; drug_found=true; fi
+	done
+	if ! $drug_found; then echo "  (None)"; fi
+	echo "--------------------------"
+	echo " Vehicles:"; if (( ${#owned_vehicles[@]} > 0 )); then printf "  - %s\n" "${owned_vehicles[@]}"; else echo "  (None)"; fi
+	echo "--------------------------"
+	echo " Skills:"; for skill in "${!default_skills[@]}"; do printf "  - %-12s: %d\n" "$skill" "${skills[$skill]:-0}"; done
+	echo "--------------------------"
+    echo " Owned Properties/Businesses:"
+    if (( ${#owned_businesses[@]} > 0 )); then
+        for prop in "${!owned_businesses[@]}"; do
+            printf "  - %-20s (%s)\n" "$prop" "${owned_businesses[$prop]// / | }"
         done
-        if ! $drug_found; then echo "  (None)"; fi
-        echo "--------------------------"
-        echo " Vehicles:"
-        if (( ${#owned_vehicles[@]} > 0 )); then printf "  - %s\n" "${owned_vehicles[@]}"; else echo "  (None)"; fi
-        echo "--------------------------"
-        echo " Skills:"
-        for skill in "${!default_skills[@]}"; do
-            printf "  - %-12s: %d\n" "$skill" "${skills[$skill]:-0}"
-        done
-        echo "--------------------------"
-        echo " Owned Properties/Businesses:"
-        if (( ${#owned_businesses[@]} > 0 )); then
-            for prop in "${!owned_businesses[@]}"; do
-                printf "  - %-20s (%s)\n" "$prop" "${owned_businesses[$prop]// / | }"
-            done
-        else
-            echo "  (None)"
-        fi
-        echo "--------------------------"
-        read -r -p "Choice: " inv_choice
-        case "${inv_choice,,}" in
-            u)
-                if (( ${#items[@]} == 0 )); then echo "No items to use."; sleep 1; continue; fi
-                read -r -p "Enter item number to use: " item_num
-                if ! [[ "$item_num" =~ ^[0-9]+$ ]] || (( item_num < 1 || item_num > ${#items[@]} )); then
-                    echo "Invalid."; sleep 1; continue
-                fi
-                local chosen_item="${items[$((item_num - 1))]}"
-                use_item "$chosen_item" $((item_num - 1))
-                ;;
-            b) return;;
-            *) sleep 1;;
-        esac
-    done
-}
-
-use_item() {
-    local item_name="$1"
-    local item_index="$2"
-    case "$item_name" in
-        "Health Pack")
-            local heal_amount=40
-            if [[ -v "perks[Back Alley Surgeon]" ]]; then
-                heal_amount=$(( heal_amount * 125 / 100 ))
-            fi
-            local old_health=$health
-            health=$(( health + heal_amount ))
-            (( health > 100 )) && health=100
-            local actual_heal=$(( health - old_health ))
-            echo -e "Used Health Pack. Restored \e[1;32m${actual_heal}%%\e[0m health."
-            play_sfx_mpg "heal"
-            # Remove the used item
-            items=("${items[@]:0:$item_index}" "${items[@]:$((item_index + 1))}")
-            ;;
-        "Molotov Cocktail")
-            echo "You hurl the Molotov at a nearby vehicle. Chaos erupts!"
-            district_heat["$location"]=$(( ${district_heat[$location]:-0} + 5 ))
-            wanted_level=$(( wanted_level + 1 ))
-            (( wanted_level > MAX_WANTED_LEVEL )) && wanted_level=$MAX_WANTED_LEVEL
-            play_sfx_mpg "lose"
-            items=("${items[@]:0:$item_index}" "${items[@]:$((item_index + 1))}")
-            ;;
-        "Fake ID")
-            if (( wanted_level > 0 )); then
-                wanted_level=$(( wanted_level - 1 ))
-                echo -e "\e[1;32mFake ID used!\e[0m The cops don't recognise you. Wanted level reduced."
-                items=("${items[@]:0:$item_index}" "${items[@]:$((item_index + 1))}")
-            else
-                echo "No wanted level to reduce. ID saved."
-            fi
-            ;;
-        "Adrenaline Shot")
-            health=$(( health + 25 ))
-            skills[strength]=$(( ${skills[strength]:-1} + 2 ))
-            echo -e "\e[1;32mAdrenaline pumping!\e[0m +25 health, temporary strength boost."
-            play_sfx_mpg "heal_adv"
-            items=("${items[@]:0:$item_index}" "${items[@]:$((item_index + 1))}")
-            ;;
-        *)
-            echo "You can't use $item_name right now."
-            ;;
-    esac
-    read -r -p "Press Enter..."
+    else
+        echo "  (None)"
+    fi
+	echo "--------------------------"; read -r -p "Press Enter to return..."
 }
 
 work_job() {
@@ -1145,13 +609,13 @@ work_job() {
     run_clock 4
 	local earnings=0 base_earnings=0 skill_bonus=0; local min_earnings=0 max_earnings=0
 	local relevant_skill_level=1 relevant_skill_name=""
-    case "$location" in
-        "Los Santos")   min_earnings=20;    max_earnings=70;;
-        "San Fierro")   min_earnings=25;    max_earnings=80;;
-        "Las Venturas") min_earnings=35;    max_earnings=110;;
-        "Vice City")    min_earnings=15;    max_earnings=60;;
-        "Liberty City") min_earnings=40;    max_earnings=130;;
-        *)              min_earnings=10;    max_earnings=40;;
+	case "$location" in
+        "Los Santos") min_earnings=20; max_earnings=60;;
+        "San Fierro") min_earnings=25; max_earnings=70;;
+        "Las Venturas") min_earnings=30; max_earnings=90;;
+        "Vice City") min_earnings=15; max_earnings=50;;
+        "Liberty City") min_earnings=35; max_earnings=100;;
+        *) min_earnings=10; max_earnings=40;;
     esac
 	base_earnings=$((RANDOM % (max_earnings - min_earnings + 1) + min_earnings))
 
@@ -1190,42 +654,6 @@ work_job() {
 			skill_bonus=$((relevant_skill_level * 2))
 			play_sfx_mpg "bus_driving"
 			;;
-        "bartender")
-            relevant_skill_name="charisma"
-            relevant_skill_level=${skills[$relevant_skill_name]:-1}
-            skill_bonus=$((relevant_skill_level * 4))
-            play_sfx_mpg "bar"
-            ;;
-        "dock_worker")
-            relevant_skill_name="strength"
-            relevant_skill_level=${skills[$relevant_skill_name]:-1}
-            skill_bonus=$((relevant_skill_level * 3))
-            play_sfx_mpg "dock_worker"
-            ;;
-        "construction")
-            relevant_skill_name="strength"
-            relevant_skill_level=${skills[$relevant_skill_name]:-1}
-            skill_bonus=$((relevant_skill_level * 4))
-            play_sfx_mpg "construction"
-            ;;
-        "chef")
-            relevant_skill_name="charisma"
-            relevant_skill_level=${skills[$relevant_skill_name]:-1}
-            skill_bonus=$((relevant_skill_level * 6))
-            play_sfx_mpg "food_prep"
-            ;;
-        "pizza delivery")
-            relevant_skill_name="driving"
-            relevant_skill_level=${skills[$relevant_skill_name]:-1}
-            skill_bonus=$((relevant_skill_level * 3))
-            play_sfx_mpg "pizza_delivery"
-            ;;
-        "street vendor")
-            relevant_skill_name="charisma"
-            relevant_skill_level=${skills[$relevant_skill_name]:-1}
-            skill_bonus=$((relevant_skill_level * 4))
-            play_sfx_mpg "street_vendor"
-            ;;
 		*)
 			echo "Internal Error: Invalid Job Type '$job_type'"; return;;
 	esac
@@ -1467,143 +895,6 @@ carjack() {
 	check_health; read -r -p "Press Enter..."
 }
 
-pickpocket() {
-    run_clock 1
-    local stealth_skill=${skills[stealth]:-1}
-    local base_chance=$(( 30 + stealth_skill * 6 ))
-    (( base_chance > 90 )) && base_chance=90
-    clear_screen; echo "--- Pickpocket ---"
-    echo "You scan the crowd for a target..."; sleep 1
-    if (( RANDOM % 100 < base_chance )); then
-        local loot=$(( RANDOM % 81 + 20 + stealth_skill * 5 ))
-        cash=$(( cash + loot ))
-        echo -e "\e[1;32mSuccess!\e[0m You lifted \$$loot without them noticing."
-        play_sfx_mpg "cash_register"
-        award_respect $(( RANDOM % 5 + 1 ))
-        district_heat["$location"]=$(( ${district_heat[$location]:-0} + 1 ))
-        if (( RANDOM % 4 == 0 )); then
-            skills[stealth]=$(( stealth_skill + 1 ))
-            echo -e "Your \e[1;32mstealth\e[0m skill increased!"
-        fi
-    else
-        local wanted_gain=1
-        if [[ -v "perks[Master of Disguise]" ]]; then wanted_gain=0; fi
-        wanted_level=$(( wanted_level + wanted_gain ))
-        (( wanted_level > MAX_WANTED_LEVEL )) && wanted_level=$MAX_WANTED_LEVEL
-        if (( wanted_gain > 0 )); then
-            echo -e "\e[1;31mCaught! They felt your hand.\e[0m"
-            play_sfx_mpg "police_siren"
-        fi
-        local fine=$(( RANDOM % 51 + 25 + wanted_level * 15 ))
-        cash=$(( cash - fine )); (( cash < 0 )) && cash=0
-        health=$(( health - (RANDOM % 11 + 5) ))
-        echo "Fined \$$fine and roughed up."
-    fi
-    check_health; read -r -p "Press Enter..."
-}
-
-mug_someone() {
-    run_clock 1
-    local strength_skill=${skills[strength]:-1}
-    local stealth_skill=${skills[stealth]:-1}
-    local base_chance=$(( 25 + strength_skill * 5 + stealth_skill * 3 ))
-    (( base_chance > 90 )) && base_chance=90
-    clear_screen; echo "--- Mugging ---"
-    echo "You follow someone into a quiet alley..."; sleep 1
-    local final_chance=$(apply_gun_bonus "$base_chance" "mugging")
-    echo "Final success chance: ${final_chance}%"
-    read -r -p "Press Enter to make your move..."
-    if (( RANDOM % 100 < final_chance )); then
-        local loot=$(( RANDOM % 121 + 40 + strength_skill * 8 ))
-        cash=$(( cash + loot ))
-        health=$(( health - (RANDOM % 11) ))
-        echo -e "\e[1;32mSuccess!\e[0m You got \$$loot."
-        play_sfx_mpg "cash_register"
-        award_respect $(( RANDOM % 8 + 3 ))
-        district_heat["$location"]=$(( ${district_heat[$location]:-0} + 3 ))
-        if (( RANDOM % 4 == 0 )); then
-            skills[strength]=$(( strength_skill + 1 ))
-            echo -e "Your \e[1;32mstrength\e[0m skill increased!"
-        fi
-    else
-        local wanted_gain=1
-        if [[ -v "perks[Master of Disguise]" ]]; then wanted_gain=0; fi
-        wanted_level=$(( wanted_level + wanted_gain ))
-        (( wanted_level > MAX_WANTED_LEVEL )) && wanted_level=$MAX_WANTED_LEVEL
-        if (( wanted_gain > 0 )); then
-            echo -e "\e[1;31mThey fought back and screamed for help!\e[0m"
-            play_sfx_mpg "police_siren"
-        fi
-        local fine=$(( RANDOM % 76 + 40 + wanted_level * 20 ))
-        cash=$(( cash - fine )); (( cash < 0 )) && cash=0
-        health=$(( health - (RANDOM % 21 + 10) ))
-        echo "Fined \$$fine and took a beating."
-    fi
-    check_health; read -r -p "Press Enter..."
-}
-
-arson() {
-    run_clock 3
-    local stealth_skill=${skills[stealth]:-1}
-    local base_chance=$(( 20 + stealth_skill * 5 ))
-    clear_screen; echo "--- Arson ---"
-    echo "You scout out a target building..."; sleep 1
-    echo "Final success chance: ${base_chance}%"
-    read -r -p "Press Enter to proceed..."
-    if (( RANDOM % 100 < base_chance )); then
-        local payout=$(( RANDOM % 201 + 100 + stealth_skill * 15 ))
-        cash=$(( cash + payout ))
-        echo -e "\e[1;32mSuccess!\e[0m The building goes up in flames. Insurance payout: \$$payout."
-        play_sfx_mpg "win"
-        award_respect $(( RANDOM % 25 + 15 ))
-        district_heat["$location"]=$(( ${district_heat[$location]:-0} + 10 ))
-        if (( RANDOM % 3 == 0 )); then
-            skills[stealth]=$(( stealth_skill + 1 ))
-            echo -e "Your \e[1;32mstealth\e[0m skill increased!"
-        fi
-    else
-        wanted_level=$(( wanted_level + 2 ))
-        (( wanted_level > MAX_WANTED_LEVEL )) && wanted_level=$MAX_WANTED_LEVEL
-        local fine=$(( RANDOM % 301 + 200 + wanted_level * 50 ))
-        cash=$(( cash - fine )); (( cash < 0 )) && cash=0
-        health=$(( health - (RANDOM % 31 + 20) ))
-        echo -e "\e[1;31mCaught in the act!\e[0m Fined \$$fine, took burn damage."
-        play_sfx_mpg "police_siren"
-    fi
-    check_health; read -r -p "Press Enter..."
-}
-
-kidnap_for_ransom() {
-    run_clock 6
-    local strength_skill=${skills[strength]:-1}
-    local charisma_skill=${skills[charisma]:-1}
-    local base_chance=$(( 15 + strength_skill * 4 + charisma_skill * 2 ))
-    (( base_chance > 80 )) && base_chance=80
-    clear_screen; echo "--- Kidnapping for Ransom ---"
-    echo "High risk, high reward. You stake out a wealthy target..."; sleep 2
-    local final_chance=$(apply_gun_bonus "$base_chance" "kidnapping")
-    echo "Final success chance: ${final_chance}%"
-    read -r -p "Press Enter to attempt..."
-    if (( RANDOM % 100 < final_chance )); then
-        local ransom=$(( RANDOM % 1001 + 500 + strength_skill * 50 ))
-        cash=$(( cash + ransom ))
-        health=$(( health - (RANDOM % 21 + 10) ))
-        echo -e "\e[1;32mSuccess!\e[0m Ransom paid: \$$ransom. Target released unharmed."
-        play_sfx_mpg "win_big"
-        award_respect $(( RANDOM % 50 + 30 ))
-        district_heat["$location"]=$(( ${district_heat[$location]:-0} + 20 ))
-    else
-        wanted_level=$(( wanted_level + 3 ))
-        (( wanted_level > MAX_WANTED_LEVEL )) && wanted_level=$MAX_WANTED_LEVEL
-        local fine=$(( RANDOM % 501 + 300 + wanted_level * 75 ))
-        cash=$(( cash - fine )); (( cash < 0 )) && cash=0
-        health=$(( health - (RANDOM % 41 + 20) ))
-        echo -e "\e[1;31mOperation blown!\e[0m Fined \$$fine, wanted level spiked."
-        play_sfx_mpg "lose_big"
-    fi
-    check_health; read -r -p "Press Enter..."
-}
-
 hospitalize_player() {
     run_clock 8
 	local hospital_bill=200
@@ -1654,210 +945,6 @@ update_market_conditions() {
 		fi
 	fi
 }
-
-# shops
-
-visit_shop() {
-    run_clock 1
-    clear_screen
-    echo "--- Street Shops in ${location} ---"
-    echo "1. Convenience Store   (food, basic items)"
-    echo "2. Black Market        (illegal goods, risky)"
-    echo "3. Clothing Store      (disguises, armor)"
-    echo "4. Back"
-    read -r -p "Choice: " shop_choice
-    case "$shop_choice" in
-        1) convenience_store;;
-        2) black_market;;
-        3) clothing_store;;
-        4) return;;
-        *) echo "Invalid." && sleep 1;;
-    esac
-}
-
-convenience_store() {
-    while true; do
-        clear_screen
-        echo "--- Convenience Store ---"
-        printf " Cash: \$%d  |  Health: %d%%\n" "$cash" "$health"
-        echo "================================"
-        echo " 1. Snack          (\$10)  - Restore 10% health"
-        echo " 2. Energy Drink   (\$25)  - Restore 20% health"
-        echo " 3. First Aid Kit  (\$60)  - Restore 35% health"
-        echo " 4. Health Pack    (\$30)  - Usable item, +40% health"
-        echo " 5. Leave"
-        echo "================================"
-        read -r -p "Choice: " c
-        local discount=1
-        if [[ -v "perks[Street Negotiator]" ]]; then discount=0; fi
-        case "$c" in
-            1)
-                local cost=$(( 10 - discount ))
-                if (( cash >= cost )); then
-                    cash=$(( cash - cost ))
-                    health=$(( health + 10 ))
-                    (( health > 100 )) && health=100
-                    echo "Munching on a snack. +10% health."
-                    play_sfx_mpg "heal"
-                else echo "Not enough cash."; fi;;
-            2)
-                local cost=$(( 25 - (discount * 2) ))
-                if (( cash >= cost )); then
-                    cash=$(( cash - cost ))
-                    health=$(( health + 20 ))
-                    (( health > 100 )) && health=100
-                    echo "Chugging an energy drink. +20% health."
-                    play_sfx_mpg "heal"
-                else echo "Not enough cash."; fi;;
-            3)
-                local cost=$(( 60 - (discount * 6) ))
-                if (( cash >= cost )); then
-                    cash=$(( cash - cost ))
-                    health=$(( health + 35 ))
-                    (( health > 100 )) && health=100
-                    echo "Patched up with a first aid kit. +35% health."
-                    play_sfx_mpg "heal"
-                else echo "Not enough cash."; fi;;
-            4)
-                local cost=$(( 30 - (discount * 3) ))
-                if (( cash >= cost )); then
-                    cash=$(( cash - cost ))
-                    items+=("Health Pack")
-                    echo "Health Pack added to inventory."
-                    play_sfx_mpg "item_buy"
-                else echo "Not enough cash."; fi;;
-            5) return;;
-            *) echo "Invalid.";;
-        esac
-        read -r -p "Press Enter..."
-    done
-}
-
-black_market() {
-    clear_screen
-    echo "--- Black Market ---"
-    echo "You find a shady dealer in a back alley..."
-    sleep 1
-    # Random chance the dealer is actually a cop
-    if (( RANDOM % 10 == 0 )); then
-        echo -e "\e[1;31mIt's a sting operation!\e[0m Cops everywhere!"
-        wanted_level=$(( wanted_level + 2 ))
-        (( wanted_level > MAX_WANTED_LEVEL )) && wanted_level=$MAX_WANTED_LEVEL
-        play_sfx_mpg "police_siren"
-        read -r -p "Press Enter..."; return
-    fi
-    while true; do
-        clear_screen
-        echo "--- Black Market ---"
-        printf " Cash: \$%d\n" "$cash"
-        echo "================================"
-        echo " 1. Molotov Cocktail  (\$75)  - Usable chaos item"
-        echo " 2. Fake ID           (\$200) - Reduces wanted level by 1"
-        echo " 3. Adrenaline Shot   (\$150) - Temp health and strength boost"
-        echo " 4. Stolen Goods      (\$50)  - Sell for profit elsewhere"
-        echo " 5. Leave"
-        echo "================================"
-        read -r -p "Choice: " c
-        case "$c" in
-            1)
-                if (( cash >= 75 )); then
-                    cash=$(( cash - 75 ))
-                    items+=("Molotov Cocktail")
-                    echo "One Molotov, wrapped in newspaper."
-                    play_sfx_mpg "item_buy"
-                else echo "Not enough cash."; fi;;
-            2)
-                if (( cash >= 200 )); then
-                    cash=$(( cash - 200 ))
-                    items+=("Fake ID")
-                    echo "A convincing fake. Probably."
-                    play_sfx_mpg "item_buy"
-                else echo "Not enough cash."; fi;;
-            3)
-                if (( cash >= 150 )); then
-                    cash=$(( cash - 150 ))
-                    items+=("Adrenaline Shot")
-                    echo "Handle with care."
-                    play_sfx_mpg "item_buy"
-                else echo "Not enough cash."; fi;;
-            4)
-                if (( cash >= 50 )); then
-                    cash=$(( cash - 50 ))
-                    items+=("Stolen Goods")
-                    echo "Could be worth double if you find the right buyer."
-                    play_sfx_mpg "item_buy"
-                else echo "Not enough cash."; fi;;
-            5) return;;
-            *) echo "Invalid.";;
-        esac
-        read -r -p "Press Enter..."
-    done
-}
-
-clothing_store() {
-    while true; do
-        clear_screen
-        echo "--- Zip Clothing ---"
-        printf " Cash: \$%d\n" "$cash"
-        echo "================================"
-        echo " 1. Street Clothes    (\$50)  - Reduce heat by 2"
-        echo " 2. Business Suit     (\$150) - Reduce heat by 5, +charisma"
-        echo " 3. Body Armor        (\$100) - Equip armor (if not equipped)"
-        echo " 4. Disguise Kit      (\$175) - Reduce wanted level by 1"
-        echo " 5. Leave"
-        echo "================================"
-        local discount=0
-        if [[ -v "perks[Street Negotiator]" ]]; then discount=1; fi
-        read -r -p "Choice: " c
-        case "$c" in
-            1)
-                local cost=$(( 50 - (discount * 5) ))
-                if (( cash >= cost )); then
-                    cash=$(( cash - cost ))
-                    district_heat["$location"]=$(( ${district_heat[$location]:-0} - 2 ))
-                    (( ${district_heat[$location]:-0} < 0 )) && district_heat["$location"]=0
-                    echo "Fresh outfit. You blend in better."
-                    play_sfx_mpg "item_buy"
-                else echo "Not enough cash."; fi;;
-            2)
-                local cost=$(( 150 - (discount * 15) ))
-                if (( cash >= cost )); then
-                    cash=$(( cash - cost ))
-                    district_heat["$location"]=$(( ${district_heat[$location]:-0} - 5 ))
-                    (( ${district_heat[$location]:-0} < 0 )) && district_heat["$location"]=0
-                    skills[charisma]=$(( ${skills[charisma]:-1} + 1 ))
-                    echo "Looking sharp. Charisma up, heat down."
-                    play_sfx_mpg "item_buy"
-                else echo "Not enough cash."; fi;;
-            3)
-                local cost=$(( 100 - (discount * 10) ))
-                if $body_armor_equipped; then
-                    echo "You already have armor equipped."
-                elif (( cash >= cost )); then
-                    cash=$(( cash - cost ))
-                    body_armor_equipped=true
-                    echo "Body armor strapped on."
-                    play_sfx_mpg "item_equip"
-                else echo "Not enough cash."; fi;;
-            4)
-                local cost=$(( 175 - (discount * 17) ))
-                if (( cash >= cost )); then
-                    cash=$(( cash - cost ))
-                    if (( wanted_level > 0 )); then
-                        wanted_level=$(( wanted_level - 1 ))
-                        echo "Wanted level reduced. New look, new you."
-                    else
-                        echo "No wanted level to reduce, but you look great."
-                    fi
-                    play_sfx_mpg "item_buy"
-                else echo "Not enough cash."; fi;;
-            5) return;;
-            *) echo "Invalid.";;
-        esac
-        read -r -p "Press Enter..."
-    done
-}
-
 
 drug_transaction() {
 	local action="$1" drug_name="$2" base_price="$3" drug_amount="$4"
@@ -2457,110 +1544,6 @@ diplomacy_menu() {
     done
 }
 
-# gambling 
-
-gambling_den() {
-    if [[ "$location" != "Las Venturas" ]]; then
-        echo "Gambling dens are only available in Las Venturas."
-        read -r -p "Press Enter..."; return
-    fi
-    run_clock 1
-    while true; do
-        clear_screen
-        echo "--- The Lucky Snake Casino ---"
-        printf " Cash: \$%d\n" "$cash"
-        echo "=============================="
-        echo "1. Slot Machine   (\$25 bet)"
-        echo "2. Dice Roll      (custom bet)"
-        echo "3. High/Low Cards (custom bet)"
-        echo "4. Leave"
-        echo "=============================="
-        read -r -p "Choice: " choice
-        case "$choice" in
-            1) gamble_slots;;
-            2) gamble_dice;;
-            3) gamble_cards;;
-            4) return;;
-            *) echo "Invalid." && sleep 1;;
-        esac
-    done
-}
-
-gamble_slots() {
-    local bet=25
-    if (( cash < bet )); then echo "Need \$$bet to play slots."; read -r -p "Press Enter..."; return; fi
-    cash=$(( cash - bet ))
-    local symbols=("CHERRY" "LEMON" "BELL" "BAR" "SEVEN" "SKULL")
-    local r1=${symbols[RANDOM % ${#symbols[@]}]}
-    local r2=${symbols[RANDOM % ${#symbols[@]}]}
-    local r3=${symbols[RANDOM % ${#symbols[@]}]}
-    echo ""; echo "  [ $r1 | $r2 | $r3 ]"; echo ""
-    if [[ "$r1" == "$r2" && "$r2" == "$r3" ]]; then
-        if [[ "$r1" == "SEVEN" ]]; then
-            local win=$(( bet * 20 )); cash=$(( cash + win ))
-            echo -e "\e[1;33m*** JACKPOT! TRIPLE SEVENS! +\$$win ***\e[0m"; play_sfx_mpg "win_big"
-        elif [[ "$r1" == "SKULL" ]]; then
-            local lose=$(( bet * 2 )); cash=$(( cash - lose )); (( cash < 0 )) && cash=0
-            echo -e "\e[1;31m*** TRIPLE SKULL! You lose an extra \$$lose! ***\e[0m"; play_sfx_mpg "lose"
-        else
-            local win=$(( bet * 5 )); cash=$(( cash + win ))
-            echo -e "\e[1;32mTriple match! +\$$win\e[0m"; play_sfx_mpg "win"
-        fi
-    elif [[ "$r1" == "$r2" || "$r2" == "$r3" || "$r1" == "$r3" ]]; then
-        local win=$(( bet * 2 )); cash=$(( cash + win ))
-        echo -e "\e[1;32mTwo of a kind! +\$$win\e[0m"; play_sfx_mpg "win"
-    else
-        echo -e "\e[1;31mNo match. You lost \$$bet.\e[0m"; play_sfx_mpg "lose"
-    fi
-    read -r -p "Press Enter..."
-}
-
-gamble_dice() {
-    read -r -p "Enter your bet amount: \$" bet
-    if ! [[ "$bet" =~ ^[1-9][0-9]*$ ]] || (( cash < bet )); then
-        echo "Invalid bet or not enough cash."; read -r -p "Press Enter..."; return
-    fi
-    cash=$(( cash - bet ))
-    local player_roll=$(( RANDOM % 6 + 1 + RANDOM % 6 + 1 ))
-    local house_roll=$(( RANDOM % 6 + 1 + RANDOM % 6 + 1 ))
-    echo "You rolled: $player_roll  |  House rolled: $house_roll"
-    if (( player_roll > house_roll )); then
-        local win=$(( bet * 2 )); cash=$(( cash + win ))
-        echo -e "\e[1;32mYou win! +\$$bet\e[0m"; play_sfx_mpg "win"
-    elif (( player_roll == house_roll )); then
-        cash=$(( cash + bet ))
-        echo -e "\e[1;33mTie — you get your bet back.\e[0m"
-    else
-        echo -e "\e[1;31mHouse wins. You lost \$$bet.\e[0m"; play_sfx_mpg "lose"
-    fi
-    read -r -p "Press Enter..."
-}
-
-gamble_cards() {
-    read -r -p "Enter your bet amount: \$" bet
-    if ! [[ "$bet" =~ ^[1-9][0-9]*$ ]] || (( cash < bet )); then
-        echo "Invalid bet or not enough cash."; read -r -p "Press Enter..."; return
-    fi
-    local player_card=$(( RANDOM % 13 + 1 ))
-    local house_card=$(( RANDOM % 13 + 1 ))
-    cash=$(( cash - bet ))
-    echo ""; echo "1. Higher   2. Lower"
-    read -r -p "Will the house card be higher or lower than yours ($player_card)? " hl
-    echo "House drew: $house_card"
-    local correct=false
-    if [[ "$hl" == "1" ]] && (( house_card > player_card )); then correct=true; fi
-    if [[ "$hl" == "2" ]] && (( house_card < player_card )); then correct=true; fi
-    if $correct; then
-        local win=$(( bet * 2 )); cash=$(( cash + win ))
-        echo -e "\e[1;32mCorrect! +\$$bet\e[0m"; play_sfx_mpg "win"
-    elif (( house_card == player_card )); then
-        cash=$(( cash + bet )); echo -e "\e[1;33mTie — bet returned.\e[0m"
-    else
-        echo -e "\e[1;31mWrong call. You lost \$$bet.\e[0m"; play_sfx_mpg "lose"
-    fi
-    read -r -p "Press Enter..."
-}
-
 # --- Save/Load System & Game Init ---
 save_game() {
     run_clock 0
@@ -2598,8 +1581,6 @@ save_game() {
     save_assoc_array "$save_path/businesses.sav" "owned_businesses"
     save_assoc_array "$save_path/upgrades.sav" "gang_upgrades"
     save_assoc_array "$save_path/relations.sav" "gang_relations"
-    command -v bounty_save_extra &>/dev/null && bounty_save_extra
-    command -v economy_save_extra &>/dev/null && economy_save_extra
 
     echo "Game saved successfully." && read -r -p "Press Enter..."
 }
@@ -2652,8 +1633,6 @@ load_game() {
     load_assoc_array "$save_path/businesses.sav" "owned_businesses"
     load_assoc_array "$save_path/upgrades.sav" "gang_upgrades"
     load_assoc_array "$save_path/relations.sav" "gang_relations"
-    command -v bounty_load_extra &>/dev/null && bounty_load_extra
-    command -v economy_load_extra &>/dev/null && economy_load_extra
 
     apply_gang_upgrades
     echo "Game loaded successfully." && read -r -p "Press Enter..."
@@ -2832,7 +1811,6 @@ if ! run_initial_menu; then echo "Exiting due to initial menu failure or user re
 
 while true; do
 	update_world_state
-    check_police_encounter
 	check_health && clear_screen || clear_screen
 	echo "--- Actions ---"
 	echo "1. Travel         | 7. Sell Drugs"
@@ -2840,9 +1818,7 @@ while true; do
 	echo "3. Buy Vehicle    | 9. Visit Hospital"
 	echo "4. Inventory      | 10. Street Race"
 	echo "5. Work (Legal)   | 11. Buy Drugs" 
-    echo "12. gambling      | 13. Visit Shops"
 	echo "6. Work (Crime)   | G. Gang & Empire Management"
-    echo "14. stock market  | 15. Bounties"
 	echo "------------------------------------------------------------"
 	echo "S. Save Game     | L. Load Game     | N. News Feed"
 	echo "M. Music Player  | A. About         | P. Perks"
@@ -2855,50 +1831,15 @@ while true; do
 			read -r -p "Enter choice: " city_choice
 			case "$city_choice" in 1) travel_to 50 "Los Santos";; 2) travel_to 75 "San Fierro";; 3) travel_to 100 "Las Venturas";; 4) travel_to 150 "Vice City";; 5) travel_to 200 "Liberty City";; 6) ;; *) echo "Invalid." && sleep 1;; esac;;
 		2) buy_guns;; 3) buy_vehicle;; 4) show_inventory;;
-        5) clear_screen; echo "--- Honest Work ---"
-    echo "1. Taxi Driver    | 2. Delivery Driver"
-    echo "3. Mechanic       | 4. Security Guard"
-    echo "5. Performer      | 6. Bus Driver"
-    echo "7. Bartender      | 8. Dock Worker"
-    echo "9. Construction   | 10. Chef"
-    echo "11. Pizza Delivery | 12. Street Vendor"
-    echo "13. Back"
-    read -r -p "Enter choice: " job_choice
-    case "$job_choice" in
-        1) work_job "taxi";;
-        2) work_job "delivery";;
-        3) work_job "mechanic";;
-        4) work_job "security";;
-        5) work_job "performer";;
-        6) work_job "bus_driver";;
-        7) work_job "bartender";;
-        8) work_job "dock_worker";;
-        9) work_job "construction";;
-        10) work_job "chef";;
-        11) work_job "pizza_delivery";;
-        12) work_job "street_vendor";;
-        13) ;;
-        *) echo "Invalid." && sleep 1;;
-    esac;;
-6) clear_screen; echo "--- Criminal Activities ---"
-    echo "1. Rob Store    | 2. Carjack"
-    echo "3. Burglary     | 4. Heist"
-    echo "5. Pickpocket   | 6. Mug Someone"
-    echo "7. Arson        | 8. Kidnap for Ransom"
-    echo "9. Back"
-    read -r -p "Enter choice: " criminal_choice
-    case "$criminal_choice" in
-        1) rob_store;; 2) carjack;;
-        3) burglary;; 4) heist;;
-        5) pickpocket;; 6) mug_someone;;
-        7) arson;; 8) kidnap_for_ransom;;
-        9) ;;
-        *) echo "Invalid." && sleep 1;;
-    esac;;
-
+		5) clear_screen; echo "--- Honest Work ---"
+			echo "1. Taxi Driver | 2. Delivery | 3. Mechanic | 4. Security | 5. Performer | 6. Bus Driver | 7. Back"
+			read -r -p "Enter choice: " job_choice
+			case "$job_choice" in 1) work_job "taxi";; 2) work_job "delivery";; 3) work_job "mechanic";; 4) work_job "security";; 5) work_job "performer";; 6) work_job "bus_driver";; 7) ;; *) echo "Invalid." && sleep 1;; esac;;
+		6) clear_screen; echo "--- Criminal Activities ---"
+			echo "1. Rob Store | 2. Carjack | 3. Burglary | 4. Heist | 5. Back"
+			read -r -p "Enter choice: " criminal_choice
+			case "$criminal_choice" in 1) rob_store;; 2) carjack;; 3) burglary;; 4) heist;; 5) ;; *) echo "Invalid." && sleep 1;; esac;;
 		7) sell_drugs;; 8) hire_hooker;; 9) visit_hospital;; 10) street_race;; 11) buy_drugs;;
-        12) gambling_den;; 13) visit_shop;; 14) command -v show_economy_menu &>/dev/null && show_economy_menu || echo "Economy plugin not loaded.";;
-        15) command -v show_bounty_board &>/dev/null && show_bounty_board || echo "Bounty plugin not loaded.";;
         'g') show_gang_menu;; 's') save_game;;
 		'l') read -r -p "Load game? Unsaved progress will be lost. (y/n): " confirm
 			 if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then load_game; fi ;;
