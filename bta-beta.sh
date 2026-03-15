@@ -32,6 +32,7 @@ trap cleanup_and_exit SIGINT SIGTERM SIGHUP
 
 
 ### --- Debug Functions ---
+# commend it when you dont want debug features
 # =============================================================================
 # DEBUG SYSTEM
 # =============================================================================
