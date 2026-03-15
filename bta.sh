@@ -2,7 +2,7 @@
 set +H
 # creator: stuffbymax (martinP)
 # description: open world crime "simulator"
-# ver 2.4.4 - added perk system, police encounters, and more world events
+# ver 2.4.5 - added perk system, police encounters, and more world events
 # Licenses:
 # Bash-Theft-Auto music © 2024 by stuffbymax - Martin Petik is licensed under CC BY 4.0
 # https://creativecommons.org/licenses/by/4.0/
@@ -2840,13 +2840,13 @@ while true; do
 	echo "3. Buy Vehicle    | 9. Visit Hospital"
 	echo "4. Inventory      | 10. Street Race"
 	echo "5. Work (Legal)   | 11. Buy Drugs" 
-    echo "12. gambling      | 13. Visit Shops"
-	echo "6. Work (Crime)   | G. Gang & Empire Management"
-    echo "14. stock market  | 15. Bounties"
+    echo "6. Work (Crime)   | 12. Gambling Den"
+    echo "13. Visit Shops   | 14. stock market"
+    echo "15. Bounties      |"
 	echo "------------------------------------------------------------"
 	echo "S. Save Game     | L. Load Game     | N. News Feed"
 	echo "M. Music Player  | A. About         | P. Perks"
-	echo "X. Exit Game     |"
+	echo "X. Exit Game     | G. Gang & Empire Management"
 	echo "------------------------------------------------------------"
 	stty echo; read -r -p "Enter your choice: " choice; choice_lower=$(echo "$choice" | tr '[:upper:]' '[:lower:]')
 	case "$choice_lower" in
