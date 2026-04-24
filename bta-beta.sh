@@ -2,7 +2,7 @@
 set +H
 # creator: stuffbymax (martinP)
 # description: open world crime "simulator"
-# ver 2.5.0.1 - beta release
+# ver 2.5.1
 # New mechanics: Loan Shark, Black Market Auctions, Fence System,
 #   Ambush System, Bounty on Player, Safe House Renting,
 #   Drive-By Missions, Protection Racket, Gang Spy,
