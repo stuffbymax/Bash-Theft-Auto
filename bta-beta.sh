@@ -182,28 +182,6 @@ if [[ "${BTA_DEBUG:-0}" == "1" ]]; then
         printf '%s\n\n' "$(printf '#%.0s' {1..60})"
     } >> "$BTA_DEBUG_LOG"
 fi
-# =====================================================
-# --- Debug Variables ---
-
-# Log a message
-dbg "rob_store called, base_chance=$base_chance"
-
-# Dump any variable
-dbg_var "skills"
-dbg_var "territory_owner"
-
-# Full state dumps
-dbg_player
-dbg_world
-
-# Time something (e.g. plugin load time)
-dbg_timing_start "plugin_load"
-source "$plugin_script"
-dbg_timing_end "plugin_load"
-
-# Sanity check
-dbg_assert "(( cash >= 0 ))" "cash should never be negative"
-# =============================================================================
 
 # --- Global Variables ---
 player_name=""
