@@ -399,12 +399,12 @@ check_police_encounter() {
 declare -A default_skills=( ["driving"]=1 ["strength"]=1 ["charisma"]=1 ["stealth"]=1 ["drug_dealer"]=1 )
 declare -A default_drugs=( ["Weed"]=0 ["Cocaine"]=0 ["Heroin"]=0 ["Meth"]=0 )
 
-# --- Clock System ---
+# --- Clock System variables---
 game_day=1
 game_hour=8
 PAYOUT_HOUR=0
 
-# --- Gang System ---
+# --- Gang System variables---
 player_gang="None"
 player_gang_rank="Outsider"
 player_respect=0
@@ -426,7 +426,7 @@ declare -a GANG_RANK_HIERARCHY=("Outsider" "Associate" "Soldier" "Enforcer" "Lie
 GANG_CREATION_RESPECT_REQ=1500
 declare -A GANG_HOME_CITY
 
-# --- World Data ---
+# --- World Data variables---
 declare -A territory_owner
 declare -A district_heat
 declare -A available_properties
@@ -639,7 +639,7 @@ initialize_world_data() {
     perks=()
     perk_points=0
     last_respect_milestone=0
-
+# setting up gang home cities
     GANG_HOME_CITY=(
     ["Grove Street"]="Los Santos"
     ["Ballas"]="Los Santos"
@@ -751,7 +751,9 @@ if [[ -d "$BASEDIR/$plugin_dir" ]]; then
 	done < <(find "$BASEDIR/$plugin_dir" -maxdepth 1 -name "*.sh" -print0 2>/dev/null)
 fi
 
-# --- Functions ---
+# =====================================================
+# --- Core Game Functions ---
+# =====================================================
 clear_screen() {
 	clear
 	printf "\e[93m============================================================\e[0m\n"
@@ -2420,7 +2422,7 @@ show_inventory() {
 		esac
 	done
 }
-
+# use item function with effects based on item type, then remove from inventory
 use_item() {
 	local item_name="$1"; local item_index="$2"
 	case "$item_name" in
@@ -2462,7 +2464,7 @@ use_item() {
 	esac
 	read -r -p "Press Enter..."
 }
-
+ # work job function with earnings based on location, job type, and relevant skill level, with random events for rep and skill gain, and wanted level reduction
 work_job() {
 	local job_type="$1"
 	run_clock 4
@@ -2483,7 +2485,7 @@ work_job() {
 	# City rep pay bonus
 	local rep_bonus_pct=$(get_city_rep_bonus)
 	base_earnings=$(( base_earnings + base_earnings * rep_bonus_pct / 100 ))
-
+	# Skill bonus based on job type and relevant skill
 	case "$job_type" in
 		"taxi"|"delivery")
 			relevant_skill_name="driving"; relevant_skill_level=${skills[$relevant_skill_name]:-1}
@@ -2521,10 +2523,10 @@ work_job() {
 			skill_bonus=$(( relevant_skill_level * 4 )); play_sfx_mpg "street_vendor";;
 		*) echo "Internal Error: Invalid Job Type '$job_type'"; return;;
 	esac
-
+	# Job-specific animation
 	if command -v working_animation &> /dev/null; then working_animation "$job_type"
 	else echo "Working as a $job_type..."; sleep 2; fi
-
+	# Calculate total earnings base, skill bonus, and rep bonus
 	earnings=$((base_earnings + skill_bonus)); (( earnings < 0 )) && earnings=0
 	cash=$((cash + earnings)); clear_screen
 	printf "Finished your shift. You earned \$%d (Base: \$%d, Skill Bonus: \$%d, Rep Bonus: %d%%).\n" \
@@ -2538,7 +2540,8 @@ work_job() {
 	fi
 	read -r -p "Press Enter to continue..."
 }
-
+# street race function with win chance based on driving skill and perks
+# random winnings and damage, and animations for street race
 street_race() {
 	run_clock 2
 	local driving_skill=${skills[driving]:-1}; local base_win_chance=40
@@ -2570,7 +2573,7 @@ street_race() {
 	fi
 	check_health; read -r -p "Press Enter to continue..."
 }
-
+# apply gun bonus function to calculate success chance modifications based on gun choice, with prompts and checks for gun ownership, and returns modified chance
 apply_gun_bonus() {
 	local base_chance=$1; local action_message=$2; local current_chance=$base_chance
 	local gun_bonus=0; local chosen_gun=""; local gun_found=false; local success_bonus=0
@@ -2595,7 +2598,7 @@ apply_gun_bonus() {
 	(( current_chance < 5 )) && current_chance=5; (( current_chance > 95 )) && current_chance=95
 	echo "$current_chance"
 }
-
+# visit hospital function with options for treatment and item purchases, with checks for cash and health, and applies effects based on choices, including perk discounts and item benefits
 visit_hospital() {
 	run_clock 1
 	local hospital_choice=""
@@ -2613,7 +2616,7 @@ visit_hospital() {
 		esac
 	done
 }
-
+# buy hospital item function to handle purchases and treatments at the hospital, applying effects based on item type, with perk discounts and checks for existing equipment
 buy_hospital_item() {
 	local item_cost="$1"; local item_type="$2"
 	if [[ -v "perks[Street Negotiator]" ]]; then item_cost=$(( item_cost * 90 / 100 )); fi
@@ -2635,7 +2638,7 @@ buy_hospital_item() {
 		echo "Not enough cash (\$$item_cost needed)."; read -r -p "Press Enter..."
 	fi
 }
-
+# rob store function to attempt a store robbery with success chance based on stealth skill and city reputation, with gun bonus application, and outcomes for success or failure including loot, damage, fines, and wanted level changes
 rob_store() {
 	run_clock 2
 	local stealth_skill=${skills[stealth]:-1}; local base_chance=$((15 + stealth_skill * 5))
