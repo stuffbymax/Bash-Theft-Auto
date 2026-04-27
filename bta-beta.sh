@@ -2,19 +2,19 @@
 set +H
 # creator: stuffbymax (martinP)
 # description: open world crime "simulator"
-# ver 2.5.1
-# New mechanics: Loan Shark, Black Market Auctions, Fence System,
-#   Ambush System, Bounty on Player, Safe House Renting,
-#   Drive-By Missions, Protection Racket, Gang Spy,
-#   Training Gym, City Reputation, Wanted Level Decay,
-#   Phone Contacts
+# ver 2.5.2
+# new features in this version:
+# N/A - this is a maintenance update to fix some bugs and improve the code structure. No new gameplay features added in this version.
 # Licenses:
 # Bash-Theft-Auto music © 2024 by stuffbymax - Martin Petik is licensed under CC BY 4.0
 # https://creativecommons.org/licenses/by/4.0/
 # code is licensed under MIT License
 
+
+# base directory for relative paths
 BASEDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# clear screen function for better readability
 # --- Cleanup Function and Trap ---
 cleanup_and_exit() {
 	echo -e "\nCleaning up and exiting..."
