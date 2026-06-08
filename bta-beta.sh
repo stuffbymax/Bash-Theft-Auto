@@ -1074,6 +1074,24 @@ enforcer_visit() {
 }
 
 # =====================================================
+# NEW: bank System
+# =====================================================
+visit_bank() {
+}
+
+buy_from_bank() {
+}
+
+deposit_to_bank() {
+}
+
+withdraw_from_bank() {
+}
+
+rob_bank() {
+}
+
+# =====================================================
 # NEW: Black Market Auction
 # =====================================================
 visit_auction_house() {
@@ -3940,9 +3958,7 @@ while true; do
 	echo "15. Loan Shark      | 16. Auction House"
 	echo "17. Fence Goods     | 18. Protection Racket"
 	echo "19. Safe House      | 20. Phone Contacts"
-	echo "21. City Reputation |"
-	echo "---  GANG & EMPIRE  ---"
-	echo "G.  Gang Menu       |"
+	echo "21. City Reputation | G.  Gang Management"
 	echo "------------------------------------------------------------"
 	echo "S.  Save Game       | L.  Load Game    | N.  News Feed"
 	echo "M.  Music Player    | A.  About        | P.  Perks"
