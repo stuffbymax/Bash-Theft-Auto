@@ -1,0 +1,12 @@
+#!/bin/bash
+# Create local save directory if it doesn't exist
+SAVE_DIR="$HOME/.local/share/bash-theft-auto/saves"
+mkdir -p "$SAVE_DIR"
+
+# Link the local saves into a temporary working environment or just run
+# This game expects 'saves/' to be in the current working directory.
+# We'll create a symlink in the user's home to handle this.
+cd "/usr/share/bash-theft-auto"
+
+# Run the game
+exec ./bta.sh "$@"

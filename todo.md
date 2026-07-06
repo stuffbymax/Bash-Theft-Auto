@@ -1,26 +1,58 @@
-1. Ammunition and Usable Items (especially the Health Pack) (technicaly it works but not quite)
 
-2. Vehicle Selling is a logical addition.
+### 1. The Banking System (High Priority)
+Since you have the functions `visit_bank`, `deposit_to_bank`, etc., defined but empty, this is the most logical next step.
+*   **Savings Account:** Allow players to deposit cash to protect it from being stolen during hospitalizations or muggings.
+*   **Interest:** Give a small 1% daily interest on bank balances.
+*   **Bank Robbery:** A high-level crime. Requires a "Drill" or "Hacker" (new items) and has a 5-star wanted level risk.
 
-3. Gambling , especially for Las Venturas.
+### 2. Ammunition & Reloading
+Currently, guns are "buy once, use forever."
+*   **Ammo Counter:** Each gun needs an `ammo` variable.
+*   **Ammu-Nation Update:** Sell "Pistol Rounds," "Rifle Rounds," and "Shells."
+*   **Combat Penalty:** If you run out of ammo during a Gang War or Robbery, your success chance should drop by 50-80% (forcing you to use "Strength/Melee").
 
-4. Property and Time Cycle
+### 3. Interactive Property Management
+Move beyond the "Idle" status in `owned_businesses`.
+*   **Business Upgrades:**
+    *   *Security:* Reduces the chance of the business being "shut down" or "raided."
+    *   *Efficiency:* Increases daily payout.
+*   **Drug Production:** Allow certain properties (like the "LS Cocaine Lockup") to generate drug inventory daily instead of just cash.
 
-5. Finish gangs functions
+### 4. Mission System (The "Story" Component)
+The game is currently a "sandbox" with no clear goal.
+*   **Contact Missions:** Instead of just passive bonuses, calling a contact (like "The Plug" or "Officer Bent") should give you a specific task.
+    *   *Example:* "Transport 50 units of Meth from Los Santos to Liberty City in under 2 days."
+*   **Rewards:** Missions should provide unique items (e.g., "Silencer") or massive Respect boosts.
 
-6. gang indexed is wrong for example 1 = 4 not 1 = 1 so 1 is indexed as 4 not 1 there fore 4 = 1 and 2 = 5
+### 5. Combat Choice (Tactical Depth)
+Instead of just "You attacked and won/lost," add choices during the animations/loops.
+*   **Tactics:** During a Gang War or Police Encounter, let the player choose:
+    *   *Aggressive:* High success, high damage taken.
+    *   *Defensive:* Lower success, lower damage taken.
+    *   *Suppressive:* Requires more ammo, increases recruit survival.
 
-7. improve animation is too simple
+### 6. Random World Encounters
+Add flavor to the `run_clock` or `travel_to` functions.
+*   **Street Events:**
+    *   "A citizen is being mugged. Help them (Respect+) or Rob the mugger (Cash+)."
+    *   "A rival dealer is on your turf. Deal with him?"
+    *   "A corrupt politician needs a ride."
 
-8. interactive interiors
+### 7. UI & Polish (ASCII Art)
+Since "Improve Animations" was on your old list:
+*   **ASCII Frames:** Instead of just a progress bar `[====>]`, create small ASCII art frames for:
+    *   A car (for travel/carjacking).
+    *   A skull (for "Wasted").
+    *   A badge (for Police Encounters).
+*   **Color-Coded Logs:** Use more consistent color coding for the `world_event_log`.
 
-9. missions
+### 8. The "End Game"
+*   **Kingpin Status:** If the player controls 100% of a city and has over $1,000,000, allow them to buy a "Mansion" which acts as the final save point and unlocks "Diplomacy" with the City Mayor (to freeze wanted levels).
 
-10. interactive property 
+---
 
-
-# every time
- 
-- Testing. Test for bugs and issues.
-    
-    
+### Suggested Priority Order for next update (v2.6.0):
+1.  **Code the Bank** (Essential for cash management).
+2.  **Add Ammo requirements** (Essential for balancing the gun shop).
+3.  **Property Upgrades** (Essential for mid-game progression).
+4.  **One "Tutorial" Mission** (Essential for player direction).
