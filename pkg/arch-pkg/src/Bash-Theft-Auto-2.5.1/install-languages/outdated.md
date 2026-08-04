@@ -1,1 +1,0 @@
-# its outdated dont install the game with this. if you want to play the game in different languages, you have to make you own translation.
