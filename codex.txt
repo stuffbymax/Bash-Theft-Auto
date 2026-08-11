@@ -1,0 +1,8 @@
+sudo pacman -S ffmpeg \
+  gstreamer \
+  gst-libav \
+  gst-plugins-base \
+  gst-plugins-good \
+  gst-plugins-bad \
+  gst-plugins-ugly \
+  gst-plugin-pipewire
