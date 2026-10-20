@@ -2,13 +2,14 @@
 set +H
 # creator: stuffbymax (martinP)
 # description: open world crime "simulator"
-# ver 2.5.2
+# ver 2.5.2-testing-purposes
 # new features in this version:
 # N/A - this is a maintenance update to fix some bugs and improve the code structure. No new gameplay features added in this version.
 # Licenses:
 # Bash-Theft-Auto music © 2024 by stuffbymax - Martin Petik is licensed under CC BY 4.0
 # https://creativecommons.org/licenses/by/4.0/
 # code is licensed under MIT License
+
 
 
 # base directory for relative paths
@@ -1080,19 +1081,97 @@ enforcer_visit() {
 # =====================================================
 # NEW: Bank System
 # =====================================================
+process_bank_interest() {
+	(( bank_balance > 0 )) || return
+	local interest=$(( bank_balance * BANK_INTEREST_RATE / 100 ))
+	(( interest > 0 )) || return
+	bank_balance=$(( bank_balance + interest ))
+	echo "Bank interest: +\$$interest (balance: \$$bank_balance)"
+}
+
 visit_bank() {
+	run_clock 1
+	while true; do
+		clear_screen
+		echo "--- First National Bank ---"
+		printf "Cash: \$%d   |   Bank balance: \$%d\n" "$cash" "$bank_balance"
+		echo "================================"
+		echo "1. Deposit cash"
+		echo "2. Withdraw cash"
+		echo "3. Rob the bank"
+		echo "4. Leave"
+		read -r -p "Choice: " choice
+		case "$choice" in
+			1) deposit_to_bank;;
+			2) withdraw_from_bank;;
+			3) rob_bank;;
+			4) return;;
+			*) echo "Invalid choice."; sleep 1;;
+		esac
+	done
 }
 
 buy_from_bank() {
+	deposit_to_bank
 }
 
 deposit_to_bank() {
+	local amount
+	read -r -p "Deposit amount: \$" amount
+	if ! [[ "$amount" =~ ^[1-9][0-9]*$ ]]; then
+		echo "Enter a positive whole-dollar amount."
+	elif (( amount > cash )); then
+		echo "You do not have enough cash."
+	else
+		cash=$(( cash - amount ))
+		bank_balance=$(( bank_balance + amount ))
+		echo -e "\e[1;32mDeposited \$$amount.\e[0m"
+	fi
+	read -r -p "Press Enter..."
 }
 
 withdraw_from_bank() {
+	local amount
+	read -r -p "Withdraw amount: \$" amount
+	if ! [[ "$amount" =~ ^[1-9][0-9]*$ ]]; then
+		echo "Enter a positive whole-dollar amount."
+	elif (( amount > bank_balance )); then
+		echo "Your bank balance is only \$$bank_balance."
+	else
+		bank_balance=$(( bank_balance - amount ))
+		cash=$(( cash + amount ))
+		echo -e "\e[1;32mWithdrew \$$amount.\e[0m"
+	fi
+	read -r -p "Press Enter..."
 }
 
 rob_bank() {
+	local tool="" item_index
+	for item in "${items[@]}"; do
+		if [[ "$item" == "Drill" || "$item" == "Hacker" ]]; then tool="$item"; break; fi
+	done
+	if [[ -z "$tool" ]]; then
+		echo "You need a Drill or Hacker to rob the bank."
+		read -r -p "Press Enter..."
+		return
+	fi
+	for item_index in "${!items[@]}"; do
+		if [[ "${items[$item_index]}" == "$tool" ]]; then
+			items=("${items[@]:0:$item_index}" "${items[@]:$((item_index + 1))}")
+			break
+		fi
+	done
+	wanted_level=5
+	if (( RANDOM % 100 < 45 )); then
+		local reward=$(( 5000 + RANDOM % 10001 ))
+		cash=$(( cash + reward ))
+		echo -e "\e[1;32mThe robbery worked. You escaped with \$$reward.\e[0m"
+	else
+		health=$(( health - (RANDOM % 31 + 20) ))
+		echo -e "\e[1;31mThe robbery failed. You were injured and escaped empty-handed.\e[0m"
+		check_health
+	fi
+	read -r -p "Press Enter..."
 }
 
 # =====================================================

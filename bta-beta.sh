@@ -2,7 +2,7 @@
 set +H
 # creator: stuffbymax (martinP)
 # description: open world crime "simulator"
-# ver 2.5.2
+# ver 2.5.2-beta
 # new features in this version:
 # N/A - this is a maintenance update to fix some bugs and improve the code structure. No new gameplay features added in this version.
 # Licenses:

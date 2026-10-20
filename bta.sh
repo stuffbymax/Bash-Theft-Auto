@@ -2,7 +2,7 @@
 set +H
 # creator: stuffbymax (martinP)
 # description: open world crime "simulator"
-# ver 2.5.1
+# ver 2.6.0
 # New mechanics: Loan Shark, Black Market Auctions, Fence System,
 #   Ambush System, Bounty on Player, Safe House Renting,
 #   Drive-By Missions, Protection Racket, Gang Spy,
@@ -189,6 +189,7 @@ location="Los Santos"
 cash=0
 health=100
 declare -a guns=()
+declare -A gun_ammo=()
 declare -a items=()
 declare -A drugs=()
 declare -A skills=()
@@ -209,6 +210,10 @@ loan_amount=0          # Current outstanding loan principal
 loan_interest=0        # Accumulated interest
 loan_due_day=0         # Day the loan was taken (for interest compounding)
 loan_enforcer_warned=false
+
+# --- Bank System Variables ---
+bank_balance=0
+BANK_INTEREST_RATE=1
 
 # --- NEW: City Reputation Variables ---
 declare -A city_reputation=()  # ["City Name"]=0-100
@@ -328,16 +333,21 @@ check_police_encounter() {
 
     clear_screen
     play_sfx_mpg "police_siren"
+    show_ascii_art badge
     echo -e "\e[1;31m*** POLICE ENCOUNTER! ***\e[0m"
     echo "Wanted Level: $(printf '*%.0s' $(seq 1 $wanted_level))"
     echo "------------------------------------------------"
 
     local escape_chance=$(( 40 + ${skills[stealth]:-1} * 5 + ${skills[driving]:-1} * 3 ))
     (( escape_chance > 85 )) && escape_chance=85
+    echo "Tactics change the risk and damage of this encounter."
 
     echo "1. Run for it!    (Escape chance: ${escape_chance}%)"
     echo "2. Bribe them.    (Cost: \$$(( wanted_level * 150 )))"
     echo "3. Surrender.     (Fine + jail time)"
+    echo "4. Aggressive     (higher escape chance, heavier damage)"
+    echo "5. Defensive      (lower escape chance, reduced damage)"
+    echo "6. Suppressive    (requires ammunition)"
     read -r -p "Choice: " police_choice
 
     case "$police_choice" in
@@ -381,6 +391,24 @@ check_police_encounter() {
                 play_sfx_mpg "lose"
             fi
             ;;
+        4)
+            local aggressive=$((escape_chance + 20)); (( aggressive > 95 )) && aggressive=95
+            if (( RANDOM % 100 < aggressive )); then
+                wanted_level=$((wanted_level + 1)); echo "You forced an opening and escaped."
+            else
+                health=$((health - RANDOM % 31 - 30)); wanted_level=$MAX_WANTED_LEVEL
+                echo "The aggressive push failed."
+            fi;;
+        5)
+            local defensive=$((escape_chance - 15)); (( defensive < 10 )) && defensive=10
+            if (( RANDOM % 100 < defensive )); then echo "You slipped away carefully."
+            else health=$((health - RANDOM % 16 - 10)); echo "You took a controlled hit while escaping."; fi;;
+        6)
+            if (( ${#guns[@]} > 0 )) && consume_ammo "${guns[0]}"; then
+                wanted_level=$((wanted_level + 1)); echo "Suppressive fire bought your crew time."
+            else
+                echo "No loaded weapon or ammunition. Suppressive tactics unavailable."
+            fi;;
         3|*)
             echo "You put your hands up..."; sleep 1
             local fine=$(( RANDOM % 150 + wanted_level * 80 ))
@@ -431,6 +459,10 @@ declare -A territory_owner
 declare -A district_heat
 declare -A available_properties
 declare -A owned_businesses
+declare -A property_upgrades
+kingpin_mansion=false
+mayor_diplomacy=false
+declare -A active_mission=()
 
 # --- NEW: Black Market Auction Variables ---
 declare -A current_auction=()   # ["item"] ["min_bid"] ["current_bid"] ["ends_day"]
@@ -802,6 +834,7 @@ check_health() {
 	if (( health <= 0 )); then
 		health=0
 		clear_screen
+		show_ascii_art skull
 		echo -e "\n      \e[1;31m W A S T E D \e[0m\n"
 		play_sfx_mpg "wasted"
 		echo "You collapsed from your injuries..."
@@ -877,6 +910,41 @@ show_city_reputation() {
 	done
 	echo "==========================================="
 	echo "Benefits: 20+ = +5% job pay | 40+ = shop discount | 60+ = contact unlock hints | 80+ = feared (crime success boost)"
+	read -r -p "Press Enter..."
+}
+
+check_kingpin_status() {
+	[[ "$kingpin_mansion" == true ]] && return
+	(( cash >= 1000000 )) || return
+	[[ "$player_gang" == "None" ]] && return
+	local total=0 owned=0 key
+	for key in "${!territory_owner[@]}"; do
+		[[ "${key%%|*}" == "$location" ]] || continue
+		((total++))
+		[[ "${territory_owner[$key]}" == "$player_gang" ]] && ((owned++))
+	done
+	(( total > 0 && owned == total )) || return
+	clear_screen
+	echo "You control every district in $location and have a million dollars."
+	read -r -p "Buy the Kingpin Mansion for \$1,000,000? (y/n): " answer
+	if [[ "$answer" =~ ^[Yy]$ ]]; then
+		cash=$((cash - 1000000)); kingpin_mansion=true
+		echo -e "\e[1;33mKINGPIN STATUS UNLOCKED!\e[0m"
+		echo "The mansion is now your final save point."
+	fi
+	read -r -p "Press Enter..."
+}
+
+manage_mayor_diplomacy() {
+	if [[ "$kingpin_mansion" != true ]]; then
+		echo "You need the Kingpin Mansion first."; read -r -p "Press Enter..."; return
+	fi
+	if [[ "$mayor_diplomacy" == true ]]; then
+		echo "The mayor's office is already keeping your wanted level frozen."
+	elif (( cash >= 250000 )); then
+		cash=$((cash - 250000)); mayor_diplomacy=true
+		echo "The mayor accepted your donation. Wanted levels will no longer increase."
+	else echo "The mayor's fee is \$250,000."; fi
 	read -r -p "Press Enter..."
 }
 
@@ -1072,6 +1140,113 @@ enforcer_visit() {
 }
 
 # =====================================================
+# Bank System
+# =====================================================
+has_item() {
+	local wanted_item="$1"
+	local item
+	for item in "${items[@]}"; do
+		[[ "$item" == "$wanted_item" ]] && return 0
+	done
+	return 1
+}
+
+process_bank_interest() {
+	(( bank_balance > 0 )) || return
+	local interest=$(( bank_balance * BANK_INTEREST_RATE / 100 ))
+	(( interest > 0 )) || return
+	bank_balance=$(( bank_balance + interest ))
+	echo "Bank interest: +\$$interest (balance: \$$bank_balance)"
+}
+
+deposit_to_bank() {
+	local amount
+	read -r -p "Deposit amount: \$" amount
+	if ! [[ "$amount" =~ ^[1-9][0-9]*$ ]]; then
+		echo "Enter a positive whole-dollar amount."
+	elif (( amount > cash )); then
+		echo "You do not have enough cash."
+	else
+		cash=$(( cash - amount ))
+		bank_balance=$(( bank_balance + amount ))
+		echo -e "\e[1;32mDeposited \$$amount.\e[0m"
+	fi
+	read -r -p "Press Enter..."
+}
+
+withdraw_from_bank() {
+	local amount
+	read -r -p "Withdraw amount: \$" amount
+	if ! [[ "$amount" =~ ^[1-9][0-9]*$ ]]; then
+		echo "Enter a positive whole-dollar amount."
+	elif (( amount > bank_balance )); then
+		echo "Your bank balance is only \$$bank_balance."
+	else
+		bank_balance=$(( bank_balance - amount ))
+		cash=$(( cash + amount ))
+		echo -e "\e[1;32mWithdrew \$$amount.\e[0m"
+	fi
+	read -r -p "Press Enter..."
+}
+
+rob_bank() {
+	local tool=""
+	if has_item "Drill"; then
+		tool="Drill"
+	elif has_item "Hacker"; then
+		tool="Hacker"
+	else
+		echo "You need a Drill or Hacker to rob the bank."
+		read -r -p "Press Enter..."
+		return
+	fi
+
+	local item_index
+	for item_index in "${!items[@]}"; do
+		if [[ "${items[$item_index]}" == "$tool" ]]; then
+			items=("${items[@]:0:$item_index}" "${items[@]:$((item_index + 1))}")
+			break
+		fi
+	done
+	wanted_level=$MAX_WANTED_LEVEL
+	if (( RANDOM % 100 < 45 )); then
+		local reward=$(( 5000 + RANDOM % 10001 ))
+		cash=$(( cash + reward ))
+		echo -e "\e[1;32mThe robbery worked. You escaped with \$$reward.\e[0m"
+		play_sfx_mpg "cash_register"
+	else
+		local damage=$(( RANDOM % 31 + 20 ))
+		health=$(( health - damage ))
+		echo -e "\e[1;31mThe robbery failed. You were injured and escaped empty-handed.\e[0m"
+		play_sfx_mpg "lose"
+		check_health
+	fi
+	read -r -p "Press Enter..."
+}
+
+visit_bank() {
+	run_clock 1
+	while true; do
+		clear_screen
+		echo "--- First National Bank ---"
+		printf "Cash: \$%d   |   Bank balance: \$%d\n" "$cash" "$bank_balance"
+		echo "================================"
+		echo "1. Deposit cash"
+		echo "2. Withdraw cash"
+		echo "3. Rob the bank"
+		echo "4. Leave"
+		read -r -p "Choice: " choice
+		case "$choice" in
+			1) deposit_to_bank;;
+			2) withdraw_from_bank;;
+			3) rob_bank;;
+			4) return;;
+			*) echo "Invalid choice."; sleep 1;;
+		esac
+	done
+}
+
+# =====================================================
 # NEW: Black Market Auction
 # =====================================================
 visit_auction_house() {
@@ -1154,6 +1329,8 @@ generate_new_auction() {
 		"Rare Sports Car:A very fast stolen vehicle:vehicle:6000"
 		"Hitman Contract:Take out a rival gang for 200 Respect:contract:4500"
 		"Gold Brick:Raw gold, fence for \$2000:sellable:1800"
+		"Drill:Professional vault drill for bank jobs:item:4500"
+		"Hacker:Encrypted banking exploit for bank jobs:item:5000"
 	)
 	local pick="${auction_items[RANDOM % ${#auction_items[@]}]}"
 	IFS=':' read -r auc_name auc_desc auc_type auc_val <<< "$pick"
@@ -1190,6 +1367,8 @@ apply_auction_reward() {
 			echo "500 units of Cocaine added to inventory.";;
 		"Hitman Contract")
 			award_respect 200; echo "Contract executed. +200 Respect.";;
+		"Drill"|"Hacker")
+			items+=("$item_name"); echo "$item_name added to inventory.";;&
 		*) echo "Item acquired: $item_name";;
 	esac
 }
@@ -1945,7 +2124,7 @@ manage_phone_contacts() {
 		done
 		echo "========================================================"
 		echo "Contacts are unlocked automatically when conditions are met."
-		echo "1. Call a contact  B. Back"
+		echo "1. Call a contact  2. Available missions  B. Back"
 		read -r -p "Choice: " cchoice
 		case "$cchoice" in
 			1)
@@ -1966,10 +2145,49 @@ manage_phone_contacts() {
 				if [[ "$callchoice" =~ ^[0-9]+$ ]] && (( callchoice >= 1 && callchoice < i )); then
 					call_contact "${unlocked_list[$((callchoice-1))]}"
 				fi;;
+			2) offer_contact_mission;;
 			'b'|'B') return;;
 			*) sleep 1;;
 		esac
 	done
+}
+
+offer_contact_mission() {
+	clear_screen
+	if [[ -n "${active_mission[type]:-}" ]]; then
+		echo "Active mission: ${active_mission[description]}"
+		echo "Deadline: Day ${active_mission[deadline]} | Reward: \$${active_mission[reward]}"
+	elif (( ${drugs[Meth]:-0} >= 50 )); then
+		echo "The Plug: Transport 50 Meth units to Liberty City before Day $((game_day + 2))."
+		read -r -p "Accept mission? (y/n): " answer
+		if [[ "$answer" =~ ^[Yy]$ ]]; then
+			active_mission=([type]="transport" [target]="Liberty City" [drug]="Meth" [amount]=50
+				[deadline]=$((game_day + 2)) [reward]=5000
+				[description]="Transport 50 Meth units to Liberty City")
+			echo "Mission accepted."
+		fi
+	else
+		echo "The Plug needs 50 Meth units before he can offer the transport job."
+	fi
+	read -r -p "Press Enter..."
+}
+
+check_active_mission() {
+	[[ -z "${active_mission[type]:-}" ]] && return
+	if (( game_day > ${active_mission[deadline]:-0} )); then
+		echo -e "\e[1;31mMission failed: deadline expired.\e[0m"
+		active_mission=()
+		return
+	fi
+	if [[ "${active_mission[type]}" == "transport" && "$location" == "${active_mission[target]}" ]] &&
+		(( ${drugs[${active_mission[drug]}]:-0} >= ${active_mission[amount]} )); then
+		drugs["${active_mission[drug]}"]=$(( ${drugs[${active_mission[drug]}]} - ${active_mission[amount]} ))
+		cash=$((cash + active_mission[reward]))
+		award_respect 500
+		items+=("Silencer")
+		echo -e "\e[1;32mMission complete! +\$${active_mission[reward]}, +500 Respect, Silencer acquired.\e[0m"
+		active_mission=()
+	fi
 }
 
 call_contact() {
@@ -2077,6 +2295,50 @@ apply_wanted_decay() {
 # =====================================================
 # Clock & World State
 # =====================================================
+show_ascii_art() {
+	case "$1" in
+		car) echo '      ______'; echo ' ___ /|_||_\`.__'; echo '/ _      _   \'; echo '\___|____|___/';;
+		skull) echo '   .-""""-.'; echo '  / -   -  \'; echo ' |  .-. .- |'; echo ' |  \o| |o  |'; echo '  \   ^    /'; echo '   `-...-`';;
+		badge) echo '    .-^^-.'; echo '   /  **  \'; echo '  |  POLICE |'; echo '   \  **  /'; echo '    `-..-`';;
+	esac
+}
+
+process_street_encounter() {
+	(( RANDOM % 100 >= 18 )) && return
+	clear_screen
+	case $((RANDOM % 3)) in
+		0)
+			echo "A citizen is being mugged in the street."
+			echo "1. Help them (Respect)  2. Rob the mugger (Cash)  3. Walk away"
+			read -r -p "Choice: " choice
+			case "$choice" in
+				1) award_respect 75; city_reputation["$location"]=$(( ${city_reputation[$location]:-0} + 2 )); echo -e "\e[1;32mYou scared off the mugger. Respect increased.\e[0m";;
+				2) cash=$((cash + 200)); wanted_level=$((wanted_level + 1)); echo -e "\e[1;33mYou took the mugger's cash.\e[0m";;
+				*) echo "You kept moving.";;
+			esac;;
+		1)
+			echo "A rival dealer is operating on your turf."
+			echo "1. Deal with them  2. Offer a truce  3. Ignore it"
+			read -r -p "Choice: " choice
+			case "$choice" in
+				1) cash=$((cash + 350)); wanted_level=$((wanted_level + 1)); echo "The rival backed down.";;
+				2) city_reputation["$location"]=$(( ${city_reputation[$location]:-0} + 5 )); echo "The truce improves your local reputation.";;
+				*) echo "You let them work for now.";;
+			esac;;
+		2)
+			echo "A corrupt politician needs a discreet ride."
+			echo "1. Drive them (cash)  2. Expose them (Respect)  3. Refuse"
+			read -r -p "Choice: " choice
+			case "$choice" in
+				1) cash=$((cash + 500)); wanted_level=$((wanted_level + 1)); echo "The politician paid generously.";;
+				2) award_respect 150; echo "The story hits the news. Respect increased.";;
+				*) echo "You stayed out of politics.";;
+			esac;;
+	esac
+	world_event_log+=("[Day $game_day] Street encounter resolved in $location.")
+	read -r -p "Press Enter..."
+}
+
 calculate_and_apply_payouts() {
 	clear_screen
 	echo "--- Daily Payouts (Day ${game_day}, 00:00) ---"
@@ -2096,10 +2358,23 @@ calculate_and_apply_payouts() {
 	local smuggling_level=${gang_upgrades[smuggling_routes]:-0}
 	local smuggling_bonus=$((smuggling_level * 100))
 	for prop in "${!owned_businesses[@]}"; do
+		local security=${property_upgrades["$prop|security"]:-0}
+		local efficiency=${property_upgrades["$prop|efficiency"]:-0}
 		if [[ "${owned_businesses[$prop]}" == *"Legal"* ]]; then
-			business_income=$((business_income + 200))
+			business_income=$((business_income + 200 + efficiency * 100))
 		elif [[ "${owned_businesses[$prop]}" == *"IllegalFront"* ]]; then
-			business_income=$((business_income + 500 + smuggling_bonus))
+			business_income=$((business_income + 500 + smuggling_bonus + efficiency * 200))
+		fi
+		if [[ "$prop" == *"Cocaine"* || "$prop" == *"Meth"* || "$prop" == *"Drug"* ]]; then
+			local drug="Cocaine"
+			[[ "$prop" == *"Meth"* ]] && drug="Meth"
+			drugs["$drug"]=$(( ${drugs[$drug]:-0} + 10 + efficiency * 5 ))
+			echo "$prop produced $((10 + efficiency * 5)) units of $drug."
+		fi
+		if (( RANDOM % 100 < 15 - security * 4 )); then
+			echo -e "\e[1;31mRaid reported at $prop.\e[0m"
+			owned_businesses["$prop"]="$(echo "${owned_businesses[$prop]}" | sed 's/status=Idle/status=Raided/')"
+			(( wanted_level > 0 )) && wanted_level=$((wanted_level - 1))
 		fi
 	done
 
@@ -2136,16 +2411,20 @@ calculate_and_apply_payouts() {
 
 	# Process loan interest
 	process_loan_interest
+	process_bank_interest
 
 	for city_name in "${!district_heat[@]}"; do
 		if (( ${district_heat[$city_name]} > 0 )); then
 			district_heat[$city_name]=$(( ${district_heat[$city_name]} - 1 ))
 		fi
 	done
+	process_street_encounter
 	echo "The heat has cooled down slightly across the cities."
 
 	# Check contact unlocks
 	check_contact_unlocks
+	check_active_mission
+	check_kingpin_status
 
 	read -r -p "Press Enter to continue..."
 }
@@ -2184,6 +2463,7 @@ run_clock() {
 
 update_world_state() {
 	run_clock 0
+	if [[ "$mayor_diplomacy" == true ]]; then wanted_level=0; fi
 	command -v passive_bounty_encounter &>/dev/null && passive_bounty_encounter
 	command -v tick_stock_market &>/dev/null && tick_stock_market
 	# Check bounty hitman
@@ -2214,6 +2494,7 @@ travel_to() {
 	fi
 
 	if $use_own_vehicle || (( cash >= travel_cost )); then
+		show_ascii_art car
 		if ! $use_own_vehicle; then
 			cash=$((cash - travel_cost)); play_sfx_mpg "air"
 		fi
@@ -2233,6 +2514,7 @@ travel_to() {
 
 		run_clock $travel_time
 		location="$new_location"
+		check_active_mission
 		echo "You have arrived safely in $new_location after ${travel_time} hours."
 
 		# Ambush check during travel
@@ -2280,7 +2562,10 @@ buy_guns() {
 	echo " SNIPER"
 	echo " 13. Ghost Sniper  (\$1000) - Long range precision"
 	echo "--------------------------------------------"
-	echo " 14. Leave"
+	echo " 14. Pistol Rounds (\$50) - 10 rounds"
+	echo " 15. Rifle Rounds  (\$75) - 10 rounds"
+	echo " 16. Shells        (\$60) - 10 shells"
+	echo " 17. Leave"
 	echo "--------------------------------------------"
 	read -r -p "Enter your choice: " gun_choice
 	[[ ! "$gun_choice" =~ ^[0-9]+$ ]] && { echo "Invalid input."; read -r -p "Press Enter..."; return; }
@@ -2298,7 +2583,10 @@ buy_guns() {
 		11) buy_gun "Ravager LMG" 900;;
 		12) buy_gun "Diamondback MG" 1100;;
 		13) buy_gun "Ghost Sniper" 1000;;
-		14) return;;
+		14) buy_ammo "Pistol Rounds" 50 10;;
+		15) buy_ammo "Rifle Rounds" 75 10;;
+		16) buy_ammo "Shells" 60 10;;
+		17) return;;
 		*)  echo "Invalid choice."; read -r -p "Press Enter...";;
 	esac
 }
@@ -2314,13 +2602,54 @@ buy_gun() {
 	if (( cash >= gun_cost )); then
 		play_sfx_mpg "cash_register"
 		if command -v buy_animation &> /dev/null; then buy_animation "$gun_name"; fi
-		cash=$((cash - gun_cost)); guns+=("$gun_name")
+		cash=$((cash - gun_cost)); guns+=("$gun_name"); gun_ammo["$gun_name"]=6
 		echo "One $gun_name, coming right up! That'll be \$$gun_cost."
 		read -r -p "Press Enter..."
 	else
 		echo "Sorry pal, not enough cash for the $gun_name (\$$gun_cost needed)."
 		read -r -p "Press Enter..."
 	fi
+}
+
+ammo_type_for_gun() {
+	case "$1" in
+		Striker*|Undertaker*) echo "Shells";;
+		AR-*|Phantom*|Ravager*|Diamondback*|Ghost*|Viper*|Spectre*) echo "Rifle Rounds";;
+		*) echo "Pistol Rounds";;
+	esac
+}
+
+count_item() {
+	local wanted="$1" item count=0
+	for item in "${items[@]}"; do [[ "$item" == "$wanted" ]] && ((count++)); done
+	echo "$count"
+}
+
+consume_ammo() {
+	local gun="$1" ammo_type
+	ammo_type=$(ammo_type_for_gun "$gun")
+	local loaded=${gun_ammo[$gun]:-0}
+	if (( loaded > 0 )); then
+		gun_ammo["$gun"]=$((loaded - 1))
+		return 0
+	fi
+	local index
+	for index in "${!items[@]}"; do
+		if [[ "${items[$index]}" == "$ammo_type" ]]; then
+			items=("${items[@]:0:$index}" "${items[@]:$((index + 1))}")
+			gun_ammo["$gun"]=5
+			return 0
+		fi
+	done
+	return 1
+}
+
+buy_ammo() {
+	local ammo="$1" cost="$2" amount="$3"
+	if (( cash < cost )); then echo "Not enough cash."; return; fi
+	cash=$((cash - cost))
+	for ((i=0; i<amount; i++)); do items+=("$ammo"); done
+	echo "Bought $amount $ammo for \$$cost."
 }
 
 buy_vehicle() {
@@ -2365,7 +2694,11 @@ show_inventory() {
 		printf "  - Respect: %d\n" "$player_respect"
 		echo "--------------------------"
 		echo " Guns:"
-		if (( ${#guns[@]} > 0 )); then printf "  - %s\n" "${guns[@]}"; else echo "  (None)"; fi
+		if (( ${#guns[@]} > 0 )); then
+			for gun in "${guns[@]}"; do
+				printf "  - %s (%d loaded, %s)\n" "$gun" "${gun_ammo[$gun]:-0}" "$(ammo_type_for_gun "$gun")"
+			done
+		else echo "  (None)"; fi
 		echo "--------------------------"
 		echo " Items:"
 		if (( ${#items[@]} > 0 )); then
@@ -2583,10 +2916,15 @@ apply_gun_bonus() {
 			gun_found=false
 			for gun in "${guns[@]}"; do if [[ "$gun" == "$chosen_gun" ]]; then gun_found=true; break; fi; done
 			if $gun_found; then
-				echo "You draw your $chosen_gun!"; play_sfx_mpg "gun_cock"
+				if ! consume_ammo "$chosen_gun"; then
+					echo "Your $chosen_gun is empty. The attack proceeds with melee only (-60% success)."
+					gun_bonus=-30
+				else
+					echo "You draw your $chosen_gun!"; play_sfx_mpg "gun_cock"
 				if [[ -v "gun_attributes[$chosen_gun]" ]]; then
 					eval "${gun_attributes[$chosen_gun]}"; gun_bonus=${success_bonus:-0}
 					if (( gun_bonus > 0 )); then echo "The $chosen_gun gives a \e[1;32m+${gun_bonus}%%\e[0m success chance."; play_sfx_mpg "gun_shot"; fi
+				fi
 				fi
 			else echo "You don't own '$chosen_gun'!"; fi
 		else echo "Proceeding without using a gun."; gun_bonus=-5; fi
@@ -2954,7 +3292,9 @@ black_market() {
 		echo " 2. Fake ID           (\$200) - Reduces wanted level by 1"
 		echo " 3. Adrenaline Shot   (\$150) - Temp health and strength boost"
 		echo " 4. Stolen Goods      (\$50)  - Sell for profit at the fence"
-		echo " 5. Leave"
+		echo " 5. Drill             (\$2000) - Crack bank vaults (consumed on use)"
+		echo " 6. Hacker Device     (\$3500) - Bypass bank security (consumed on use)"
+		echo " 7. Leave"
 		echo "================================"
 		read -r -p "Choice: " c
 		case "$c" in
@@ -2970,7 +3310,13 @@ black_market() {
 			4) if (( cash >= 50 )); then cash=$(( cash - 50 )); items+=("Stolen Goods")
 					echo "Could be worth double at the fence."; play_sfx_mpg "item_buy"
 				else echo "Not enough cash."; fi;;
-			5) return;;
+			5) if (( cash >= 2000 )); then cash=$(( cash - 2000 )); items+=("Drill")
+					echo "A heavy-duty drill added to your inventory."; play_sfx_mpg "item_buy"
+				else echo "Not enough cash."; fi;;
+			6) if (( cash >= 3500 )); then cash=$(( cash - 3500 )); items+=("Hacker")
+					echo "A hacker device added to your inventory."; play_sfx_mpg "item_buy"
+				else echo "Not enough cash."; fi;;
+			7) return;;
 			*) echo "Invalid.";;
 		esac
 		read -r -p "Press Enter..."
@@ -3328,7 +3674,21 @@ manage_owned_property() {
 	done
 	echo "B. Back"; read -r -p "Select property to manage: " choice
 	if [[ "$choice" =~ ^[0-9]+$ ]] && (( choice > 0 && choice <= ${#owned_prop_keys[@]} )); then
-		echo "Managing ${owned_prop_keys[$((choice-1))]}... Upgrade/production system coming soon."
+		local prop="${owned_prop_keys[$((choice-1))]}"
+		local security=${property_upgrades["$prop|security"]:-0}
+		local efficiency=${property_upgrades["$prop|efficiency"]:-0}
+		echo "1. Security upgrade (level $security, \$1000)"
+		echo "2. Efficiency upgrade (level $efficiency, \$1500)"
+		read -r -p "Upgrade or B to cancel: " upgrade
+		case "$upgrade" in
+			1) if (( security >= 3 )); then echo "Security is fully upgraded."
+				elif (( cash >= 1000 )); then cash=$((cash-1000)); property_upgrades["$prop|security"]=$((security+1)); echo "Security upgraded."
+				else echo "Not enough cash."; fi;;
+			2) if (( efficiency >= 3 )); then echo "Efficiency is fully upgraded."
+				elif (( cash >= 1500 )); then cash=$((cash-1500)); property_upgrades["$prop|efficiency"]=$((efficiency+1)); echo "Efficiency upgraded."
+				else echo "Not enough cash."; fi;;
+			*) ;;
+		esac
 	fi
 	read -r -p "Press Enter..."
 }
@@ -3665,6 +4025,9 @@ save_game() {
 		echo "loan_due_day@@@$loan_due_day"
 		echo "loan_rate@@@$loan_rate"
 		echo "loan_enforcer_warned@@@$loan_enforcer_warned"
+		echo "bank_balance@@@$bank_balance"
+		echo "kingpin_mansion@@@$kingpin_mansion"
+		echo "mayor_diplomacy@@@$mayor_diplomacy"
 		echo "safehouse@@@$rented_safehouse"
 		echo "safehouse_day@@@$safehouse_rent_day"
 		echo "player_bounty@@@$player_bounty"
@@ -3675,6 +4038,13 @@ save_game() {
 	(
 		echo "day@@@$game_day"
 		echo "hour@@@$game_hour"
+		echo "mission_type@@@${active_mission[type]:-}"
+		echo "mission_target@@@${active_mission[target]:-}"
+		echo "mission_drug@@@${active_mission[drug]:-}"
+		echo "mission_amount@@@${active_mission[amount]:-}"
+		echo "mission_deadline@@@${active_mission[deadline]:-}"
+		echo "mission_reward@@@${active_mission[reward]:-}"
+		echo "mission_description@@@${active_mission[description]:-}"
 	) > "$save_path/time.sav"
 
 	printf '%s\n' "${guns[@]}" > "$save_path/guns.sav"
@@ -3697,6 +4067,8 @@ save_game() {
 	save_assoc_array "$save_path/protection.sav" "protection_income"
 	save_assoc_array "$save_path/contacts.sav" "contacts_unlocked"
 	save_assoc_array "$save_path/perks.sav" "perks"
+	save_assoc_array "$save_path/gun_ammo.sav" "gun_ammo"
+	save_assoc_array "$save_path/property_upgrades.sav" "property_upgrades"
 
 	command -v bounty_save_extra &>/dev/null && bounty_save_extra
 	command -v economy_save_extra &>/dev/null && economy_save_extra
@@ -3720,6 +4092,9 @@ load_game() {
 			"loan_amount") loan_amount="$value";; "loan_interest") loan_interest="$value";;
 			"loan_due_day") loan_due_day="$value";; "loan_rate") loan_rate="$value";;
 			"loan_enforcer_warned") loan_enforcer_warned="$value";;
+			"bank_balance") bank_balance="$value";;
+			"kingpin_mansion") kingpin_mansion="$value";;
+			"mayor_diplomacy") mayor_diplomacy="$value";;
 			"safehouse") rented_safehouse="$value";; "safehouse_day") safehouse_rent_day="$value";;
 			"player_bounty") player_bounty="$value";; "bounty_hitman") bounty_hitman_name="$value";;
 			"auction_active") auction_active="$value";;
@@ -3762,6 +4137,24 @@ load_game() {
 	load_assoc_array "$save_path/protection.sav" "protection_income"
 	load_assoc_array "$save_path/contacts.sav" "contacts_unlocked"
 	load_assoc_array "$save_path/perks.sav" "perks"
+	load_assoc_array "$save_path/gun_ammo.sav" "gun_ammo"
+	load_assoc_array "$save_path/property_upgrades.sav" "property_upgrades"
+
+	active_mission=()
+	if [[ -f "$save_path/time.sav" ]]; then
+		while IFS= read -r line || [[ -n "$line" ]]; do
+			local key="${line%%@@@*}" value="${line#*@@@}"
+			case "$key" in
+				mission_type) [[ -n "$value" ]] && active_mission[type]="$value";;
+				mission_target) active_mission[target]="$value";;
+				mission_drug) active_mission[drug]="$value";;
+				mission_amount) active_mission[amount]="$value";;
+				mission_deadline) active_mission[deadline]="$value";;
+				mission_reward) active_mission[reward]="$value";;
+				mission_description) active_mission[description]="$value";;
+			esac
+		done < "$save_path/time.sav"
+	fi
 
 	command -v bounty_load_extra &>/dev/null && bounty_load_extra
 	command -v economy_load_extra &>/dev/null && economy_load_extra
@@ -3778,11 +4171,13 @@ Game_variables() {
 	[[ -z "$player_name" ]] && player_name="toolazytowritename"
 	play_sfx_mpg "new_game"; location="Los Santos"; cash=500; health=100
 	guns=(); items=(); owned_vehicles=(); wanted_level=0; body_armor_equipped=false
+	gun_ammo=(); property_upgrades=(); active_mission=(); kingpin_mansion=false; mayor_diplomacy=false
 	declare -A drugs; for key in "${!default_drugs[@]}"; do drugs["$key"]=${default_drugs[$key]}; done
 	declare -A skills; for key in "${!default_skills[@]}"; do skills["$key"]=${default_skills[$key]}; done
 	game_day=1; game_hour=8; player_gang="None"; player_gang_rank="Outsider"; player_respect=0
 	perk_points=0; last_respect_milestone=0; loan_amount=0; loan_interest=0; loan_due_day=0
 	loan_rate=15; loan_enforcer_warned=false; rented_safehouse=""; safehouse_rent_day=0
+	bank_balance=0
 	contacts_unlocked=(); player_bounty=0; bounty_hitman_name=""
 	auction_active=false; current_auction=()
 	initialize_world_data
@@ -3937,7 +4332,8 @@ while true; do
 	echo "15. Loan Shark      | 16. Auction House"
 	echo "17. Fence Goods     | 18. Protection Racket"
 	echo "19. Safe House      | 20. Phone Contacts"
-	echo "21. City Reputation |"
+	echo "21. City Reputation | 22. Bank"
+	echo "23. Mayor Diplomacy |"
 	echo "---  GANG & EMPIRE  ---"
 	echo "G.  Gang Menu       |"
 	echo "------------------------------------------------------------"
@@ -4008,6 +4404,8 @@ while true; do
 		19) rent_safe_house;;
 		20) manage_phone_contacts;;
 		21) show_city_reputation;;
+		22) visit_bank;;
+		23) manage_mayor_diplomacy;;
 		'g') show_gang_menu;;
 		's') save_game;;
 		'l')
@@ -4025,4 +4423,3 @@ while true; do
 	esac
 done
 cleanup_and_exit
-

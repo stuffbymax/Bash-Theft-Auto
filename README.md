@@ -1,5 +1,7 @@
 # Bash Theft Auto
 
+Current release: **v2.6.0**
+
 ## Overview made by **AI** outdated tho
 
 > **A GTA-inspired open-world crime game — running entirely in your terminal.**
@@ -22,6 +24,7 @@
 * **Drug dealing** — Buy and sell drugs for profit.
 * **Health system** — Take damage, heal yourself and visit the hospital.
 * **Body armour** — Reduce damage during dangerous encounters.
+* **Banking** — Deposit cash, withdraw savings, earn daily interest, or attempt a bank robbery with specialist equipment.
 * **Save & load** — Save your progress and continue later.
 * **Music player** — Play music directly from the game.
 * **Plugin system** — Extend the game with your own Bash plugins.
@@ -157,6 +160,7 @@ Your save data can contain information such as:
 * Player name
 * Current location
 * Cash
+* Bank balance
 * Health
 * Weapons
 * Inventory
