@@ -1,355 +1,218 @@
 # Bash Theft Auto
 
-Current release: **v2.6.0**
+**Bash Theft Auto (BTA)** is a terminal-based open-world crime game written
+entirely in Bash. Explore cities, earn money, buy equipment, build businesses,
+take on missions, and grow your criminal empire from the command line.
 
-## Overview made by **AI** outdated tho
+**Current release:** `v2.6.0`
 
-> **A GTA-inspired open-world crime game — running entirely in your terminal.**
-
-**Bash Theft Auto (BTA)** is a text-based open-world game written in **Bash**. Explore different cities, make money, buy weapons, take on jobs, commit crimes, manage your health and inventory, and build your criminal empire — all from the command line.
-
-[![Bash](https://img.shields.io/badge/Made%20with-Bash-4EAA25?logo=gnubash\&logoColor=white)](https://www.gnu.org/software/bash/)
+[![Bash](https://img.shields.io/badge/Made%20with-Bash-4EAA25?logo=gnubash&logoColor=white)](https://www.gnu.org/software/bash/)
 [![License](https://img.shields.io/badge/Code-MIT-blue.svg)](LICENSE)
-[![GitHub](https://img.shields.io/github/stars/stuffbymax/Bash-Theft-Auto?style=flat\&logo=github)](https://github.com/stuffbymax/Bash-Theft-Auto)
+[![GitHub stars](https://img.shields.io/github/stars/stuffbymax/Bash-Theft-Auto?style=flat&logo=github)](https://github.com/stuffbymax/Bash-Theft-Auto)
 
----
+> This is a fictional game. Its criminal activities are gameplay mechanics and
+> are not intended to encourage real-world crime. Bash Theft Auto is not
+> affiliated with or endorsed by Rockstar Games.
 
 ## Features
 
-* **Multiple cities** — Travel between locations inspired by the GTA universe.
-* **Dynamic economy** — Earn money through jobs and criminal activities.
-* **Weapons & inventory** — Buy and manage weapons and other items.
-* **Jobs** — Make legitimate money through different types of work.
-* **Criminal activities** — Take part in heists, gang wars, robberies, carjackings and more.
-* **Drug dealing** — Buy and sell drugs for profit.
-* **Health system** — Take damage, heal yourself and visit the hospital.
-* **Body armour** — Reduce damage during dangerous encounters.
-* **Banking** — Deposit cash, withdraw savings, earn daily interest, or attempt a bank robbery with specialist equipment.
-* **Save & load** — Save your progress and continue later.
-* **Music player** — Play music directly from the game.
-* **Plugin system** — Extend the game with your own Bash plugins.
-* **Multiple languages** — Language support is included in the project.
-* **Terminal-native** — No GUI required.
+- Travel between multiple cities with different risks and opportunities.
+- Earn money through legitimate jobs, crimes, missions, and businesses.
+- Buy weapons, ammunition, items, vehicles, properties, and upgrades.
+- Manage health, body armour, wanted level, respect, city reputation, and gangs.
+- Take part in robberies, heists, gang wars, police encounters, and drive-by
+  missions.
+- Trade drugs, run protection rackets, and manage passive business income.
+- Use the bank, loans, black-market auctions, fences, and safe houses.
+- Recruit allies, unlock contacts and perks, and train at the gym.
+- Complete timed contact missions and work toward the Kingpin end game.
+- Save and load your progress.
+- Play music and sound effects through `mpg123`.
+- Extend the game with Bash plugins.
 
----
+## Requirements
 
-## Installation
+- A Unix-like operating system
+- Bash 4 or newer
+- `mpg123` for music and sound effects (optional, but recommended)
+- `git` to clone the repository
 
-### Requirements
+Windows, BSD, and macOS are not officially supported. The game may work in
+some compatibility environments, but they are not tested or supported by the
+project.
 
-Bash Theft Auto runs on Unix-like systems with Bash.
+### Install the audio dependency
 
-You will need:
-
-* **Bash**
-* A terminal
-* `mpg123` if you want to use the music player
-
-### Arch Linux
-
-On Arch Linux, install the required package with:
-
-```bash
-sudo pacman -S mpg123
-```
-
-### Debian / Ubuntu
+Debian or Ubuntu:
 
 ```bash
 sudo apt install mpg123
 ```
 
-### macOS
+Arch Linux:
+
+```bash
+sudo pacman -S mpg123
+```
+
+macOS with Homebrew:
 
 ```bash
 brew install mpg123
 ```
 
----
+If `mpg123` is not installed, the game still runs, but audio playback is
+disabled.
 
-## Getting Started
+## Installation and first run
 
-Clone the repository:
+Clone the repository and start the main release:
 
 ```bash
 git clone https://github.com/stuffbymax/Bash-Theft-Auto.git
 cd Bash-Theft-Auto
-```
-
-Make the game executable:
-
-```bash
 chmod +x bta.sh
-```
-
-Start the game:
-
-```bash
 ./bta.sh
 ```
 
-Follow the instructions shown in the terminal.
+The script uses paths relative to its own directory, so it can be launched
+from the repository root or by providing its path:
 
-Most menus use **number keys** to select an option, and **Enter** is used to continue.
-
----
-
-## How to Play
-
-After starting the game, you'll be able to perform different actions from the main menu.
-
-### Travel
-
-Travel between different cities.
-
-Travelling costs money, so make sure you have enough cash before heading across the map.
-
-### Work
-
-Take legitimate jobs to earn money.
-
-Depending on the version of the game and your location, available jobs can include things such as:
-
-* Taxi driving
-* Delivery
-* Mechanic work
-* Security
-* Street performing
-
-### Weapons
-
-Visit the gun store to purchase weapons.
-
-Your weapons can help you survive dangerous encounters and criminal activities.
-
-### Criminal Activities
-
-If legitimate work isn't making you rich fast enough, you can take greater risks.
-
-Possible activities include:
-
-* Heists
-* Gang wars
-* Store robberies
-* Carjackings
-
-Criminal activities can provide larger rewards, but failure can cost you money or health.
-
-### Drugs
-
-Buy drugs from dealers and sell them for a potential profit.
-
-Prices and opportunities can vary, so choose when and where you trade carefully.
-
-### Health
-
-Keep an eye on your health.
-
-You can use hospital services and health items to recover. If your health reaches zero, you'll be sent to hospital and charged for treatment.
-
-Body armour can also reduce damage during encounters.
-
----
-
-## Saving Your Game
-
-Bash Theft Auto includes a save system so you can keep your progress.
-
-Your save data can contain information such as:
-
-* Player name
-* Current location
-* Cash
-* Bank balance
-* Health
-* Weapons
-* Inventory
-* Drug information
-
-Use the **Save Game** and **Load Game** options from inside the game.
-
----
-
-## Music
-
-Bash Theft Auto includes a built-in music player.
-
-Place compatible `.mp3` files in the `music` directory and the game can play them.
-
-You can use:
-
-```text
-q
+```bash
+/path/to/Bash-Theft-Auto/bta.sh
 ```
 
-to stop the currently playing music.
+Use the numbered menu options shown in the terminal. Press **Enter** when the
+game asks you to continue.
 
-> Music and sound effects are separately licensed from the game's source code. See the licensing section below.
+## Saving and loading
 
----
+Use the save and load options in the game menu. Save files are created in a
+local `saves/` directory the first time you save. They include player
+progress, inventory, weapons and ammunition, businesses, territory, contacts,
+perks, and other game state.
+
+The `saves/` directory is local player data and should not be committed to
+the repository. To start over, use the in-game delete-save option rather than
+editing individual save files.
+
+## Audio
+
+Music tracks are stored in [`music/`](music/) and sound effects are stored in
+[`sfx/`](sfx/). The built-in music player can play `.mp3` files from the
+music directory. Press `q` to stop the currently playing track.
+
+Audio assets have licensing and attribution requirements separate from the
+game code. See [`music/LICENSE.md`](music/LICENSE.md),
+[`sfx/LICENSE`](sfx/LICENSE), and [`sfx/Creators.md`](sfx/Creators.md) before
+redistributing them.
+
+## Debugging
+
+The main script supports an optional debug log. Enable it with either form:
+
+```bash
+BTA_DEBUG=1 ./bta.sh
+./bta.sh --debug
+```
+
+Debug output is appended to `bta_debug.log` in the project directory. Do not
+commit this log or other local runtime files.
+
+To compare the checked-out version with the latest version on GitHub:
+
+```bash
+chmod +x ver_checker.sh
+./ver_checker.sh
+```
 
 ## Plugins
 
-Bash Theft Auto supports plugins written in Bash.
+Plugins are Bash files placed directly in [`plugins/`](plugins/). The game
+loads `.sh` files from that directory when it starts.
 
-Plugins are stored in:
+To add a plugin:
 
-```text
-plugins/
-```
+1. Create a file such as `plugins/my-plugin.sh`.
+2. Define functions or hooks without overwriting existing game functions.
+3. Start the game and test the plugin.
 
-Plugin files should use the `.sh` extension.
+The repository includes examples for animation, bounty contracts, the stock
+market, and plugin testing. See
+[`for-devs/read_md/how-to-plugin.md`](for-devs/read_md/how-to-plugin.md) and
+[`for-devs/code_samples/plugin_template.sh`](for-devs/code_samples/plugin_template.sh)
+for the plugin API and examples.
 
-For example:
+Plugins are sourced into the main Bash process, so only run plugins you trust.
 
-```text
-plugins/
-├── example.sh
-├── my-plugin.sh
-└── another-plugin.sh
-```
-
-Plugins are sourced when the game starts, allowing them to extend the game with things such as:
-
-* New jobs
-* New criminal activities
-* New weapons
-* New items
-* New locations
-* Other custom functionality
-
-If you're interested in developing plugins, check the development-related files in the repository.
-
----
-
-## Project Structure
-
-Some of the important directories and files include:
+## Project structure
 
 ```text
 Bash-Theft-Auto/
-├── bta.sh              # Main game
-├── bta-beta.sh         # Beta version
-├── plugins/            # Game plugins
-├── music/              # Music files
-├── sfx/                # Sound effects
-├── floppy/             # Floppy-related resources
-├── pkg/                # Packaging resources
-├── install-languages/  # Language installation resources
-├── for-devs/           # Developer resources
-├── BTA-archive/        # Archived project files
-├── how-to-install.md   # Additional installation information
-├── todo.md             # Project TODO list
-├── ver_checker.sh      # Version checker
-├── version.txt         # Current version
-└── LICENSE             # MIT license
+├── bta.sh                 # Current stable game script
+├── bta-beta.sh            # Beta build
+├── bta_testing.sh         # Testing build
+├── plugins/               # Bash plugins
+├── music/                 # Music tracks
+├── sfx/                   # Sound effects
+├── install-languages/     # Community language scripts
+├── for-devs/              # Developer guides and code samples
+├── pkg/                   # Packaging resources
+├── BTA-archive/           # Older game versions
+├── how-to-install.md      # Additional package installation notes
+├── ver_checker.sh         # Remote version checker
+├── version.txt            # Current release number
+└── LICENSE                # MIT license for the code
 ```
-
----
 
 ## Development
 
-Bash Theft Auto is intentionally written in **Bash**.
+The game is a single Bash application with a plugin system. When developing:
 
-If you want to experiment with the project, you can clone the repository and modify the scripts directly:
+- Make changes to `bta.sh` unless you are specifically working on a beta or
+  testing build.
+- Test the game in Bash after changes.
+- Keep save files, debug logs, and personal audio out of commits.
+- Keep plugins self-contained and use descriptive names.
+- Check the developer documentation in [`for-devs/`](for-devs/) before adding
+  new game systems or plugins.
+
+There is no automated test suite at present. A basic syntax check can be run
+with:
 
 ```bash
-git clone https://github.com/stuffbymax/Bash-Theft-Auto.git
-cd Bash-Theft-Auto
+bash -n bta.sh
+bash -n bta-beta.sh
+bash -n bta_testing.sh
 ```
-
-For development, it's recommended to test changes from a clean clone and avoid committing generated save files or personal music.
-
----
 
 ## Contributing
 
-Contributions are welcome!
+Contributions, bug reports, ideas, and plugins are welcome.
 
-You can contribute by:
+1. Fork the repository.
+2. Create a feature branch.
+3. Make and test your changes.
+4. Open a pull request with a clear description.
 
-1. Forking the repository.
-2. Creating a branch for your changes.
-3. Making your changes.
-4. Testing them in Bash.
-5. Opening a pull request.
-
-Bug reports, ideas, plugins and improvements are also welcome.
-
-If you find a bug, please open an issue and include:
-
-* Your operating system
-* Bash version
-* What you were doing
-* What happened
-* Any relevant terminal output
-
----
-
-## Disclaimer
-
-**Bash Theft Auto is a fictional video game.**
-
-The criminal activities represented in the game are fictional gameplay mechanics and are **not intended to encourage real-world criminal activity**.
-
-Bash Theft Auto is a fan-made project and is **not affiliated with, sponsored by, or endorsed by Rockstar Games**.
-
-The project uses references and names inspired by the Grand Theft Auto universe, but the game itself is an independently developed Bash project.
-
----
+For bug reports, include your operating system, Bash version, reproduction
+steps, expected behavior, actual behavior, and relevant terminal output.
 
 ## Licensing
 
-### Code
+The game code and animations are licensed under the
+[MIT License](LICENSE).
 
-The game's code and animations are licensed under the **MIT License**.
+Music and sound effects are separate assets. Music by stuffbymax / Martin
+Petik is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+Individual sound effects may have additional attribution or licensing
+requirements; check the files in [`sfx/`](sfx/) before redistributing them.
 
-See [`LICENSE`](LICENSE) for the full license.
+## Links
 
-### Music
+- [Repository](https://github.com/stuffbymax/Bash-Theft-Auto)
+- [Installation notes](how-to-install.md)
+- [Developer resources](for-devs/)
+- [Plugins](plugins/)
 
-The project's music is licensed under the **Creative Commons Attribution 4.0 International License (CC BY 4.0)**.
-
-Music and sound effects are credited to:
-
-**stuffbymax / Martin Petik**
-
-See the relevant project files for attribution and individual asset licensing information.
-
-Some sound effects are third-party assets and may have their own licenses. Check the [`sfx/`](sfx/) directory and associated information before redistributing individual assets.
-
-- [The code and animation is under MIT](./LICENSE)
-- [The music and SFX is under CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/)
-- The ASCII animation is AI-generated. because i suck at art
-
----
-
-## Support the Project
-
-If you enjoy Bash Theft Auto, consider giving the repository a ⭐ on GitHub!
-
-**Repository:**
-https://github.com/stuffbymax/Bash-Theft-Auto
-
----
-
-## Have Fun
-
-```text
-██████╗  █████╗ ███████╗██╗  ██╗    ████████╗██╗  ██╗███████╗███████╗████████╗     █████╗ ██╗   ██╗████████╗ ██████╗ 
-██╔══██╗██╔══██╗██╔════╝██║  ██║    ╚══██╔══╝██║  ██║██╔════╝██╔════╝╚══██╔══╝    ██╔══██╗██║   ██║╚══██╔══╝██╔═══██╗
-██████╔╝███████║███████╗███████║       ██║   ███████║█████╗  █████╗     ██║       ███████║██║   ██║   ██║   ██║   ██║
-██╔══██╗██╔══██║╚════██║██╔══██║       ██║   ██╔══██║██╔══╝  ██╔══╝     ██║       ██╔══██║██║   ██║   ██║   ██║   ██║
-██████╔╝██║  ██║███████║██║  ██║       ██║   ██║  ██║███████╗██║        ██║       ██║  ██║╚██████╔╝   ██║   ╚██████╔╝
-╚═════╝ ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝       ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝        ╚═╝       ╚═╝  ╚═╝ ╚═════╝    ╚═╝    ╚═════╝ 
-                                                                                                                     
-        BASH THEFT AUTO
-
-   The terminal is your city.
-```
-
-**Start the game:**
-
-```bash
-./bta.sh
-```
+Have fun, and remember: **the terminal is your city.**
