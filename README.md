@@ -211,6 +211,7 @@ requirements; check the files in [`sfx/`](sfx/) before redistributing them.
 ## Links
 
 - [Repository](https://github.com/stuffbymax/Bash-Theft-Auto)
+- [Release notes](RELEASE_NOTES.md)
 - [Installation notes](how-to-install.md)
 - [Developer resources](for-devs/)
 - [Plugins](plugins/)
